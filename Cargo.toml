@@ -1,5 +1,5 @@
 [package]
-name = "synthesizer-core-rust"
+name = "synthesizer_core"
 version = "0.1.0"
 authors = ["Tomoyuki Hata <hato6502@gmail.com>"]
 edition = "2018"

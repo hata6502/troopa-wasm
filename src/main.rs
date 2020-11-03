@@ -1,35 +1,15 @@
-mod synthesizer_core {
-    const COMPONENT_IN_PORT_LENGTH: usize = 8;
-    const COMPONENT_REGISTER_LENGTH: usize = 8;
+const COMPONENT_LENGTH: usize = 4096;
 
-    pub enum ComponentType {
-        Mixer,
-        Sine,
-    }
+use synthesizer_core::*;
 
-    pub struct Component<'a> {
-        component_type: ComponentType,
-        in_ports: [InPort<'a>; COMPONENT_IN_PORT_LENGTH],
-        out_port: OutPort<'a>,
-        registers: [f64; COMPONENT_REGISTER_LENGTH],
-    }
-
-    struct InPort<'a> {
-        component: &'a Component<'a>,
-        out_port: &'a OutPort<'a>,
-    }
-
-    struct OutPort<'a> {
-        pub in_ports: Vec<&'a InPort<'a>>,
-        value: f64,
-    }
-}
+const COMPONENT: Component = Component::new();
+static mut COMPONENTS: [Component; COMPONENT_LENGTH] = [COMPONENT; COMPONENT_LENGTH];
 
 fn main() {
-    let component = synthesizer_core::Component {
-        component_type: synthesizer_core::ComponentType::Mixer,
-        in_ports: 0,
-        out_port: 0,
-        registers: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    };
+    unsafe {
+        COMPONENTS[0].component_type = ComponentType::Mixer;
+        COMPONENTS[1].component_type = ComponentType::Sine;
+
+        COMPONENTS[0].connect(&COMPONENTS[1], 0);
+    }
 }
