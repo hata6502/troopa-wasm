@@ -1,28 +1,32 @@
 const COMPONENT_INPUT_LENGTH: usize = 8;
 const COMPONENT_REGISTER_LENGTH: usize = 8;
 
+use std::cell::RefCell;
+use std::rc::Weak;
+
 pub enum ComponentType {
     Mixer,
     Sine,
 }
 
-pub struct Component<'a> {
-    pub component_type: ComponentType,
-    inputs: [Option<&'a Component<'a>>; COMPONENT_INPUT_LENGTH],
+pub struct Component {
+    component_type: ComponentType,
+    inputs: [Option<Weak<RefCell<Component>>>; COMPONENT_INPUT_LENGTH],
     registers: [f64; COMPONENT_REGISTER_LENGTH],
 }
 
-impl Component<'_> {
-    pub const fn new() -> Self {
+impl Component {
+    pub const fn new(component_type: ComponentType) -> Self {
+        const INPUT: Option<Weak<RefCell<Component>>> = None;
+
         Component {
-            // TODO: use NOP component
-            component_type: ComponentType::Mixer,
-            inputs: [None; COMPONENT_REGISTER_LENGTH],
+            component_type,
+            inputs: [INPUT; COMPONENT_REGISTER_LENGTH],
             registers: [0.0; COMPONENT_REGISTER_LENGTH],
         }
     }
 
-    pub fn connect(&mut self, component: &'static Component, index: usize) {
+    pub fn connect(&mut self, component: Weak<RefCell<Component>>, index: usize) {
         self.inputs[index] = Some(component);
     }
 }
