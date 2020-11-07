@@ -8,9 +8,14 @@ fn main() {
     components.push(Rc::new(RefCell::new(Component::new(ComponentType::Mixer))));
     components.push(Rc::new(RefCell::new(Component::new(ComponentType::Mixer))));
 
-    println!("{0}", components.len());
-
-    components[0]
-        .borrow_mut()
-        .connect(Rc::downgrade(&components[1]), 2);
+    Component::connect(
+        2,
+        Rc::downgrade(&components[0]),
+        Rc::downgrade(&components[1]),
+    );
+    Component::connect(
+        2,
+        Rc::downgrade(&components[1]),
+        Rc::downgrade(&components[0]),
+    );
 }
