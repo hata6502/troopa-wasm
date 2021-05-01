@@ -110,29 +110,15 @@ impl Component {
                 }
             }
             ComponentType::Saw => {
-                self.registers[0] += 2.0
-                    * f64::consts::PI
-                    * self.get_input_value(1)
-                    * self.get_input_value(COMPONENT_DIFF_TIME_INDEX);
-                self.registers[0] %= 2.0 * f64::consts::PI;
-
+                self.update_phase();
                 (self.registers[0] - f64::consts::PI) / f64::consts::PI
             }
             ComponentType::Sine => {
-                self.registers[0] += 2.0
-                    * f64::consts::PI
-                    * self.get_input_value(1)
-                    * self.get_input_value(COMPONENT_DIFF_TIME_INDEX);
-                self.registers[0] %= 2.0 * f64::consts::PI;
-
+                self.update_phase();
                 self.registers[0].sin()
             }
             ComponentType::Square => {
-                self.registers[0] += 2.0
-                    * f64::consts::PI
-                    * self.get_input_value(1)
-                    * self.get_input_value(COMPONENT_DIFF_TIME_INDEX);
-                self.registers[0] %= 2.0 * f64::consts::PI;
+                self.update_phase();
 
                 if self.registers[0] < f64::consts::PI {
                     1.0
@@ -142,11 +128,7 @@ impl Component {
             }
             ComponentType::Subtractor => self.get_input_value(1) - self.get_input_value(2),
             ComponentType::Triangle => {
-                self.registers[0] += 2.0
-                    * f64::consts::PI
-                    * self.get_input_value(1)
-                    * self.get_input_value(COMPONENT_DIFF_TIME_INDEX);
-                self.registers[0] %= 2.0 * f64::consts::PI;
+                self.update_phase();
 
                 if self.registers[0] < f64::consts::PI {
                     self.registers[0] * 2.0 / f64::consts::PI - 1.0
@@ -158,6 +140,14 @@ impl Component {
         };
 
         self.set_output_value(output_value)
+    }
+
+    fn update_phase(&mut self) {
+        self.registers[0] += 2.0
+            * f64::consts::PI
+            * self.get_input_value(1)
+            * self.get_input_value(COMPONENT_DIFF_TIME_INDEX);
+        self.registers[0] %= 2.0 * f64::consts::PI;
     }
 }
 
