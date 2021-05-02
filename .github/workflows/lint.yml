@@ -1,11 +1,6 @@
-name: Lint Code Base
+name: Lint
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
 jobs:
   lint:
     runs-on: ubuntu-20.04
@@ -15,5 +10,7 @@ jobs:
         env:
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_JAVASCRIPT_STANDARD: false
+          VALIDATE_TYPESCRIPT_STANDARD: false
         with:
           entrypoint: /action/lib/linter.sh
