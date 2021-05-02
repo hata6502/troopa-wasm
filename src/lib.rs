@@ -1,9 +1,12 @@
 const COMPONENT_INPUT_LENGTH: usize = 8;
 const COMPONENT_REGISTER_LENGTH: usize = 8;
 
+extern crate wasm_bindgen;
+
 use rand::Rng;
 use std::collections::VecDeque;
 use std::f64;
+use wasm_bindgen::prelude::*;
 
 pub enum ComponentType {
     Amplifier,
@@ -110,7 +113,7 @@ impl Component {
             ComponentType::UpperSaturator => self.input_values[1].min(self.input_values[2]),
         };
 
-        if self.output_value == next_output_value {
+        if (self.output_value - next_output_value).abs() < f64::EPSILON {
             return Vec::new();
         };
 
