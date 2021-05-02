@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "noPropertyAccessFromIndexSignature": true,
+    "pretty": true,
+    "skipLibCheck": true,
+    "strict": true
+  }
+}

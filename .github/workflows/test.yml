@@ -8,9 +8,18 @@ on:
       - main
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - uses: icepuma/rust-action@master
+
+      - uses: actions/setup-node@v2
         with:
-          args: cargo fmt -- --check && cargo clippy -- -Dwarnings && cargo test
+          node-version: "14"
+      - run: npm install -g npm@7
+      - run: npm ci
+      - run: npm test
+      - run: npm test --workspaces
+
+      - uses: icepuma/rust-action@1.51.0
+        with:
+          args: cd packages/synthesizer-core-wasm && cargo fmt -- --check && cargo clippy -- -Dwarnings && cargo test

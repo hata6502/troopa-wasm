@@ -1,1 +1,1 @@
-# synthesizer-core-rust
+# troopa-wasm
