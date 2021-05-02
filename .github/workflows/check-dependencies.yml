@@ -11,6 +11,3 @@ jobs:
           node-version: "14"
       - run: npm install -g npm@7
       - uses: hata6502/no-broken-dependency-action@v5
-      - uses: hata6502/no-broken-dependency-action@v5
-        with:
-          directory: packages/website/
