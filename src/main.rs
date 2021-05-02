@@ -1,58 +1,22 @@
-use std::cell::RefCell;
-use std::rc::Rc;
 use synthesizer_core::*;
 
 fn main() {
-    let mut components = Vec::new();
+    let mut sketch = Sketch::new(44100.0);
 
-    components.push(Rc::new(RefCell::new(Component::new(
-        ComponentType::NoOperation,
-    ))));
-    components.push(Rc::new(RefCell::new(Component::new(ComponentType::Sine))));
+    let sine_1_index = sketch.create_component(ComponentType::Sine);
+    let sine_2_index = sketch.create_component(ComponentType::Sine);
 
-    connect(
-        1,
-        Rc::downgrade(&components[1]),
-        Rc::downgrade(&components[0]),
-    );
+    sketch.connect((sine_2_index, 1), sine_1_index);
 
-    let sampling_rate = 44100.0;
-    let diff_time_component = Rc::new(RefCell::new(Component::new(ComponentType::NoOperation)));
+    sketch.input_value((sine_1_index, 1), 440.0);
+    println!("{}", sketch.get_output_value(sine_1_index));
+    println!("{}", sketch.get_output_value(sine_2_index));
 
-    for component in &components {
-        connect(
-            COMPONENT_DIFF_TIME_INDEX,
-            Rc::downgrade(component),
-            Rc::downgrade(&diff_time_component),
-        );
-    }
+    sketch.next_tick();
+    println!("{}", sketch.get_output_value(sine_1_index));
+    println!("{}", sketch.get_output_value(sine_2_index));
 
-    let components_for_sync = components[0].borrow_mut().set_output_value(440.0);
-
-    sync(components_for_sync);
-    println!("{}", components[1].borrow().get_output_value());
-
-    let components_for_sync = diff_time_component
-        .borrow_mut()
-        .set_output_value(1.0 / sampling_rate);
-
-    sync(components_for_sync);
-    println!("{}", components[1].borrow().get_output_value());
-
-    let components_for_sync = diff_time_component.borrow_mut().set_output_value(0.0);
-
-    sync(components_for_sync);
-    println!("{}", components[1].borrow().get_output_value());
-
-    let components_for_sync = diff_time_component
-        .borrow_mut()
-        .set_output_value(1.0 / sampling_rate);
-
-    sync(components_for_sync);
-    println!("{}", components[1].borrow().get_output_value());
-
-    let components_for_sync = diff_time_component.borrow_mut().set_output_value(0.0);
-
-    sync(components_for_sync);
-    println!("{}", components[1].borrow().get_output_value());
+    sketch.next_tick();
+    println!("{}", sketch.get_output_value(sine_1_index));
+    println!("{}", sketch.get_output_value(sine_2_index));
 }
