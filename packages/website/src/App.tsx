@@ -6,15 +6,9 @@ import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import { memo } from "react";
 import type { FunctionComponent } from "react";
-import { Helmet } from "react-helmet";
-import { BrowserRouter, Switch, Route } from "react-router-dom";
-import { GitHubReport } from "./GitHubReport";
-import { NotFound } from "./NotFound";
 
 const App: FunctionComponent = memo(() => (
   <>
-    <Helmet defaultTitle="jscpd" titleTemplate="%s | jscpd" />
-
     <Box mb={4}>
       <AppBar color="inherit" position="static">
         <Toolbar>
@@ -38,19 +32,7 @@ const App: FunctionComponent = memo(() => (
       </AppBar>
     </Box>
 
-    <main>
-      <BrowserRouter>
-        <Switch>
-          <Route path="/github/:repositoryFullName([a-zA-Z0-9_\-]+/[a-zA-Z0-9_\-.]+)">
-            <GitHubReport />
-          </Route>
-
-          <Route path="*">
-            <NotFound />
-          </Route>
-        </Switch>
-      </BrowserRouter>
-    </main>
+    <main></main>
   </>
 ));
 
