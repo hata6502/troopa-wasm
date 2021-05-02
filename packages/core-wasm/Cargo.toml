@@ -1,10 +1,10 @@
 [package]
-name = "synthesizer-core-wasm"
+name = "core-wasm"
 version = "1.0.0"
 authors = ["Tomoyuki Hata <7702653+hata6502@users.noreply.github.com>"]
 edition = "2018"
 license = "MIT"
-repository = "https://github.com/hata6502/synthesizer-core-wasm"
+repository = "https://github.com/hata6502/troopa-wasm"
 
 [lib]
 crate-type = ["cdylib"]

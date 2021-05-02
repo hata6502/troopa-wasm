@@ -132,7 +132,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "synthesizer-core-wasm"
+name = "core-wasm"
 version = "1.0.0"
 dependencies = [
  "rand",
