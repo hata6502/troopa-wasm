@@ -1,0 +1,32 @@
+{
+  "name": "website",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "webpack --config webpack.prod.js",
+    "dev": "webpack serve --config webpack.dev.js",
+    "test": "tsc --noEmit"
+  },
+  "browserslist": [
+    "extends browserslist-config-google"
+  ],
+  "devDependencies": {
+    "@babel/core": "^7.14.0",
+    "@babel/preset-env": "^7.8.7",
+    "@babel/preset-react": "^7.8.3",
+    "@babel/preset-typescript": "^7.8.3",
+    "@material-ui/core": "^4.11.3",
+    "@sentry/react": "^6.2.3",
+    "@sentry/tracing": "^6.2.3",
+    "babel-loader": "^8.2.2",
+    "browserslist-config-google": "^3.0.1",
+    "core-js": "3",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "regenerator-runtime": "^0.13.5",
+    "webpack": "^5.27.2",
+    "webpack-cli": "^4.5.0",
+    "webpack-dev-server": "^3.11.2",
+    "webpack-merge": "^5.7.3"
+  }
+}
