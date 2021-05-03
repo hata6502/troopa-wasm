@@ -21,11 +21,11 @@ const main = async () => {
   core.truncate();
   core.init();
 
-  setInterval(() => {
+  /*setInterval(() => {
     core.next_tick();
     console.log(core.get_output_value(1));
     console.log(core.get_output_value(2));
-  }, 16);
+  }, 16);*/
 
   ReactDOM.render(
     <>

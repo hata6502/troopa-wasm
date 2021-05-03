@@ -1,39 +1,54 @@
-import AppBar from "@material-ui/core/AppBar";
-import Box from "@material-ui/core/Box";
-import Grid from "@material-ui/core/Grid";
-import Link from "@material-ui/core/Link";
-import Toolbar from "@material-ui/core/Toolbar";
-import Typography from "@material-ui/core/Typography";
-import { memo } from "react";
+import { AppBar, Button, Grid, Toolbar, Typography } from "@material-ui/core";
+import { memo, useCallback, useState } from "react";
 import type { FunctionComponent } from "react";
 
-const App: FunctionComponent = memo(() => (
-  <>
-    <Box mb={4}>
-      <AppBar color="inherit" position="static">
+const App: FunctionComponent = memo(() => {
+  const [audioContext, setAudioContext] = useState<AudioContext>();
+
+  const handlePlayButtonClick = useCallback(()=> {
+    const audioContext = new AudioContext();
+    const scriptNode = audioContext.createScriptProcessor(undefined, 0, 1);
+  
+    scriptNode.addEventListener('audioprocess', (event) => {
+      const channelData = event.outputBuffer.getChannelData(0);
+  
+      for (let i = 0; i < channelData.length; i++) {
+        channelData[i] = Math.sin(i++);
+      }
+    });
+  
+    scriptNode.connect(audioContext.destination);
+
+    setAudioContext(audioContext);
+  }, []);
+
+
+  const handleStopButtonClick = useCallback(()=> 
+    audioContext?.close()
+  , []);
+
+  return (
+    <>
+      <AppBar color="inherit" position="sticky">
         <Toolbar>
-          <Link
-            color="inherit"
-            href="https://github.com/hata6502/jscpd-service"
-            rel="noopener"
-            target="_blank"
-          >
-            <Grid container spacing={2} alignItems="baseline">
+          <Grid container spacing={2} alignItems="baseline">
               <Grid item>
-                <Typography variant="h6">jscpd</Typography>
+                <Typography variant="h6">troopa</Typography>
               </Grid>
 
               <Grid item>
-                <Typography variant="subtitle1">Copy/Paste Detector</Typography>
+                <Typography variant="subtitle1">web toy synthesizer</Typography>
               </Grid>
             </Grid>
-          </Link>
         </Toolbar>
       </AppBar>
-    </Box>
 
-    <main></main>
-  </>
-));
+      <main>
+        <Button onClick={handlePlayButtonClick}>Play</Button>
+        <Button onClick={handleStopButtonClick}>Stop</Button>
+      </main>
+    </>
+  );
+});
 
 export { App };
