@@ -6,11 +6,15 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+      - run: npm install -g npm@7
+      - run: npm ci
+
       - uses: docker://github/super-linter:v3
         env:
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_JAVASCRIPT_STANDARD: false
           VALIDATE_TYPESCRIPT_STANDARD: false
-        with:
-          entrypoint: /action/lib/linter.sh

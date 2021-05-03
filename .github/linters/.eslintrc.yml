@@ -1,0 +1,6 @@
+extends:
+  - eslint:recommended
+  - plugin:@typescript-eslint/recommended
+  - react-app
+rules:
+  react-hooks/exhaustive-deps: error
