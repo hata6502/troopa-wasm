@@ -16,17 +16,6 @@ const main = async () => {
     });
   }
 
-  const core = await import("core-wasm/core_wasm");
-
-  core.truncate();
-  core.init();
-
-  /*setInterval(() => {
-    core.next_tick();
-    console.log(core.get_output_value(1));
-    console.log(core.get_output_value(2));
-  }, 16);*/
-
   ReactDOM.render(
     <>
       <CssBaseline />

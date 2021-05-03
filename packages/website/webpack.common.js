@@ -7,6 +7,7 @@ module.exports = {
   entry: "./src/index.tsx",
   experiments: {
     syncWebAssembly: true,
+    topLevelAwait: true,
   },
   module: {
     rules: [
