@@ -221,11 +221,7 @@ impl Sketch {
     }
 
     fn next_tick(&mut self) {
-        self.input_value(
-            (Self::DIFF_TIME_COMPONENT_INDEX, 1),
-            1.0 / SAMPLING_RATE,
-        );
-
+        self.input_value((Self::DIFF_TIME_COMPONENT_INDEX, 1), 1.0 / SAMPLING_RATE);
         self.input_value((Self::DIFF_TIME_COMPONENT_INDEX, 1), 0.0);
     }
 

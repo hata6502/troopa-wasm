@@ -22,7 +22,9 @@ const App: FunctionComponent = memo(() => {
     setAudioContext(audioContext);
   }, []);
 
-  const handleStopButtonClick = useCallback(() => audioContext?.close(), []);
+  const handleStopButtonClick = useCallback(() => audioContext?.close(), [
+    audioContext,
+  ]);
 
   return (
     <>

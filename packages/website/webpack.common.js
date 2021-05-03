@@ -1,4 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const CopyPlugin = require("copy-webpack-plugin");
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { EnvironmentPlugin } = require("webpack");
 
 module.exports = {
