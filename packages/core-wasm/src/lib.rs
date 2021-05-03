@@ -1,14 +1,22 @@
 const COMPONENT_INPUT_LENGTH: usize = 8;
+const COMPONENT_OUTPUT_LENGTH: usize = 8;
 const COMPONENT_REGISTER_LENGTH: usize = 8;
+
+const SKETCH_COMPONENT_LENGTH: usize = 1024;
+
+const SAMPLING_RATE: f64 = 44100.0;
 
 extern crate wasm_bindgen;
 
+use once_cell::sync::Lazy;
 use rand::Rng;
 use std::collections::VecDeque;
 use std::f64;
+use std::sync::Mutex;
 use wasm_bindgen::prelude::*;
 
-pub enum ComponentType {
+#[derive(Clone, Copy)]
+enum ComponentType {
     Amplifier,
     Buffer,
     Differentiator,
@@ -26,28 +34,31 @@ pub enum ComponentType {
     UpperSaturator,
 }
 
-pub struct Component {
+#[derive(Clone, Copy)]
+struct Component {
     component_type: ComponentType,
     input_values: [f64; COMPONENT_INPUT_LENGTH],
     output_value: f64,
-    output_indexes: Vec<(usize, usize)>,
+    output_destinations: [(usize, usize); COMPONENT_OUTPUT_LENGTH],
+    output_destination_length: usize,
     registers: [f64; COMPONENT_REGISTER_LENGTH],
 }
 
 impl Component {
     const DIFF_TIME_INPUT_INDEX: usize = 0;
 
-    pub const fn new(component_type: ComponentType) -> Self {
+    const fn new(component_type: ComponentType) -> Self {
         Component {
             component_type,
             input_values: [0.0; COMPONENT_REGISTER_LENGTH],
             output_value: 0.0,
-            output_indexes: Vec::new(),
+            output_destinations: [(0, 0); COMPONENT_OUTPUT_LENGTH],
+            output_destination_length: 0,
             registers: [0.0; COMPONENT_REGISTER_LENGTH],
         }
     }
 
-    fn sync(&mut self) -> Vec<(usize, usize)> {
+    fn sync(&mut self) -> bool {
         let next_output_value = match self.component_type {
             ComponentType::Amplifier => self.input_values[1] * self.input_values[2],
             ComponentType::Buffer => {
@@ -113,12 +124,10 @@ impl Component {
             ComponentType::UpperSaturator => self.input_values[1].min(self.input_values[2]),
         };
 
-        if (self.output_value - next_output_value).abs() < f64::EPSILON {
-            return Vec::new();
-        };
+        let is_changed = (self.output_value - next_output_value).abs() >= f64::EPSILON;
 
         self.output_value = next_output_value;
-        self.output_indexes.clone()
+        is_changed
     }
 
     fn update_phase(&mut self) {
@@ -131,38 +140,47 @@ impl Component {
     }
 }
 
-pub struct Sketch {
-    components: Vec<Component>,
-    sampling_rate: f64,
+#[derive(Clone, Copy)]
+struct Sketch {
+    components: [Component; SKETCH_COMPONENT_LENGTH],
+    component_length: usize,
 }
 
 impl Sketch {
     const DIFF_TIME_COMPONENT_INDEX: usize = 0;
 
-    pub fn new(sampling_rate: f64) -> Self {
+    fn new() -> Self {
         let mut sketch = Sketch {
-            components: Vec::new(),
-            sampling_rate,
+            components: [Component::new(ComponentType::Distributor); SKETCH_COMPONENT_LENGTH],
+            component_length: 0,
         };
 
-        assert_eq!(
-            sketch.create_component(ComponentType::Distributor),
-            Self::DIFF_TIME_COMPONENT_INDEX
-        );
-
+        sketch.init();
         sketch
     }
 
-    pub fn connect(&mut self, input_index: (usize, usize), output_component_index: usize) {
-        self.components[output_component_index]
-            .output_indexes
-            .push(input_index);
+    fn init(&mut self) {
+        assert_eq!(
+            self.create_component(ComponentType::Distributor),
+            Self::DIFF_TIME_COMPONENT_INDEX
+        );
     }
 
-    pub fn create_component(&mut self, component_type: ComponentType) -> usize {
-        let index = self.components.len();
+    fn connect(&mut self, input_destination: (usize, usize), output_component_index: usize) {
+        let output_destination_index =
+            self.components[output_component_index].output_destination_length;
 
-        self.components.push(Component::new(component_type));
+        self.components[output_component_index].output_destinations[output_destination_index] =
+            input_destination;
+
+        self.components[output_component_index].output_destination_length += 1;
+    }
+
+    fn create_component(&mut self, component_type: ComponentType) -> usize {
+        let index = self.component_length;
+
+        self.components[index] = Component::new(component_type);
+        self.component_length += 1;
 
         self.connect(
             (index, Component::DIFF_TIME_INPUT_INDEX),
@@ -172,35 +190,76 @@ impl Sketch {
         index
     }
 
-    pub fn get_output_value(&self, index: usize) -> f64 {
+    fn get_output_value(&self, index: usize) -> f64 {
         self.components[index].output_value
     }
 
-    pub fn input_value(&mut self, index: (usize, usize), value: f64) {
-        self.components[index.0].input_values[index.1] = value;
+    fn input_value(&mut self, initial_destination: (usize, usize), value: f64) {
+        self.components[initial_destination.0].input_values[initial_destination.1] = value;
 
         let mut sync_queue = VecDeque::new();
 
-        sync_queue.push_back(index);
+        sync_queue.push_back(initial_destination);
 
-        while let Some(index) = sync_queue.pop_front() {
-            let next_indexes = self.components[index.0].sync();
+        while let Some(destination) = sync_queue.pop_front() {
+            let is_changed = self.components[destination.0].sync();
 
-            for next_index in &next_indexes {
-                self.components[next_index.0].input_values[next_index.1] =
-                    self.components[index.0].output_value;
+            for output_destination_index in
+                0..self.components[destination.0].output_destination_length
+            {
+                let output_destination =
+                    self.components[destination.0].output_destinations[output_destination_index];
+
+                self.components[output_destination.0].input_values[output_destination.1] =
+                    self.components[destination.0].output_value;
+
+                if is_changed {
+                    sync_queue.push_back(output_destination);
+                };
             }
-
-            sync_queue.append(&mut next_indexes.into_iter().collect());
         }
     }
 
-    pub fn next_tick(&mut self) {
+    fn next_tick(&mut self) {
         self.input_value(
             (Self::DIFF_TIME_COMPONENT_INDEX, 1),
-            1.0 / self.sampling_rate,
+            1.0 / SAMPLING_RATE,
         );
 
         self.input_value((Self::DIFF_TIME_COMPONENT_INDEX, 1), 0.0);
     }
+
+    fn truncate(&mut self) {
+        self.component_length = 0;
+        self.init();
+    }
+}
+
+static SKETCH: Lazy<Mutex<Sketch>> = Lazy::new(|| Mutex::new(Sketch::new()));
+
+#[wasm_bindgen]
+pub fn init() {
+    let mut sketch = SKETCH.lock().unwrap();
+
+    let sine_component_1 = sketch.create_component(ComponentType::Sine);
+    let sine_component_2 = sketch.create_component(ComponentType::Sine);
+
+    sketch.connect((sine_component_2, 1), sine_component_1);
+
+    sketch.input_value((sine_component_1, 1), 440.0);
+}
+
+#[wasm_bindgen]
+pub fn get_output_value(index: usize) -> f64 {
+    SKETCH.lock().unwrap().get_output_value(index)
+}
+
+#[wasm_bindgen]
+pub fn next_tick() {
+    SKETCH.lock().unwrap().next_tick()
+}
+
+#[wasm_bindgen]
+pub fn truncate() {
+    SKETCH.lock().unwrap().truncate()
 }

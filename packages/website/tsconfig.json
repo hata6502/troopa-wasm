@@ -2,10 +2,10 @@
   "extends": "../../tsconfig",
   "compilerOptions": {
     "jsx": "react-jsx",
-    "lib": ["DOM", "ESNext"],
-    "module": "ESNext",
+    "lib": ["DOM", "ES2020"],
+    "module": "ES2020",
     "outDir": "dist",
     "sourceMap": true,
-    "target": "ESNext"
+    "target": "ES2020"
   }
 }

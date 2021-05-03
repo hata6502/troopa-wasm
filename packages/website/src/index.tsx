@@ -7,7 +7,7 @@ import { Integrations } from "@sentry/tracing";
 import ReactDOM from "react-dom";
 import { App } from "./App";
 
-const main = () => {
+const main = async () => {
   if (process.env["NODE_ENV"] === "production") {
     Sentry.init({
       dsn: process.env["SENTRY_DSN"],
@@ -15,6 +15,17 @@ const main = () => {
       tracesSampleRate: 1.0,
     });
   }
+
+  const core = await import("core-wasm/core_wasm");
+
+  core.truncate();
+  core.init();
+
+  setInterval(() => {
+    core.next_tick();
+    console.log(core.get_output_value(1));
+    console.log(core.get_output_value(2));
+  }, 16);
 
   ReactDOM.render(
     <>

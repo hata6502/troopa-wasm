@@ -3,6 +3,9 @@ const { EnvironmentPlugin } = require("webpack");
 
 module.exports = {
   entry: "./src/index.tsx",
+  experiments: {
+    syncWebAssembly: true,
+  },
   module: {
     rules: [
       {
@@ -26,6 +29,10 @@ module.exports = {
             "@babel/preset-typescript",
           ],
         },
+      },
+      {
+        test: /\.wasm$/,
+        type: "webassembly/sync",
       },
     ],
   },
