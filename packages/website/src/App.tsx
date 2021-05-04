@@ -123,14 +123,14 @@ const App: FunctionComponent = memo(() => {
     []
   );
 
-  const handleStopButtonClick = useCallback(() => {
+  const handleStopButtonClick = useCallback(async () => {
     if (!player) {
       return;
     }
 
-      closePlayer({ player });
+    await closePlayer({ player });
     setPlayer(undefined);
-  }, []);
+  }, [player]);
 
   return (
     <>

@@ -114,11 +114,17 @@ interface ComponentDataBase<
 type ComponentData =
   | ComponentDataBase<typeof componentType.amplifier, Record<string, never>>
   | ComponentDataBase<typeof componentType.buffer, Record<string, never>>
-  | ComponentDataBase<typeof componentType.differentiator, Record<string, never>>
+  | ComponentDataBase<
+      typeof componentType.differentiator,
+      Record<string, never>
+    >
   | ComponentDataBase<typeof componentType.distributor, Record<string, never>>
   | ComponentDataBase<typeof componentType.divider, Record<string, never>>
   | ComponentDataBase<typeof componentType.integrator, Record<string, never>>
-  | ComponentDataBase<typeof componentType.lowerSaturator, Record<string, never>>
+  | ComponentDataBase<
+      typeof componentType.lowerSaturator,
+      Record<string, never>
+    >
   | ComponentDataBase<typeof componentType.mixer, Record<string, never>>
   | ComponentDataBase<typeof componentType.noise, Record<string, never>>
   | ComponentDataBase<typeof componentType.saw, Record<string, never>>
@@ -126,7 +132,10 @@ type ComponentData =
   | ComponentDataBase<typeof componentType.square, Record<string, never>>
   | ComponentDataBase<typeof componentType.subtractor, Record<string, never>>
   | ComponentDataBase<typeof componentType.triangle, Record<string, never>>
-  | ComponentDataBase<typeof componentType.upperSaturator, Record<string, never>>
+  | ComponentDataBase<
+      typeof componentType.upperSaturator,
+      Record<string, never>
+    >
   | ComponentDataBase<typeof componentType.input, { value: number }>
   | ComponentDataBase<typeof componentType.keyboard, Record<string, never>>
   | ComponentDataBase<typeof componentType.speaker, Record<string, never>>

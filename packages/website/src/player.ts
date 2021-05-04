@@ -1,6 +1,6 @@
-import type {SketchData} from './App';
-import {componentType, distributorComponentInInput} from './componentInfo';
-import type {ComponentData} from './componentInfo';
+import type { SketchData } from "./App";
+import { componentType, distributorComponentInInput } from "./componentInfo";
+import type { ComponentData } from "./componentInfo";
 
 const core = await import("core-wasm/core_wasm");
 
@@ -17,7 +17,7 @@ const inputValueToPlayer = ({
   player: Player;
   componentID: ComponentData["id"];
   value: number;
-}) => {
+}): void => {
   const componentIndex = player.componentIndexMap.get(componentID);
 
   if (componentIndex === undefined) {
@@ -27,7 +27,7 @@ const inputValueToPlayer = ({
   core.input_value(componentIndex, distributorComponentInInput, value);
 };
 
-const initPlayer = ({sketchData}: {sketchData: SketchData}) => {
+const initPlayer = ({ sketchData }: { sketchData: SketchData }): Player => {
   const audioContext = new AudioContext();
 
   core.init(audioContext.sampleRate);
@@ -68,6 +68,7 @@ const initPlayer = ({sketchData}: {sketchData: SketchData}) => {
         }
 
         default: {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const exhaustiveCheck: never = component;
 
           throw new Error();
@@ -76,7 +77,7 @@ const initPlayer = ({sketchData}: {sketchData: SketchData}) => {
     })
   );
 
-  const player: Player = { audioContext, componentIndexMap }
+  const player: Player = { audioContext, componentIndexMap };
 
   sketchData.components.forEach((component) =>
     component.outputDestinations.forEach((outputDestination) => {
@@ -143,6 +144,7 @@ const initPlayer = ({sketchData}: {sketchData: SketchData}) => {
       }
 
       default: {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const exhaustiveCheck: never = component;
 
         throw new Error();
@@ -150,17 +152,15 @@ const initPlayer = ({sketchData}: {sketchData: SketchData}) => {
     }
   });
 
-  if (outputComponentIndex === undefined) {
-    // TODO: Display error alert
-    return;
-  }
-
-  const freezedOutputComponentIndex = outputComponentIndex;
   const scriptNode = audioContext.createScriptProcessor(undefined, 0, 1);
 
   scriptNode.addEventListener("audioprocess", (event) => {
+    if (outputComponentIndex === undefined) {
+      return ;
+    }
+
     const bufferSize = event.outputBuffer.getChannelData(0).length;
-    const buffer = core.process(bufferSize, freezedOutputComponentIndex);
+    const buffer = core.process(bufferSize, outputComponentIndex);
 
     event.outputBuffer.copyToChannel(buffer, 0);
   });
@@ -170,10 +170,7 @@ const initPlayer = ({sketchData}: {sketchData: SketchData}) => {
   return player;
 };
 
-const closePlayer = ({player}: {player: Player}) => {
-  player.audioContext.close();
-  //setPlayer(undefined);
-};
+const closePlayer = ({ player }: { player: Player }): Promise<void> => player.audioContext.close();
 
-export {initPlayer, closePlayer, inputValueToPlayer};
-export type {Player};
+export { initPlayer, closePlayer, inputValueToPlayer };
+export type { Player };

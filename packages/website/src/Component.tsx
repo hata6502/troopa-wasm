@@ -4,16 +4,20 @@ import {
   CardContent,
   TextField,
   Typography,
-  makeStyles
+  makeStyles,
 } from "@material-ui/core";
 import type { FunctionComponent, ReactNode } from "react";
-import {  ArcherElement } from "react-archer";
+import { ArcherElement } from "react-archer";
 import Draggable from "react-draggable";
 import type { DraggableEventHandler } from "react-draggable";
-import {inputValueToPlayer} from './player';
-import type {Player} from './player';
-import {componentInputNames, componentType, diffTimeInput} from './componentInfo';
-import type {ComponentData} from './componentInfo';
+import { inputValueToPlayer } from "./player";
+import type { Player } from "./player";
+import {
+  componentInputNames,
+  componentType,
+  diffTimeInput,
+} from "./componentInfo";
+import type { ComponentData } from "./componentInfo";
 
 const useStyles = makeStyles({
   card: {
@@ -78,6 +82,7 @@ const Component: FunctionComponent<{
     }
 
     default: {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const exhaustiveCheck: never = data;
 
       throw new Error();
@@ -127,4 +132,4 @@ const Component: FunctionComponent<{
   );
 };
 
-export {Component};
+export { Component };

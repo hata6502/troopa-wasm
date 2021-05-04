@@ -16,5 +16,9 @@ jobs:
         env:
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          JAVASCRIPT_DEFAULT_STYLE: prettier
-          LINTER_RULES_PATH: 
+          LINTER_RULES_PATH:
+          VALIDATE_JAVASCRIPT_STANDARD: false
+          VALIDATE_JSCPD: false
+          VALIDATE_TYPESCRIPT_STANDARD: false
+        with:
+          entrypoint: /action/lib/linter.sh
