@@ -1,12 +1,12 @@
-import type { SketchData } from "./App";
-import { componentType, distributorComponentInInput } from "./componentInfo";
-import type { ComponentData } from "./componentInfo";
+import { componentType, distributorComponentInInput } from "./component";
+import type { Component } from "./component";
+import type { Sketch } from "./sketch";
 
 const core = await import("core-wasm/core_wasm");
 
 interface Player {
   audioContext: AudioContext;
-  componentIndexMap: Map<ComponentData["id"], number>;
+  componentIndexMap: Map<Component["id"], number>;
 }
 
 const inputValueToPlayer = ({
@@ -15,7 +15,7 @@ const inputValueToPlayer = ({
   value,
 }: {
   player: Player;
-  componentID: ComponentData["id"];
+  componentID: Component["id"];
   value: number;
 }): void => {
   const componentIndex = player.componentIndexMap.get(componentID);
@@ -27,13 +27,13 @@ const inputValueToPlayer = ({
   core.input_value(componentIndex, distributorComponentInInput, value);
 };
 
-const initPlayer = ({ sketchData }: { sketchData: SketchData }): Player => {
+const initPlayer = ({ sketch }: { sketch: Sketch }): Player => {
   const audioContext = new AudioContext();
 
   core.init(audioContext.sampleRate);
 
   const componentIndexMap = new Map(
-    sketchData.components.map((component) => {
+    sketch.components.map((component) => {
       switch (component.implementation) {
         case componentType.amplifier:
         case componentType.buffer:
@@ -79,7 +79,7 @@ const initPlayer = ({ sketchData }: { sketchData: SketchData }): Player => {
 
   const player: Player = { audioContext, componentIndexMap };
 
-  sketchData.components.forEach((component) =>
+  sketch.components.forEach((component) =>
     component.outputDestinations.forEach((outputDestination) => {
       const inputComponentIndex = componentIndexMap.get(
         outputDestination.componentID
@@ -104,13 +104,13 @@ const initPlayer = ({ sketchData }: { sketchData: SketchData }): Player => {
 
   let outputComponentIndex: number | undefined;
 
-  sketchData.components.forEach((component) => {
+  sketch.components.forEach((component) => {
     switch (component.implementation) {
       case componentType.input: {
         inputValueToPlayer({
           player,
           componentID: component.id,
-          value: component.extendedData.value,
+          value: Number(component.extendedData.value),
         });
 
         break;
@@ -156,7 +156,7 @@ const initPlayer = ({ sketchData }: { sketchData: SketchData }): Player => {
 
   scriptNode.addEventListener("audioprocess", (event) => {
     if (outputComponentIndex === undefined) {
-      return ;
+      return;
     }
 
     const bufferSize = event.outputBuffer.getChannelData(0).length;
@@ -170,7 +170,8 @@ const initPlayer = ({ sketchData }: { sketchData: SketchData }): Player => {
   return player;
 };
 
-const closePlayer = ({ player }: { player: Player }): Promise<void> => player.audioContext.close();
+const closePlayer = ({ player }: { player: Player }): Promise<void> =>
+  player.audioContext.close();
 
 export { initPlayer, closePlayer, inputValueToPlayer };
 export type { Player };

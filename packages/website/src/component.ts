@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from "uuid";
+
 const componentType = {
   // Core components
   amplifier: 0,
@@ -97,56 +99,108 @@ const componentInputNames = {
   [componentType.scope]: [diffTimeInputName, "in"],
 };
 
-interface ComponentDataBase<
+interface OutputDestination {
+  componentID: string;
+  inputIndex: number;
+}
+
+interface ComponentBase<
   Implementation extends ComponentType,
   ExtendedData extends Record<string, unknown>
 > {
   id: string;
   name: string;
   implementation: Implementation;
-  outputDestinations: {
-    componentID: string;
-    inputIndex: number;
+  inputs: {
+    connected: boolean;
   }[];
+  outputDestinations: OutputDestination[];
   extendedData: ExtendedData;
 }
 
-type ComponentData =
-  | ComponentDataBase<typeof componentType.amplifier, Record<string, never>>
-  | ComponentDataBase<typeof componentType.buffer, Record<string, never>>
-  | ComponentDataBase<
-      typeof componentType.differentiator,
-      Record<string, never>
-    >
-  | ComponentDataBase<typeof componentType.distributor, Record<string, never>>
-  | ComponentDataBase<typeof componentType.divider, Record<string, never>>
-  | ComponentDataBase<typeof componentType.integrator, Record<string, never>>
-  | ComponentDataBase<
-      typeof componentType.lowerSaturator,
-      Record<string, never>
-    >
-  | ComponentDataBase<typeof componentType.mixer, Record<string, never>>
-  | ComponentDataBase<typeof componentType.noise, Record<string, never>>
-  | ComponentDataBase<typeof componentType.saw, Record<string, never>>
-  | ComponentDataBase<typeof componentType.sine, Record<string, never>>
-  | ComponentDataBase<typeof componentType.square, Record<string, never>>
-  | ComponentDataBase<typeof componentType.subtractor, Record<string, never>>
-  | ComponentDataBase<typeof componentType.triangle, Record<string, never>>
-  | ComponentDataBase<
-      typeof componentType.upperSaturator,
-      Record<string, never>
-    >
-  | ComponentDataBase<typeof componentType.input, { value: number }>
-  | ComponentDataBase<typeof componentType.keyboard, Record<string, never>>
-  | ComponentDataBase<typeof componentType.speaker, Record<string, never>>
-  | ComponentDataBase<typeof componentType.meter, Record<string, never>>
-  | ComponentDataBase<typeof componentType.scope, Record<string, never>>;
+type Component =
+  | ComponentBase<typeof componentType.amplifier, Record<string, never>>
+  | ComponentBase<typeof componentType.buffer, Record<string, never>>
+  | ComponentBase<typeof componentType.differentiator, Record<string, never>>
+  | ComponentBase<typeof componentType.distributor, Record<string, never>>
+  | ComponentBase<typeof componentType.divider, Record<string, never>>
+  | ComponentBase<typeof componentType.integrator, Record<string, never>>
+  | ComponentBase<typeof componentType.lowerSaturator, Record<string, never>>
+  | ComponentBase<typeof componentType.mixer, Record<string, never>>
+  | ComponentBase<typeof componentType.noise, Record<string, never>>
+  | ComponentBase<typeof componentType.saw, Record<string, never>>
+  | ComponentBase<typeof componentType.sine, Record<string, never>>
+  | ComponentBase<typeof componentType.square, Record<string, never>>
+  | ComponentBase<typeof componentType.subtractor, Record<string, never>>
+  | ComponentBase<typeof componentType.triangle, Record<string, never>>
+  | ComponentBase<typeof componentType.upperSaturator, Record<string, never>>
+  | ComponentBase<typeof componentType.input, { value: string }>
+  | ComponentBase<typeof componentType.keyboard, Record<string, never>>
+  | ComponentBase<typeof componentType.speaker, Record<string, never>>
+  | ComponentBase<typeof componentType.meter, Record<string, never>>
+  | ComponentBase<typeof componentType.scope, Record<string, never>>;
+
+const createComponent = ({ type }: { type: ComponentType }): Component => {
+  const base = {
+    id: uuidv4(),
+    name: componentNames[type],
+    inputs: [],
+    outputDestinations: [],
+  };
+
+  switch (type) {
+    case componentType.input: {
+      return {
+        ...base,
+        implementation: type,
+        extendedData: {
+          value: "0",
+        },
+      };
+    }
+
+    case componentType.amplifier:
+    case componentType.buffer:
+    case componentType.differentiator:
+    case componentType.distributor:
+    case componentType.divider:
+    case componentType.integrator:
+    case componentType.lowerSaturator:
+    case componentType.mixer:
+    case componentType.noise:
+    case componentType.saw:
+    case componentType.sine:
+    case componentType.square:
+    case componentType.subtractor:
+    case componentType.triangle:
+    case componentType.upperSaturator:
+    case componentType.keyboard:
+    case componentType.speaker:
+    case componentType.meter:
+    case componentType.scope: {
+      return {
+        ...base,
+        implementation: type,
+        extendedData: {},
+      };
+    }
+
+    default: {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const exhaustiveCheck: never = type;
+
+      throw new Error();
+    }
+  }
+};
 
 export {
   componentInputNames,
+  componentNames,
   componentType,
+  createComponent,
   diffTimeInput,
   distributorComponentInInput,
 };
 
-export type { ComponentData };
+export type { Component, OutputDestination };
