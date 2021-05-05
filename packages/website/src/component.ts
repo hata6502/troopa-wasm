@@ -1,3 +1,4 @@
+import type { ControlPosition } from "react-draggable";
 import { v4 as uuidv4 } from "uuid";
 
 const componentType = {
@@ -111,10 +112,8 @@ interface ComponentBase<
   id: string;
   name: string;
   implementation: Implementation;
-  inputs: {
-    connected: boolean;
-  }[];
   outputDestinations: OutputDestination[];
+  position: ControlPosition,
   extendedData: ExtendedData;
 }
 
@@ -144,8 +143,8 @@ const createComponent = ({ type }: { type: ComponentType }): Component => {
   const base = {
     id: uuidv4(),
     name: componentNames[type],
-    inputs: [],
     outputDestinations: [],
+    position: {x: 0, y: 0}
   };
 
   switch (type) {

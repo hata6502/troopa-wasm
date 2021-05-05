@@ -2,60 +2,53 @@ import { componentType } from "./component";
 import type { Component } from "./component";
 
 interface Sketch {
-  name: string;
   components: Component[];
 }
 
 const initialSketch: Sketch = {
-  name: "test sketch",
   components: [
     {
-      id: "1",
+      id: "75e51c9e-5edf-345e-e4b8-7ed5716a3b0d",
       name: "input",
       implementation: 15,
-      // TODO
-      inputs: [],
       outputDestinations: [],
+      position: {x: 0, y: 0},
       extendedData: {
         value: "440",
       },
     },
     {
-      id: "2",
+      id: "05c98f49-b0c0-11da-ffc5-5833ac73a6ec",
       name: "input",
       implementation: 15,
-      // TODO
-      inputs: [],
       outputDestinations: [],
+      position: {x: 300, y: 0},
       extendedData: {
         value: "220",
       },
     },
     {
-      id: "3",
+      id: "ef8b1beb-391d-c62c-fd74-0579a569077b",
       name: "mixer",
       implementation: 7,
-      // TODO
-      inputs: [],
       outputDestinations: [],
+      position: {x: 0, y: 300},
       extendedData: {},
     },
     {
-      id: "4",
+      id: "df5bb750-e9fe-fbf3-26e0-bbd601fe98c9",
       name: "sine",
       implementation: 10,
-      // TODO
-      inputs: [],
       outputDestinations: [],
+      position: {x: 300, y: 300},
       extendedData: {},
     },
     {
-      id: "5",
+      id: "54720eee-e900-16b7-bc0f-d8617d7f08ea",
       name: "speaker",
       implementation: componentType.speaker,
-      // TODO
-      inputs: [],
       outputDestinations: [],
+      position: {x: 600, y: 600},
       extendedData: {},
     },
   ],

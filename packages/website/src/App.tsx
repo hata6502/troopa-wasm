@@ -12,15 +12,8 @@ import {
   makeStyles,
   useTheme,
 } from "@material-ui/core";
-import {
-  memo,
-  useCallback,
-  useMemo,
-  useReducer,
-  useRef,
-  useState,
-} from "react";
-import type { Dispatch, FunctionComponent, SetStateAction } from "react";
+import { memo, useCallback, useMemo, useRef, useState } from "react";
+import type { ChangeEventHandler, Dispatch, FunctionComponent, SetStateAction } from "react";
 import { ArcherContainer } from "react-archer";
 import type { ArcherContainerProps } from "react-archer";
 import { ComponentActions } from "./ComponentActions";
@@ -36,7 +29,6 @@ import type { Component, OutputDestination } from "./component";
 import { initPlayer, closePlayer } from "./player";
 import type { Player } from "./player";
 import { initialSketch } from "./sketch";
-import type { Sketch } from "./sketch";
 
 const drawerWidth = 200;
 
@@ -74,35 +66,8 @@ const useStyles = makeStyles(({ mixins, palette, spacing }) => ({
 }));
 
 const App: FunctionComponent = memo(() => {
-  const [sketch, dispatchSketch] = useReducer(
-    (prevSketch: Sketch, action: SetStateAction<Sketch>): Sketch => {
-      const sketch = typeof action === "function" ? action(prevSketch) : action;
-
-      return {
-        ...sketch,
-        components: sketch.components.map((component) => {
-          const inputLength =
-            componentInputNames[component.implementation].length;
-
-          return {
-            ...component,
-            inputs: [...Array(inputLength).keys()].map((index) => ({
-              connected: sketch.components.some((otherComponent) =>
-                otherComponent.outputDestinations.some(
-                  (outputDestination) =>
-                    outputDestination.componentID === component.id &&
-                    outputDestination.inputIndex === index
-                )
-              ),
-            })),
-          };
-        }),
-      };
-    },
-    initialSketch
-  );
-
   const [player, setPlayer] = useState<Player>();
+  const [sketch, setSketch] = useState(initialSketch);
 
   const archerContainerElement = useRef<ArcherContainer>(null);
 
@@ -131,9 +96,53 @@ const App: FunctionComponent = memo(() => {
     setPlayer(undefined);
   }, [player]);
 
+  const handleLoadInputChange: ChangeEventHandler<HTMLInputElement> = useCallback((event) => {
+    const files = event.target.files;
+
+    if (!files || files.length < 1) {
+      return ;
+    }
+
+    const fileReader = new FileReader();
+
+    fileReader.addEventListener('load', (event) => {
+      const result = fileReader.result;
+    
+      if (typeof result !== "string") {
+        throw new Error();
+      }
+
+      setSketch(JSON.parse(result));
+    });
+
+    fileReader.readAsText(files[0]);
+  }, []);
+
+  const handleSaveButtonClick = useCallback(async () => {
+    const url = URL.createObjectURL(
+      new Blob([JSON.stringify(sketch)], { type: "application/json" })
+    );
+
+    try {
+      const anchorElement = document.createElement("a");
+
+      anchorElement.download = `sketch.json`;
+      anchorElement.href = url;
+      document.body.append(anchorElement);
+
+      try {
+        anchorElement.click();
+      } finally {
+        anchorElement.remove();
+      }
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }, [sketch]);
+
   const removeConnections = useCallback(
     (targets: OutputDestination[]) =>
-      dispatchSketch((prevSketch) => ({
+      setSketch((prevSketch) => ({
         ...prevSketch,
         components: prevSketch.components.map((component) => ({
           ...component,
@@ -154,14 +163,17 @@ const App: FunctionComponent = memo(() => {
     ComponentContainerProps["onRemoveComponentRequest"]
   > = useCallback(
     (event) => {
+      const inputLength =
+        componentInputNames[event.component.implementation].length;
+
       removeConnections(
-        [...Array(event.component.inputs.length).keys()].map((index) => ({
+        [...Array(inputLength).keys()].map((index) => ({
           componentID: event.component.id,
           inputIndex: index,
         }))
       );
 
-      dispatchSketch((prevSketch) => ({
+      setSketch((prevSketch) => ({
         ...prevSketch,
         components: prevSketch.components.filter(
           (component) => component.id !== event.component.id
@@ -175,7 +187,7 @@ const App: FunctionComponent = memo(() => {
     () =>
       Object.values(componentType).map((type) => {
         const handleClick = () =>
-          dispatchSketch((prevSketch) => {
+          setSketch((prevSketch) => {
             return {
               ...prevSketch,
               components: [...prevSketch.components, createComponent({ type })],
@@ -198,7 +210,7 @@ const App: FunctionComponent = memo(() => {
       component: T;
     }) => {
       const dispatchComponent: Dispatch<SetStateAction<T>> = (action) =>
-        dispatchSketch((prevSketch) => ({
+        setSketch((prevSketch) => ({
           ...prevSketch,
           components: prevSketch.components.map((prevComponent) => {
             const isComponentTarget = (
@@ -218,10 +230,11 @@ const App: FunctionComponent = memo(() => {
       return dispatchComponent;
     };
 
-    return sketch.components.map((component) => (
+    return sketch.components.map((component, index) => (
       <ComponentContainer
         key={component.id}
-        component={component}
+        sketch={sketch}
+        componentIndex={index}
         getDispatchComponent={getDispatchComponent}
         onDrag={handleComponentDrag}
         onRemoveComponentRequest={handleRemoveComponentRequest}
@@ -239,7 +252,7 @@ const App: FunctionComponent = memo(() => {
     handleRemoveComponentRequest,
     player,
     removeConnections,
-    sketch.components,
+    sketch,
   ]);
 
   return (
@@ -262,17 +275,29 @@ const App: FunctionComponent = memo(() => {
                 disabled={Boolean(player)}
                 onClick={handlePlayButtonClick}
               >
-                Play
+                play
+              </Button>
+            </Grid>
+
+            <Grid item>
+              <Button variant="contained" disabled={!player} onClick={handleStopButtonClick}>
+                stop
               </Button>
             </Grid>
 
             <Grid item>
               <Button
                 variant="contained"
-                disabled={!player}
-                onClick={handleStopButtonClick}
+                component="label"
               >
-                Stop
+                load
+                <input type="file" accept="application/json" hidden onChange={handleLoadInputChange} />
+              </Button>
+            </Grid>
+
+            <Grid item>
+              <Button variant="contained" onClick={handleSaveButtonClick}>
+                save
               </Button>
             </Grid>
           </Grid>

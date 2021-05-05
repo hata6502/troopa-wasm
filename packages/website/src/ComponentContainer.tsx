@@ -20,8 +20,9 @@ import Draggable, { DraggableCore } from "react-draggable";
 import type { DraggableData, DraggableEventHandler } from "react-draggable";
 import { componentInputNames, diffTimeInput } from "./component";
 import type { Component, OutputDestination } from "./component";
+import type { Sketch } from "./sketch";
 
-const useStyles = makeStyles(({ spacing }) => ({
+const useStyles = makeStyles(({ palette, spacing }) => ({
   card: {
     overflow: "visible",
   },
@@ -45,18 +46,23 @@ const useStyles = makeStyles(({ spacing }) => ({
     left: 0,
     top: "50%",
     transform: "translate(-50%, -50%)",
+    backgroundColor: palette.background.paper,
+    padding: 0,
   },
   outputAnchor: {
     position: "absolute",
     right: 0,
     top: "50%",
     transform: "translate(50%, -50%)",
+    backgroundColor: palette.background.paper,
     cursor: "alias",
+    padding: 0,
   },
 }));
 
 interface ComponentContainerProps {
-  component: Component;
+  sketch: Sketch;
+  componentIndex: number;
   getDispatchComponent: <T extends Component>(props: {
     component: T;
   }) => Dispatch<SetStateAction<T>>;
@@ -68,17 +74,32 @@ interface ComponentContainerProps {
 const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
   ({
     children,
-    component,
+    sketch,
+    componentIndex,
     getDispatchComponent,
     onDrag,
     onRemoveComponentRequest,
     onRemoveConnectionsRequest,
   }) => {
+    const component = sketch.components[componentIndex];
+
     const [connectionCuror, setConnectionCuror] = useState<DraggableData>();
 
     const dispatchComponent = useMemo(
       () => getDispatchComponent({ component }),
       [component, getDispatchComponent]
+    );
+
+    const handleStop: DraggableEventHandler = useCallback(
+      (event, data) => {
+        dispatchComponent((prevComponent) => ({
+          ...prevComponent,
+          position: { x: data.x, y: data.y },
+        }));
+
+        onDrag?.(event, data);
+      },
+      [dispatchComponent, onDrag]
     );
 
     const handleDeleteButtonClick = useCallback(
@@ -165,48 +186,57 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
 
     const classes = useStyles();
 
-    const inputElements = useMemo(
-      () =>
-        component.inputs.flatMap((input, index) => {
-          if ([diffTimeInput].includes(index)) {
-            return [];
-          }
+    const inputElements = useMemo(() => {
+      const inputLength = componentInputNames[component.implementation].length;
 
-          const handleInputAnchorClick = () =>
-            onRemoveConnectionsRequest?.([
-              {
-                componentID: component.id,
-                inputIndex: index,
-              },
-            ]);
+      return [...Array(inputLength).keys()].flatMap((inputIndex) => {
+        if ([diffTimeInput].includes(inputIndex)) {
+          return [];
+        }
 
-          return [
-            <Box key={index} className={classes.input}>
-              <Typography variant="body2" gutterBottom>
-                {componentInputNames[component.implementation][index]}
-              </Typography>
+        const handleInputAnchorClick = () =>
+          onRemoveConnectionsRequest?.([
+            {
+              componentID: component.id,
+              inputIndex,
+            },
+          ]);
 
-              <ArcherElement id={`${component.id}-input-anchor-${index}`}>
-                <Radio
-                  data-component-id={component.id}
-                  data-input-index={index}
-                  checked={input.connected}
-                  className={classes.inputAnchor}
-                  onClick={handleInputAnchorClick}
-                />
-              </ArcherElement>
-            </Box>,
-          ];
-        }),
-      [
-        classes.input,
-        classes.inputAnchor,
-        component.id,
-        component.implementation,
-        component.inputs,
-        onRemoveConnectionsRequest,
-      ]
-    );
+        const isConnected = sketch.components.some((otherComponent) =>
+          otherComponent.outputDestinations.some(
+            (outputDestination) =>
+              outputDestination.componentID === component.id &&
+              outputDestination.inputIndex === inputIndex
+          )
+        );
+
+        return [
+          <Box key={inputIndex} className={classes.input}>
+            <Typography variant="body2" gutterBottom>
+              {componentInputNames[component.implementation][inputIndex]}
+            </Typography>
+
+            <ArcherElement id={`${component.id}-input-anchor-${inputIndex}`}>
+              <Radio
+                data-component-id={component.id}
+                data-input-index={inputIndex}
+                checked={isConnected}
+                className={classes.inputAnchor}
+                size="small"
+                onClick={handleInputAnchorClick}
+              />
+            </ArcherElement>
+          </Box>,
+        ];
+      });
+    }, [
+      classes.input,
+      classes.inputAnchor,
+      component.id,
+      component.implementation,
+      onRemoveConnectionsRequest,
+      sketch.components,
+    ]);
 
     const connectionCurorStyle = useMemo(
       (): CSSProperties | undefined =>
@@ -219,7 +249,12 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
     );
 
     return (
-      <Draggable onStart={onDrag} onDrag={onDrag} onStop={onDrag}>
+      <Draggable
+        position={component.position}
+        onStart={onDrag}
+        onDrag={onDrag}
+        onStop={handleStop}
+      >
         <div className={classes.container}>
           <Card className={classes.card}>
             <Box pb={2} pt={2}>
@@ -269,7 +304,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
                     : []),
                 ]}
               >
-                <Radio checked={false} className={classes.outputAnchor} />
+                <Radio checked={false} className={classes.outputAnchor}                 size="small"/>
               </ArcherElement>
             </div>
           </DraggableCore>
