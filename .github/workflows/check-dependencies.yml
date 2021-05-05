@@ -17,5 +17,5 @@ jobs:
 
       - uses: hata6502/no-broken-dependency-action@v5
         with:
-          directory: packages/website
+          directory: packages/website/
       - uses: hata6502/no-broken-dependency-action@v5
