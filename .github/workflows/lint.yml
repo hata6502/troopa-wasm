@@ -1,19 +1,25 @@
-name: Lint Code Base
+name: Lint
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
 jobs:
   lint:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+      - run: npm install -g npm@7
+      - run: npm ci
+
       - uses: docker://github/super-linter:v3
         env:
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LINTER_RULES_PATH:
+          VALIDATE_JAVASCRIPT_STANDARD: false
+          VALIDATE_JSCPD: false
+          VALIDATE_RUST_CLIPPY: false
+          VALIDATE_TYPESCRIPT_STANDARD: false
         with:
           entrypoint: /action/lib/linter.sh

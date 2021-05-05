@@ -1,7 +1,14 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const CopyPlugin = require("copy-webpack-plugin");
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { EnvironmentPlugin } = require("webpack");
 
 module.exports = {
   entry: "./src/index.tsx",
+  experiments: {
+    syncWebAssembly: true,
+    topLevelAwait: true,
+  },
   module: {
     rules: [
       {
@@ -26,9 +33,18 @@ module.exports = {
           ],
         },
       },
+      {
+        test: /\.wasm$/,
+        type: "webassembly/sync",
+      },
     ],
   },
-  plugins: [new EnvironmentPlugin(["SENTRY_DSN"])],
+  plugins: [
+    new CopyPlugin({
+      patterns: [{ from: "resources" }],
+    }),
+    new EnvironmentPlugin(["SENTRY_DSN"]),
+  ],
   resolve: {
     extensions: [".js", ".jsx", ".ts", ".tsx"],
   },

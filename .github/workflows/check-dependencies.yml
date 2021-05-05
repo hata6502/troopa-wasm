@@ -6,8 +6,13 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
+      - run: cargo install --version 0.9.1 wasm-pack
+      - run: wasm-pack build --out-dir .
+        working-directory: packages/core-wasm
+
       - uses: actions/setup-node@v2
         with:
           node-version: "14"
       - run: npm install -g npm@7
+
       - uses: hata6502/no-broken-dependency-action@v5
