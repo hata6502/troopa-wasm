@@ -1,2 +1,4 @@
+/.env
 /node_modules/
+/packages/website/dist/
 /packages/website/node_modules/
