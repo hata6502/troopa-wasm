@@ -16,11 +16,37 @@ import type {
   SetStateAction,
 } from "react";
 import { ArcherElement } from "react-archer";
+import type { Relation } from "react-archer";
 import Draggable, { DraggableCore } from "react-draggable";
-import type { DraggableData, DraggableEventHandler } from "react-draggable";
+import type {
+  ControlPosition,
+  DraggableData,
+  DraggableEventHandler,
+} from "react-draggable";
 import { componentInputNames, diffTimeInput } from "./component";
 import type { Component, OutputDestination } from "./component";
 import type { Sketch } from "./sketch";
+
+const detectArcherAnchorPosition = ({
+  sourceX,
+  targetX,
+}: {
+  sourceX: ControlPosition["x"];
+  targetX: ControlPosition["x"];
+}): Pick<Relation, "sourceAnchor" | "targetAnchor"> => {
+  return sourceX < targetX
+    ? {
+        sourceAnchor: "right",
+        targetAnchor: "left",
+      }
+    : {
+        sourceAnchor: "left",
+        targetAnchor: "right",
+      };
+};
+
+const anchorWidth = 20;
+const containerWidth = 160;
 
 const useStyles = makeStyles(({ palette, spacing }) => ({
   card: {
@@ -29,7 +55,7 @@ const useStyles = makeStyles(({ palette, spacing }) => ({
   container: {
     position: "absolute",
     cursor: "move",
-    width: 160,
+    width: containerWidth,
   },
   deleteButton: {
     position: "absolute",
@@ -48,6 +74,7 @@ const useStyles = makeStyles(({ palette, spacing }) => ({
     transform: "translate(-50%, -50%)",
     backgroundColor: palette.background.paper,
     padding: 0,
+    width: anchorWidth,
   },
   outputAnchor: {
     position: "absolute",
@@ -57,6 +84,7 @@ const useStyles = makeStyles(({ palette, spacing }) => ({
     backgroundColor: palette.background.paper,
     cursor: "alias",
     padding: 0,
+    width: anchorWidth,
   },
 }));
 
@@ -90,7 +118,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
       [component, getDispatchComponent]
     );
 
-    const handleStop: DraggableEventHandler = useCallback(
+    const handleDrag: DraggableEventHandler = useCallback(
       (event, data) => {
         dispatchComponent((prevComponent) => ({
           ...prevComponent,
@@ -251,9 +279,9 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
     return (
       <Draggable
         position={component.position}
-        onStart={onDrag}
-        onDrag={onDrag}
-        onStop={handleStop}
+        onStart={handleDrag}
+        onDrag={handleDrag}
+        onStop={handleDrag}
       >
         <div className={classes.container}>
           <Card className={classes.card}>
@@ -288,23 +316,49 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
               <ArcherElement
                 id={`${component.id}-output-anchor`}
                 relations={[
-                  ...component.outputDestinations.map((outputDestination) => ({
-                    sourceAnchor: "right" as const,
-                    targetId: `${outputDestination.componentID}-input-anchor-${outputDestination.inputIndex}`,
-                    targetAnchor: "left" as const,
-                  })),
+                  ...component.outputDestinations.map((outputDestination) => {
+                    const destinationComponent = sketch.components.find(
+                      (component) =>
+                        component.id === outputDestination.componentID
+                    );
+
+                    if (!destinationComponent) {
+                      throw new Error();
+                    }
+
+                    return {
+                      ...detectArcherAnchorPosition({
+                        sourceX:
+                          component.position.x +
+                          containerWidth +
+                          anchorWidth / 2,
+                        targetX:
+                          destinationComponent.position.x - anchorWidth / 2,
+                      }),
+                      targetId: `${destinationComponent.id}-input-anchor-${outputDestination.inputIndex}`,
+                    };
+                  }),
                   ...(connectionCuror
                     ? [
                         {
-                          sourceAnchor: "right" as const,
+                          ...detectArcherAnchorPosition({
+                            sourceX:
+                              component.position.x +
+                              containerWidth +
+                              anchorWidth / 2,
+                            targetX: component.position.x + connectionCuror.x,
+                          }),
                           targetId: `${component.id}-connection-cursor`,
-                          targetAnchor: "middle" as const,
                         },
                       ]
                     : []),
                 ]}
               >
-                <Radio checked={false} className={classes.outputAnchor}                 size="small"/>
+                <Radio
+                  checked={false}
+                  className={classes.outputAnchor}
+                  size="small"
+                />
               </ArcherElement>
             </div>
           </DraggableCore>

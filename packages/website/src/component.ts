@@ -113,7 +113,7 @@ interface ComponentBase<
   name: string;
   implementation: Implementation;
   outputDestinations: OutputDestination[];
-  position: ControlPosition,
+  position: ControlPosition;
   extendedData: ExtendedData;
 }
 
@@ -144,7 +144,7 @@ const createComponent = ({ type }: { type: ComponentType }): Component => {
     id: uuidv4(),
     name: componentNames[type],
     outputDestinations: [],
-    position: {x: 0, y: 0}
+    position: { x: 0, y: 0 },
   };
 
   switch (type) {

@@ -12,7 +12,7 @@ const initialSketch: Sketch = {
       name: "input",
       implementation: 15,
       outputDestinations: [],
-      position: {x: 0, y: 0},
+      position: { x: 0, y: 0 },
       extendedData: {
         value: "440",
       },
@@ -22,7 +22,7 @@ const initialSketch: Sketch = {
       name: "input",
       implementation: 15,
       outputDestinations: [],
-      position: {x: 300, y: 0},
+      position: { x: 300, y: 0 },
       extendedData: {
         value: "220",
       },
@@ -32,7 +32,7 @@ const initialSketch: Sketch = {
       name: "mixer",
       implementation: 7,
       outputDestinations: [],
-      position: {x: 0, y: 300},
+      position: { x: 0, y: 300 },
       extendedData: {},
     },
     {
@@ -40,7 +40,7 @@ const initialSketch: Sketch = {
       name: "sine",
       implementation: 10,
       outputDestinations: [],
-      position: {x: 300, y: 300},
+      position: { x: 300, y: 300 },
       extendedData: {},
     },
     {
@@ -48,7 +48,7 @@ const initialSketch: Sketch = {
       name: "speaker",
       implementation: componentType.speaker,
       outputDestinations: [],
-      position: {x: 600, y: 600},
+      position: { x: 600, y: 600 },
       extendedData: {},
     },
   ],

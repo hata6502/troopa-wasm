@@ -13,7 +13,12 @@ import {
   useTheme,
 } from "@material-ui/core";
 import { memo, useCallback, useMemo, useRef, useState } from "react";
-import type { ChangeEventHandler, Dispatch, FunctionComponent, SetStateAction } from "react";
+import type {
+  ChangeEventHandler,
+  Dispatch,
+  FunctionComponent,
+  SetStateAction,
+} from "react";
 import { ArcherContainer } from "react-archer";
 import type { ArcherContainerProps } from "react-archer";
 import { ComponentActions } from "./ComponentActions";
@@ -96,27 +101,30 @@ const App: FunctionComponent = memo(() => {
     setPlayer(undefined);
   }, [player]);
 
-  const handleLoadInputChange: ChangeEventHandler<HTMLInputElement> = useCallback((event) => {
-    const files = event.target.files;
+  const handleLoadInputChange: ChangeEventHandler<HTMLInputElement> = useCallback(
+    (event) => {
+      const files = event.target.files;
 
-    if (!files || files.length < 1) {
-      return ;
-    }
-
-    const fileReader = new FileReader();
-
-    fileReader.addEventListener('load', (event) => {
-      const result = fileReader.result;
-    
-      if (typeof result !== "string") {
-        throw new Error();
+      if (!files || files.length < 1) {
+        return;
       }
 
-      setSketch(JSON.parse(result));
-    });
+      const fileReader = new FileReader();
 
-    fileReader.readAsText(files[0]);
-  }, []);
+      fileReader.addEventListener("load", (event) => {
+        const result = fileReader.result;
+
+        if (typeof result !== "string") {
+          throw new Error();
+        }
+
+        setSketch(JSON.parse(result));
+      });
+
+      fileReader.readAsText(files[0]);
+    },
+    []
+  );
 
   const handleSaveButtonClick = useCallback(async () => {
     const url = URL.createObjectURL(
@@ -280,18 +288,24 @@ const App: FunctionComponent = memo(() => {
             </Grid>
 
             <Grid item>
-              <Button variant="contained" disabled={!player} onClick={handleStopButtonClick}>
+              <Button
+                variant="contained"
+                disabled={!player}
+                onClick={handleStopButtonClick}
+              >
                 stop
               </Button>
             </Grid>
 
             <Grid item>
-              <Button
-                variant="contained"
-                component="label"
-              >
+              <Button variant="contained" component="label">
                 load
-                <input type="file" accept="application/json" hidden onChange={handleLoadInputChange} />
+                <input
+                  type="file"
+                  accept="application/json"
+                  hidden
+                  onChange={handleLoadInputChange}
+                />
               </Button>
             </Grid>
 
