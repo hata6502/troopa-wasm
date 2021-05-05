@@ -49,8 +49,8 @@ const useStyles = makeStyles(({ mixins, palette, spacing }) => ({
   },
   archerContainer: {
     position: "relative",
-    height: 1080,
-    width: 1920,
+    height: 2160,
+    width: 3840,
   },
   container: {
     display: "flex",
