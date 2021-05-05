@@ -43,8 +43,15 @@ pub fn init(sample_rate: f32) {
 }
 
 #[wasm_bindgen]
-pub fn connect(input_component_index: usize, input_input_index: usize, output_component_index: usize) {
-    SKETCH.lock().unwrap().connect((input_component_index, input_input_index), output_component_index)
+pub fn connect(
+    input_component_index: usize,
+    input_input_index: usize,
+    output_component_index: usize,
+) {
+    SKETCH.lock().unwrap().connect(
+        (input_component_index, input_input_index),
+        output_component_index,
+    )
 }
 
 #[wasm_bindgen]
@@ -54,21 +61,116 @@ pub fn create_component(component_type: ComponentType) -> usize {
 
 #[wasm_bindgen]
 pub fn input_value(component_index: usize, input_index: usize, value: f32) {
-    SKETCH.lock().unwrap().input_value((component_index, input_index), value)
+    SKETCH
+        .lock()
+        .unwrap()
+        .input_values(vec![((component_index, input_index), value)]);
 }
 
 #[wasm_bindgen]
-pub fn process(buffer_size: usize, output_component_index: usize) -> Vec::<f32> {
+pub fn process(buffer_size: usize, output_component_index: usize) -> Vec<f32> {
     let mut sketch = SKETCH.lock().unwrap();
-
     let mut buffer = Vec::<f32>::new();
 
     for _index in 0..buffer_size {
         buffer.push(sketch.get_output_value(output_component_index));
         sketch.next_tick();
-    };
+    }
 
     buffer
+}
+
+const DIFF_TIME_INPUT: usize = 0;
+
+#[derive(Clone, Copy)]
+struct Sketch {
+    components: [Component; SKETCH_COMPONENT_LENGTH],
+    component_length: usize,
+    sample_rate: f32,
+}
+
+impl Sketch {
+    const fn new() -> Self {
+        Sketch {
+            components: [Component::new(ComponentType::Distributor); SKETCH_COMPONENT_LENGTH],
+            component_length: 0,
+            sample_rate: 0.0,
+        }
+    }
+
+    fn init(&mut self, sample_rate: f32) {
+        self.component_length = 0;
+        self.sample_rate = sample_rate;
+    }
+
+    fn connect(&mut self, input_destination: Destination, output_component_index: usize) {
+        let output_destination_index =
+            self.components[output_component_index].output_destination_length;
+
+        self.components[output_component_index].output_destinations[output_destination_index] =
+            input_destination;
+
+        self.components[output_component_index].output_destination_length += 1;
+    }
+
+    fn create_component(&mut self, component_type: ComponentType) -> usize {
+        let index = self.component_length;
+
+        self.components[index] = Component::new(component_type);
+        self.component_length += 1;
+
+        index
+    }
+
+    fn get_output_value(&self, index: usize) -> f32 {
+        self.components[index].output_value
+    }
+
+    fn input_values(&mut self, inputs: Vec<(Destination, f32)>) {
+        let mut sync_queue = VecDeque::new();
+
+        for input in inputs {
+            self.components[input.0 .0].input_values[input.0 .1] = input.1;
+            sync_queue.push_back(input.0);
+        }
+
+        while let Some(destination) = sync_queue.pop_front() {
+            let is_changed = self.components[destination.0].sync();
+
+            for output_destination_index in
+                0..self.components[destination.0].output_destination_length
+            {
+                let output_destination =
+                    self.components[destination.0].output_destinations[output_destination_index];
+
+                self.components[output_destination.0].input_values[output_destination.1] =
+                    self.components[destination.0].output_value;
+
+                if is_changed {
+                    sync_queue.push_back(output_destination);
+                };
+            }
+        }
+    }
+
+    fn next_tick(&mut self) {
+        let diff_time = 1.0 / self.sample_rate;
+        let mut inputs = Vec::new();
+
+        for index in 0..self.component_length {
+            inputs.push(((index, DIFF_TIME_INPUT), diff_time));
+        }
+
+        self.input_values(inputs);
+
+        let mut inputs = Vec::new();
+
+        for index in 0..self.component_length {
+            inputs.push(((index, DIFF_TIME_INPUT), 0.0));
+        }
+
+        self.input_values(inputs);
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -82,7 +184,6 @@ struct Component {
 }
 
 impl Component {
-    const DIFF_TIME_INPUT: usize = 0;
     const FREQUENCY_INPUT: usize = 1;
 
     const PHASE_REGISTER: usize = 0;
@@ -105,7 +206,7 @@ impl Component {
                 const IN_2_INPUT: usize = 2;
 
                 self.input_values[IN_1_INPUT] * self.input_values[IN_2_INPUT]
-            },
+            }
             ComponentType::Buffer => {
                 const IN_INPUT: usize = 1;
 
@@ -113,7 +214,7 @@ impl Component {
 
                 self.registers[VALUE_REGISTER] = self.input_values[IN_INPUT];
 
-                if self.input_values[Self::DIFF_TIME_INPUT] == 0.0 {
+                if self.input_values[DIFF_TIME_INPUT] == 0.0 {
                     self.output_value
                 } else {
                     self.registers[VALUE_REGISTER]
@@ -122,32 +223,32 @@ impl Component {
             ComponentType::Differentiator => {
                 const IN_INPUT: usize = 1;
 
-                if self.input_values[Self::DIFF_TIME_INPUT] == 0.0 {
+                if self.input_values[DIFF_TIME_INPUT] == 0.0 {
                     self.output_value
                 } else {
                     (self.input_values[IN_INPUT] - self.output_value)
-                        / self.input_values[Self::DIFF_TIME_INPUT]
+                        / self.input_values[DIFF_TIME_INPUT]
                 }
             }
             ComponentType::Distributor => {
                 const IN_INPUT: usize = 1;
 
                 self.input_values[IN_INPUT]
-            },
+            }
             ComponentType::Divider => {
                 const IN_1_INPUT: usize = 1;
                 const IN_2_INPUT: usize = 2;
 
                 self.input_values[IN_1_INPUT] / self.input_values[IN_2_INPUT]
-            },
+            }
             ComponentType::Integrator => {
                 const IN_INPUT: usize = 1;
 
                 const VALUE_REGISTER: usize = 0;
 
                 self.registers[VALUE_REGISTER] +=
-                    self.input_values[IN_INPUT] * self.input_values[Self::DIFF_TIME_INPUT];
-                
+                    self.input_values[IN_INPUT] * self.input_values[DIFF_TIME_INPUT];
+
                 self.registers[VALUE_REGISTER]
             }
             ComponentType::LowerSaturator => {
@@ -155,15 +256,15 @@ impl Component {
                 const IN_2_INPUT: usize = 2;
 
                 self.input_values[IN_1_INPUT].max(self.input_values[IN_2_INPUT])
-            },
+            }
             ComponentType::Mixer => {
                 const IN_1_INPUT: usize = 1;
                 const IN_2_INPUT: usize = 2;
 
                 self.input_values[IN_1_INPUT] + self.input_values[IN_2_INPUT]
-            },
+            }
             ComponentType::Noise => {
-                if self.input_values[Self::DIFF_TIME_INPUT] == 0.0 {
+                if self.input_values[DIFF_TIME_INPUT] == 0.0 {
                     self.output_value
                 } else {
                     rand::thread_rng().gen::<f32>() * 2.0 - 1.0
@@ -191,14 +292,15 @@ impl Component {
                 const IN_2_INPUT: usize = 2;
 
                 self.input_values[IN_1_INPUT] - self.input_values[IN_2_INPUT]
-            },
+            }
             ComponentType::Triangle => {
                 self.update_phase();
 
                 if self.registers[Self::PHASE_REGISTER] < f32::consts::PI {
                     self.registers[Self::PHASE_REGISTER] * 2.0 / f32::consts::PI - 1.0
                 } else {
-                    1.0 - (self.registers[Self::PHASE_REGISTER] - f32::consts::PI) * 2.0 / f32::consts::PI
+                    1.0 - (self.registers[Self::PHASE_REGISTER] - f32::consts::PI) * 2.0
+                        / f32::consts::PI
                 }
             }
             ComponentType::UpperSaturator => {
@@ -206,7 +308,7 @@ impl Component {
                 const IN_2_INPUT: usize = 2;
 
                 self.input_values[IN_1_INPUT].min(self.input_values[IN_2_INPUT])
-            },
+            }
         };
 
         let is_changed = (self.output_value - next_output_value).abs() >= f32::EPSILON;
@@ -219,96 +321,8 @@ impl Component {
         self.registers[Self::PHASE_REGISTER] += 2.0
             * f32::consts::PI
             * self.input_values[Self::FREQUENCY_INPUT]
-            * self.input_values[Self::DIFF_TIME_INPUT];
+            * self.input_values[DIFF_TIME_INPUT];
 
         self.registers[0] %= 2.0 * f32::consts::PI;
-    }
-}
-
-#[derive(Clone, Copy)]
-struct Sketch {
-    components: [Component; SKETCH_COMPONENT_LENGTH],
-    component_length: usize,
-    sample_rate: f32
-}
-
-impl Sketch {
-    const DIFF_TIME_COMPONENT_INDEX: usize = 0;
-
-    const fn new() -> Self {
-        Sketch {
-            components: [Component::new(ComponentType::Distributor); SKETCH_COMPONENT_LENGTH],
-            component_length: 0,
-            sample_rate: 0.0
-        }
-    }
-
-    fn init(&mut self, sample_rate: f32) {
-        self.component_length = 0;
-        self.sample_rate = sample_rate;
-        
-        assert_eq!(
-            self.create_component(ComponentType::Distributor),
-            Self::DIFF_TIME_COMPONENT_INDEX
-        );
-    }
-
-    fn connect(&mut self, input_destination: Destination, output_component_index: usize) {
-        let output_destination_index =
-            self.components[output_component_index].output_destination_length;
-
-        self.components[output_component_index].output_destinations[output_destination_index] =
-            input_destination;
-
-        self.components[output_component_index].output_destination_length += 1;
-    }
-
-    fn create_component(&mut self, component_type: ComponentType) -> usize {
-        let index = self.component_length;
-
-        self.components[index] = Component::new(component_type);
-        self.component_length += 1;
-
-        self.connect(
-            (index, Component::DIFF_TIME_INPUT),
-            Self::DIFF_TIME_COMPONENT_INDEX,
-        );
-
-        index
-    }
-
-    fn get_output_value(&self, index: usize) -> f32 {
-        self.components[index].output_value
-    }
-
-    fn input_value(&mut self, initial_destination: Destination, value: f32) {
-        self.components[initial_destination.0].input_values[initial_destination.1] = value;
-
-        let mut sync_queue = VecDeque::new();
-
-        sync_queue.push_back(initial_destination);
-
-        while let Some(destination) = sync_queue.pop_front() {
-            let is_changed = self.components[destination.0].sync();
-
-            for output_destination_index in
-                0..self.components[destination.0].output_destination_length
-            {
-                let output_destination =
-                    self.components[destination.0].output_destinations[output_destination_index];
-
-                self.components[output_destination.0].input_values[output_destination.1] =
-                    self.components[destination.0].output_value;
-
-                if is_changed {
-                    sync_queue.push_back(output_destination);
-                };
-            }
-        }
-    }
-
-    fn next_tick(&mut self) {
-        self.input_value((Self::DIFF_TIME_COMPONENT_INDEX, 1), 1.0 / self.sample_rate);
-        self.input_value((Self::DIFF_TIME_COMPONENT_INDEX, 1), 0.0);
     }
 }
