@@ -7,11 +7,16 @@ import {
   List,
   ListItem,
   ListItemText,
+  Snackbar,
   Toolbar,
   Typography,
   makeStyles,
   useTheme,
 } from "@material-ui/core";
+import type { SnackbarProps } from "@material-ui/core";
+import { Alert, AlertTitle } from "@material-ui/lab";
+import type { AlertProps, AlertTitleProps } from "@material-ui/lab";
+import * as Sentry from "@sentry/react";
 import { memo, useCallback, useMemo, useRef, useState } from "react";
 import type {
   ChangeEventHandler,
@@ -33,7 +38,7 @@ import {
 import type { Component, OutputDestination } from "./component";
 import { initPlayer, closePlayer } from "./player";
 import type { Player } from "./player";
-import { initialSketch } from "./sketch";
+import { initialSketch, validateSketch } from "./sketch";
 
 const drawerWidth = 200;
 
@@ -71,6 +76,13 @@ const useStyles = makeStyles(({ mixins, palette, spacing }) => ({
 }));
 
 const App: FunctionComponent = memo(() => {
+  const [alert, dispatchAlert] = useState<{
+    isOpen?: SnackbarProps["open"];
+    severity?: AlertProps["severity"];
+    title?: AlertTitleProps["children"];
+    description?: AlertProps["children"];
+  }>({});
+
   const [player, setPlayer] = useState<Player>();
   const [sketch, setSketch] = useState(initialSketch);
 
@@ -111,14 +123,30 @@ const App: FunctionComponent = memo(() => {
 
       const fileReader = new FileReader();
 
-      fileReader.addEventListener("load", (event) => {
+      fileReader.addEventListener("load", () => {
         const result = fileReader.result;
 
         if (typeof result !== "string") {
           throw new Error();
         }
 
-        setSketch(JSON.parse(result));
+        const loadedData: unknown = JSON.parse(result);
+
+        if (!validateSketch(loadedData)) {
+          // Because validateSketch() may mistaked.
+          Sentry.captureMessage("Sketch validation failed.");
+
+          dispatchAlert({
+            isOpen: true,
+            severity: "error",
+            title: "Failed to load",
+            description: "This sketch file is invalid.",
+          });
+
+          return;
+        }
+
+        setSketch(loadedData);
       });
 
       fileReader.readAsText(files[0]);
@@ -189,6 +217,15 @@ const App: FunctionComponent = memo(() => {
       }));
     },
     [removeConnections]
+  );
+
+  const handleAlertClose = useCallback(
+    () =>
+      dispatchAlert((prevAlert) => ({
+        ...prevAlert,
+        isOpen: false,
+      })),
+    []
   );
 
   const componentListItemElements = useMemo(
@@ -345,6 +382,13 @@ const App: FunctionComponent = memo(() => {
           {componentContainerElements}
         </ArcherContainer>
       </main>
+
+      <Snackbar open={alert.isOpen}>
+        <Alert severity={alert.severity} onClose={handleAlertClose}>
+          <AlertTitle>{alert.title}</AlertTitle>
+          {alert.description}
+        </Alert>
+      </Snackbar>
     </div>
   );
 });
