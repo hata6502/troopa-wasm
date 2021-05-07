@@ -30,6 +30,12 @@ const main = async () => {
       integrations: [new Integrations.BrowserTracing()],
       tracesSampleRate: 1.0,
     });
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () =>
+        navigator.serviceWorker.register("service-worker.js")
+      );
+    }
   }
 
   ReactDOM.render(
