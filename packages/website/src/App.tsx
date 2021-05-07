@@ -306,7 +306,7 @@ const App: FunctionComponent = memo(() => {
         <Toolbar>
           <Grid container spacing={2} alignItems="baseline">
             <Grid item>
-              <Typography variant="h6">troopa</Typography>
+              <Typography variant="h6">👀 troopa</Typography>
             </Grid>
 
             <Grid item>

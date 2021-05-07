@@ -1,11 +1,27 @@
 import "core-js";
 import "regenerator-runtime";
 
-import CssBaseline from "@material-ui/core/CssBaseline";
+import {
+  CssBaseline,
+  StylesProvider,
+  ThemeProvider,
+  createMuiTheme,
+} from "@material-ui/core";
 import * as Sentry from "@sentry/react";
 import { Integrations } from "@sentry/tracing";
 import ReactDOM from "react-dom";
 import { App } from "./App";
+
+const theme = createMuiTheme({
+  palette: {
+    primary: {
+      main: "#ffc107",
+    },
+    secondary: {
+      main: "#f50057",
+    },
+  },
+});
 
 const main = async () => {
   if (process.env["NODE_ENV"] === "production") {
@@ -19,7 +35,12 @@ const main = async () => {
   ReactDOM.render(
     <>
       <CssBaseline />
-      <App />
+
+      <StylesProvider injectFirst>
+        <ThemeProvider theme={theme}>
+          <App />
+        </ThemeProvider>
+      </StylesProvider>
     </>,
     document.querySelector(".app")
   );
