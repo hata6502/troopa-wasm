@@ -284,12 +284,12 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
             },
           ]);
 
-        const isConnected = Object.entries(
+        const isConnected = Object.values(
           sketch.component
-        ).some(([otherID, otherComponent]) =>
+        ).some((otherComponent) =>
           otherComponent.outputDestinations.some(
             (outputDestination) =>
-              outputDestination.componentID === otherID &&
+              outputDestination.componentID === id &&
               outputDestination.inputIndex === inputIndex
           )
         );

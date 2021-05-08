@@ -60,7 +60,7 @@ pub fn create_component(component_type: ComponentType) -> usize {
     SKETCH.lock().unwrap().create_component(component_type)
 }
 
-#[wasm_bindgen]
+#[wasm_bindgen(catch)]
 pub fn input_value(component_index: usize, input_index: usize, value: f32) -> Result<(), JsValue> {
     SKETCH
         .lock()
@@ -68,7 +68,7 @@ pub fn input_value(component_index: usize, input_index: usize, value: f32) -> Re
         .input_values(vec![((component_index, input_index), value)])
 }
 
-#[wasm_bindgen]
+#[wasm_bindgen(catch)]
 pub fn process(buffer_size: usize, output_component_index: usize) -> Result<Vec::<f32>, JsValue> {
     let mut sketch = SKETCH.lock().unwrap();
     let mut buffer = Vec::<f32>::new();
