@@ -1,5 +1,6 @@
 import {
   Box,
+  Button,
   Card,
   CardActions,
   IconButton,
@@ -13,6 +14,7 @@ import type {
   CSSProperties,
   Dispatch,
   FunctionComponent,
+  MouseEventHandler,
   SetStateAction,
 } from "react";
 import { ArcherElement } from "react-archer";
@@ -23,8 +25,10 @@ import type {
   DraggableData,
   DraggableEventHandler,
 } from "react-draggable";
+import type { AlertData } from "./App";
 import { componentInputNames, diffTimeInput } from "./component";
 import type { Component, OutputDestination } from "./component";
+import { coreComponentOutputLength } from "./player";
 import type { Sketch } from "./sketch";
 
 const detectArcherAnchorPosition = ({
@@ -91,9 +95,11 @@ const useStyles = makeStyles(({ palette, spacing }) => ({
 interface ComponentContainerProps {
   sketch: Sketch;
   componentIndex: number;
+  dispatchAlertData: Dispatch<SetStateAction<AlertData>>;
   getDispatchComponent: <T extends Component>(props: {
     component: T;
   }) => Dispatch<SetStateAction<T>>;
+  onDistributorButtonClick?: MouseEventHandler<HTMLButtonElement>;
   onDrag?: DraggableEventHandler;
   onRemoveComponentRequest?: (event: { component: Component }) => void;
   onRemoveConnectionsRequest?: (event: OutputDestination[]) => void;
@@ -104,7 +110,9 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
     children,
     sketch,
     componentIndex,
+    dispatchAlertData,
     getDispatchComponent,
+    onDistributorButtonClick,
     onDrag,
     onRemoveComponentRequest,
     onRemoveConnectionsRequest,
@@ -149,6 +157,18 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
       [onDrag]
     );
 
+    const handleDistributorButtonClick: MouseEventHandler<HTMLButtonElement> = useCallback(
+      (event) => {
+        dispatchAlertData((prevAlertData) => ({
+          ...prevAlertData,
+          isOpen: false,
+        }));
+
+        onDistributorButtonClick?.(event);
+      },
+      [dispatchAlertData, onDistributorButtonClick]
+    );
+
     const handleOutputAnchorStop: DraggableEventHandler = useCallback(
       (event, data) => {
         event.stopPropagation();
@@ -181,26 +201,46 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
             }
           );
 
-          dispatchComponent((prevComponent) => {
-            const appendedOutputDestinations = [
-              ...prevComponent.outputDestinations,
-              ...outputDestinations,
-            ];
+          const appendedOutputDestinations = [
+            ...component.outputDestinations,
+            ...outputDestinations,
+          ];
 
-            const uniqueOutputDestinations = [
-              ...new Map(
-                appendedOutputDestinations.map((outputDestination) => [
-                  `${outputDestination.componentID}-${outputDestination.inputIndex}`,
-                  outputDestination,
-                ])
-              ).values(),
-            ];
+          const uniqueOutputDestinations = [
+            ...new Map(
+              appendedOutputDestinations.map((outputDestination) => [
+                `${outputDestination.componentID}-${outputDestination.inputIndex}`,
+                outputDestination,
+              ])
+            ).values(),
+          ];
 
-            return {
+          if (uniqueOutputDestinations.length <= coreComponentOutputLength) {
+            dispatchComponent((prevComponent) => ({
               ...prevComponent,
               outputDestinations: uniqueOutputDestinations,
-            };
-          });
+            }));
+          } else {
+            dispatchAlertData({
+              isOpen: true,
+              severity: "info",
+              title: "Please use distributor component",
+              description: (
+                <>
+                  A component can output to up to {coreComponentOutputLength}{" "}
+                  destinations. Please use&nbsp;
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={handleDistributorButtonClick}
+                  >
+                    distributor
+                  </Button>
+                  &nbsp;component to expand it.
+                </>
+              ),
+            });
+          }
         } else {
           throw new Error();
         }
@@ -209,7 +249,13 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
 
         onDrag?.(event, data);
       },
-      [dispatchComponent, onDrag]
+      [
+        component.outputDestinations,
+        dispatchAlertData,
+        dispatchComponent,
+        handleDistributorButtonClick,
+        onDrag,
+      ]
     );
 
     const classes = useStyles();
