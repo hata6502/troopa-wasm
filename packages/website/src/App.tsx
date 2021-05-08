@@ -263,8 +263,8 @@ const App: FunctionComponent = memo(() => {
 
   const handleAlertClose = useCallback(
     () =>
-      dispatchAlertData((prevAlert) => ({
-        ...prevAlert,
+      dispatchAlertData((prevAlertData) => ({
+        ...prevAlertData,
         isOpen: false,
       })),
     []

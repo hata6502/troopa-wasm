@@ -159,7 +159,11 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
 
     const handleDistributorButtonClick: MouseEventHandler<HTMLButtonElement> = useCallback(
       (event) => {
-        dispatchAlertData({ isOpen: false });
+        dispatchAlertData((prevAlertData) => ({
+          ...prevAlertData,
+          isOpen: false,
+        }));
+
         onDistributorButtonClick?.(event);
       },
       [dispatchAlertData, onDistributorButtonClick]
