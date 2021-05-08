@@ -17,7 +17,7 @@ import type { SnackbarProps } from "@material-ui/core";
 import { Alert, AlertTitle } from "@material-ui/lab";
 import type { AlertProps, AlertTitleProps } from "@material-ui/lab";
 import * as Sentry from "@sentry/react";
-import equal from 'fast-deep-equal';
+import equal from "fast-deep-equal";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   ChangeEventHandler,
@@ -96,18 +96,18 @@ const App: FunctionComponent = memo(() => {
 
   useEffect(() => {
     if (equal(currentSketch, originalSketch)) {
-      return ;
+      return;
     }
 
     const handleBeforeunload = (event: BeforeUnloadEvent) => {
       event.preventDefault();
       // For Chrome.
-      event.returnValue = '';
+      event.returnValue = "";
     };
 
-    window.addEventListener('beforeunload', handleBeforeunload);
+    window.addEventListener("beforeunload", handleBeforeunload);
 
-    return () => window.removeEventListener('beforeunload', handleBeforeunload);
+    return () => window.removeEventListener("beforeunload", handleBeforeunload);
   }, [currentSketch, originalSketch]);
 
   const handleComponentDrag = useCallback(() => {
