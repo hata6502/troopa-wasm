@@ -17,7 +17,8 @@ import type { SnackbarProps } from "@material-ui/core";
 import { Alert, AlertTitle } from "@material-ui/lab";
 import type { AlertProps, AlertTitleProps } from "@material-ui/lab";
 import * as Sentry from "@sentry/react";
-import { memo, useCallback, useMemo, useRef, useState } from "react";
+import equal from "fast-deep-equal";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   ChangeEventHandler,
   Dispatch,
@@ -84,12 +85,30 @@ const App: FunctionComponent = memo(() => {
   }>({});
 
   const [player, setPlayer] = useState<Player>();
-  const [sketch, setSketch] = useState(initialSketch);
+
+  const [originalSketch, setOriginalSketch] = useState(initialSketch);
+  const [currentSketch, setCurrentSketch] = useState(originalSketch);
 
   const archerContainerElement = useRef<ArcherContainer>(null);
 
   const classes = useStyles();
   const theme = useTheme();
+
+  useEffect(() => {
+    if (equal(currentSketch, originalSketch)) {
+      return;
+    }
+
+    const handleBeforeunload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      // For Chrome.
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeunload);
+
+    return () => window.removeEventListener("beforeunload", handleBeforeunload);
+  }, [currentSketch, originalSketch]);
 
   const handleComponentDrag = useCallback(() => {
     if (!archerContainerElement.current) {
@@ -100,8 +119,8 @@ const App: FunctionComponent = memo(() => {
   }, []);
 
   const handlePlayButtonClick = useCallback(
-    () => setPlayer(initPlayer({ sketch })),
-    [sketch]
+    () => setPlayer(initPlayer({ sketch: currentSketch })),
+    [currentSketch]
   );
 
   const handleStopButtonClick = useCallback(async () => {
@@ -146,7 +165,8 @@ const App: FunctionComponent = memo(() => {
           return;
         }
 
-        setSketch(loadedData);
+        setCurrentSketch(loadedData);
+        setOriginalSketch(loadedData);
       });
 
       fileReader.readAsText(files[0]);
@@ -156,7 +176,7 @@ const App: FunctionComponent = memo(() => {
 
   const handleSaveButtonClick = useCallback(async () => {
     const url = URL.createObjectURL(
-      new Blob([JSON.stringify(sketch)], { type: "application/json" })
+      new Blob([JSON.stringify(currentSketch)], { type: "application/json" })
     );
 
     try {
@@ -174,11 +194,13 @@ const App: FunctionComponent = memo(() => {
     } finally {
       URL.revokeObjectURL(url);
     }
-  }, [sketch]);
+
+    setOriginalSketch(currentSketch);
+  }, [currentSketch]);
 
   const removeConnections = useCallback(
     (targets: OutputDestination[]) =>
-      setSketch((prevSketch) => ({
+      setCurrentSketch((prevSketch) => ({
         ...prevSketch,
         components: prevSketch.components.map((component) => ({
           ...component,
@@ -209,7 +231,7 @@ const App: FunctionComponent = memo(() => {
         }))
       );
 
-      setSketch((prevSketch) => ({
+      setCurrentSketch((prevSketch) => ({
         ...prevSketch,
         components: prevSketch.components.filter(
           (component) => component.id !== event.component.id
@@ -232,7 +254,7 @@ const App: FunctionComponent = memo(() => {
     () =>
       Object.values(componentType).map((type) => {
         const handleClick = () =>
-          setSketch((prevSketch) => {
+          setCurrentSketch((prevSketch) => {
             return {
               ...prevSketch,
               components: [...prevSketch.components, createComponent({ type })],
@@ -255,7 +277,7 @@ const App: FunctionComponent = memo(() => {
       component: T;
     }) => {
       const dispatchComponent: Dispatch<SetStateAction<T>> = (action) =>
-        setSketch((prevSketch) => ({
+        setCurrentSketch((prevSketch) => ({
           ...prevSketch,
           components: prevSketch.components.map((prevComponent) => {
             const isComponentTarget = (
@@ -275,10 +297,10 @@ const App: FunctionComponent = memo(() => {
       return dispatchComponent;
     };
 
-    return sketch.components.map((component, index) => (
+    return currentSketch.components.map((component, index) => (
       <ComponentContainer
         key={component.id}
-        sketch={sketch}
+        sketch={currentSketch}
         componentIndex={index}
         getDispatchComponent={getDispatchComponent}
         onDrag={handleComponentDrag}
@@ -297,7 +319,7 @@ const App: FunctionComponent = memo(() => {
     handleRemoveComponentRequest,
     player,
     removeConnections,
-    sketch,
+    currentSketch,
   ]);
 
   return (
