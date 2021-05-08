@@ -179,7 +179,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
             event.clientY
           );
 
-          const outputDestinations = elements.flatMap(
+          const newOutputDestinations = elements.flatMap(
             (element): OutputDestination[] => {
               if (!(element instanceof HTMLElement)) {
                 return [];
@@ -203,7 +203,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
 
           const appendedOutputDestinations = [
             ...component.outputDestinations,
-            ...outputDestinations,
+            ...newOutputDestinations,
           ];
 
           const uniqueOutputDestinations = [
@@ -216,6 +216,8 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
           ];
 
           if (uniqueOutputDestinations.length <= coreComponentOutputLength) {
+            onRemoveConnectionsRequest?.(newOutputDestinations);
+
             dispatchComponent((prevComponent) => ({
               ...prevComponent,
               outputDestinations: uniqueOutputDestinations,
