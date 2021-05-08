@@ -8,16 +8,18 @@ import { inputValueToPlayer } from "./player";
 import type { Player } from "./player";
 
 const ComponentActions: FunctionComponent<{
+  id: string;
   component: Component;
   getDispatchComponent: <T extends Component>(props: {
+    id: string;
     component: T;
   }) => Dispatch<SetStateAction<T>>;
   player?: Player;
-}> = memo(({ component, getDispatchComponent, player }) =>
+}> = memo(({ id, component, getDispatchComponent, player }) =>
   useMemo(() => {
     switch (component.implementation) {
       case componentType.input: {
-        const dispatchComponent = getDispatchComponent({ component });
+        const dispatchComponent = getDispatchComponent({ id, component });
 
         const handleChange: TextFieldProps["onChange"] = (event) => {
           dispatchComponent((prevComponent) => ({
@@ -34,7 +36,7 @@ const ComponentActions: FunctionComponent<{
 
           inputValueToPlayer({
             player,
-            componentID: component.id,
+            componentID: id,
             value: Number(event.target.value),
           });
         };
@@ -79,7 +81,7 @@ const ComponentActions: FunctionComponent<{
         throw new Error();
       }
     }
-  }, [component, getDispatchComponent, player])
+  }, [component, getDispatchComponent, id, player])
 );
 
 export { ComponentActions };
