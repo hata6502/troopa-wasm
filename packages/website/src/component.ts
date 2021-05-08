@@ -109,7 +109,6 @@ interface ComponentBase<
   Implementation extends ComponentType,
   ExtendedData extends Record<string, unknown>
 > {
-  id: string;
   name: string;
   implementation: Implementation;
   outputDestinations: OutputDestination[];
@@ -139,9 +138,14 @@ type Component =
   | ComponentBase<typeof componentType.meter, Record<string, never>>
   | ComponentBase<typeof componentType.scope, Record<string, never>>;
 
-const createComponent = ({ type }: { type: ComponentType }): Component => {
-  const base = {
-    id: uuidv4(),
+const createComponent = ({
+  type,
+}: {
+  type: ComponentType;
+}): { id: string; component: Component } => {
+  const id = uuidv4();
+
+  const componentBase = {
     name: componentNames[type],
     outputDestinations: [],
     position: { x: 0, y: 0 },
@@ -150,10 +154,13 @@ const createComponent = ({ type }: { type: ComponentType }): Component => {
   switch (type) {
     case componentType.input: {
       return {
-        ...base,
-        implementation: type,
-        extendedData: {
-          value: "0",
+        id,
+        component: {
+          ...componentBase,
+          implementation: type,
+          extendedData: {
+            value: "0",
+          },
         },
       };
     }
@@ -178,9 +185,12 @@ const createComponent = ({ type }: { type: ComponentType }): Component => {
     case componentType.meter:
     case componentType.scope: {
       return {
-        ...base,
-        implementation: type,
-        extendedData: {},
+        id,
+        component: {
+          ...componentBase,
+          implementation: type,
+          extendedData: {},
+        },
       };
     }
 

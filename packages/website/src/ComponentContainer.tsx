@@ -93,23 +93,27 @@ const useStyles = makeStyles(({ palette, spacing }) => ({
 }));
 
 interface ComponentContainerProps {
+  id: string;
   sketch: Sketch;
-  componentIndex: number;
   dispatchAlertData: Dispatch<SetStateAction<AlertData>>;
   getDispatchComponent: <T extends Component>(props: {
+    id: string;
     component: T;
   }) => Dispatch<SetStateAction<T>>;
   onDistributorButtonClick?: MouseEventHandler<HTMLButtonElement>;
   onDrag?: DraggableEventHandler;
-  onRemoveComponentRequest?: (event: { component: Component }) => void;
+  onRemoveComponentRequest?: (event: {
+    id: string;
+    component: Component;
+  }) => void;
   onRemoveConnectionsRequest?: (event: OutputDestination[]) => void;
 }
 
 const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
   ({
+    id,
     children,
     sketch,
-    componentIndex,
     dispatchAlertData,
     getDispatchComponent,
     onDistributorButtonClick,
@@ -117,13 +121,13 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
     onRemoveComponentRequest,
     onRemoveConnectionsRequest,
   }) => {
-    const component = sketch.components[componentIndex];
+    const component = sketch.component[id];
 
     const [connectionCuror, setConnectionCuror] = useState<DraggableData>();
 
     const dispatchComponent = useMemo(
-      () => getDispatchComponent({ component }),
-      [component, getDispatchComponent]
+      () => getDispatchComponent({ id, component }),
+      [component, getDispatchComponent, id]
     );
 
     const handleDrag: DraggableEventHandler = useCallback(
@@ -141,9 +145,10 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
     const handleDeleteButtonClick = useCallback(
       () =>
         onRemoveComponentRequest?.({
+          id,
           component,
         }),
-      [component, onRemoveComponentRequest]
+      [component, id, onRemoveComponentRequest]
     );
 
     const handleOutputAnchorDrag: DraggableEventHandler = useCallback(
@@ -257,6 +262,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
         dispatchComponent,
         handleDistributorButtonClick,
         onDrag,
+        onRemoveConnectionsRequest,
       ]
     );
 
@@ -273,15 +279,17 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
         const handleInputAnchorClick = () =>
           onRemoveConnectionsRequest?.([
             {
-              componentID: component.id,
+              componentID: id,
               inputIndex,
             },
           ]);
 
-        const isConnected = sketch.components.some((otherComponent) =>
+        const isConnected = Object.entries(
+          sketch.component
+        ).some(([otherID, otherComponent]) =>
           otherComponent.outputDestinations.some(
             (outputDestination) =>
-              outputDestination.componentID === component.id &&
+              outputDestination.componentID === otherID &&
               outputDestination.inputIndex === inputIndex
           )
         );
@@ -292,9 +300,9 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
               {componentInputNames[component.implementation][inputIndex]}
             </Typography>
 
-            <ArcherElement id={`${component.id}-input-anchor-${inputIndex}`}>
+            <ArcherElement id={`${id}-input-anchor-${inputIndex}`}>
               <Radio
-                data-component-id={component.id}
+                data-component-id={id}
                 data-input-index={inputIndex}
                 checked={isConnected}
                 className={classes.inputAnchor}
@@ -308,10 +316,10 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
     }, [
       classes.input,
       classes.inputAnchor,
-      component.id,
       component.implementation,
+      id,
       onRemoveConnectionsRequest,
-      sketch.components,
+      sketch.component,
     ]);
 
     const connectionCurorStyle = useMemo(
@@ -362,17 +370,11 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
             {/* DraggableCore target. */}
             <div>
               <ArcherElement
-                id={`${component.id}-output-anchor`}
+                id={`${id}-output-anchor`}
                 relations={[
                   ...component.outputDestinations.map((outputDestination) => {
-                    const destinationComponent = sketch.components.find(
-                      (component) =>
-                        component.id === outputDestination.componentID
-                    );
-
-                    if (!destinationComponent) {
-                      throw new Error();
-                    }
+                    const destinationComponent =
+                      sketch.component[outputDestination.componentID];
 
                     return {
                       ...detectArcherAnchorPosition({
@@ -383,7 +385,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
                         targetX:
                           destinationComponent.position.x - anchorWidth / 2,
                       }),
-                      targetId: `${destinationComponent.id}-input-anchor-${outputDestination.inputIndex}`,
+                      targetId: `${outputDestination.componentID}-input-anchor-${outputDestination.inputIndex}`,
                     };
                   }),
                   ...(connectionCuror
@@ -396,7 +398,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
                               anchorWidth / 2,
                             targetX: component.position.x + connectionCuror.x,
                           }),
-                          targetId: `${component.id}-connection-cursor`,
+                          targetId: `${id}-connection-cursor`,
                         },
                       ]
                     : []),
@@ -412,7 +414,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
           </DraggableCore>
 
           {connectionCurorStyle && (
-            <ArcherElement id={`${component.id}-connection-cursor`}>
+            <ArcherElement id={`${id}-connection-cursor`}>
               <div style={connectionCurorStyle} />
             </ArcherElement>
           )}

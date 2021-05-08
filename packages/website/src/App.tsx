@@ -112,11 +112,14 @@ const App: FunctionComponent = memo(() => {
   }, [currentSketch, originalSketch]);
 
   const addComponentToCurrentSketch = useCallback(
-    ({ component }: { component: Component }) =>
+    ({ id, component }: { id: string; component: Component }) =>
       setCurrentSketch((prevSketch) => {
         return {
           ...prevSketch,
-          components: [...prevSketch.components, component],
+          component: {
+            ...prevSketch.component,
+            [id]: component,
+          },
         };
       }),
     []
@@ -124,9 +127,9 @@ const App: FunctionComponent = memo(() => {
 
   const handleDistributorButtonClick = useCallback(
     () =>
-      addComponentToCurrentSketch({
-        component: createComponent({ type: componentType.distributor }),
-      }),
+      addComponentToCurrentSketch(
+        createComponent({ type: componentType.distributor })
+      ),
     [addComponentToCurrentSketch]
   );
 
@@ -220,20 +223,29 @@ const App: FunctionComponent = memo(() => {
 
   const removeConnections = useCallback(
     (targets: OutputDestination[]) =>
-      setCurrentSketch((prevSketch) => ({
-        ...prevSketch,
-        components: prevSketch.components.map((component) => ({
-          ...component,
-          outputDestinations: component.outputDestinations.filter(
-            (outputDestination) =>
-              targets.every(
-                (target) =>
-                  outputDestination.componentID !== target.componentID ||
-                  outputDestination.inputIndex !== target.inputIndex
-              )
-          ),
-        })),
-      })),
+      setCurrentSketch((prevSketch) => {
+        const componentEntries = Object.entries(prevSketch.component).map(
+          ([id, component]) => [
+            id,
+            {
+              ...component,
+              outputDestinations: component.outputDestinations.filter(
+                (outputDestination) =>
+                  targets.every(
+                    (target) =>
+                      outputDestination.componentID !== target.componentID ||
+                      outputDestination.inputIndex !== target.inputIndex
+                  )
+              ),
+            },
+          ]
+        );
+
+        return {
+          ...prevSketch,
+          component: Object.fromEntries(componentEntries),
+        };
+      }),
     []
   );
 
@@ -246,17 +258,23 @@ const App: FunctionComponent = memo(() => {
 
       removeConnections(
         [...Array(inputLength).keys()].map((index) => ({
-          componentID: event.component.id,
+          componentID: event.id,
           inputIndex: index,
         }))
       );
 
-      setCurrentSketch((prevSketch) => ({
-        ...prevSketch,
-        components: prevSketch.components.filter(
-          (component) => component.id !== event.component.id
-        ),
-      }));
+      setCurrentSketch((prevSketch) => {
+        const componentEntries = Object.entries(
+          prevSketch.component
+        ).flatMap(([id, component]) =>
+          id === event.id ? [] : [[id, component]]
+        );
+
+        return {
+          ...prevSketch,
+          component: Object.fromEntries(componentEntries),
+        };
+      });
     },
     [removeConnections]
   );
@@ -274,7 +292,7 @@ const App: FunctionComponent = memo(() => {
     () =>
       Object.values(componentType).map((type) => {
         const handleClick = () =>
-          addComponentToCurrentSketch({ component: createComponent({ type }) });
+          addComponentToCurrentSketch(createComponent({ type }));
 
         return (
           <ListItem key={type} button onClick={handleClick}>
@@ -287,36 +305,41 @@ const App: FunctionComponent = memo(() => {
 
   const componentContainerElements = useMemo(() => {
     const getDispatchComponent = <T extends Component>({
+      id,
       component,
     }: {
+      id: string;
       component: T;
     }) => {
       const dispatchComponent: Dispatch<SetStateAction<T>> = (action) =>
-        setCurrentSketch((prevSketch) => ({
-          ...prevSketch,
-          components: prevSketch.components.map((prevComponent) => {
-            const isComponentTarget = (
-              prevComponent: Component
-            ): prevComponent is T => prevComponent.id === component.id;
+        setCurrentSketch((prevSketch) => {
+          const prevComponent = prevSketch.component[id];
 
-            if (!isComponentTarget(prevComponent)) {
-              return prevComponent;
-            }
+          const isComponentT = (target: Component): target is T =>
+            target.implementation === component.implementation;
 
-            return typeof action === "function"
-              ? action(prevComponent)
-              : action;
-          }),
-        }));
+          if (!isComponentT(prevComponent)) {
+            throw new Error();
+          }
+
+          return {
+            ...prevSketch,
+            component: {
+              ...prevSketch.component,
+              [id]:
+                typeof action === "function" ? action(prevComponent) : action,
+            },
+          };
+        });
 
       return dispatchComponent;
     };
 
-    return currentSketch.components.map((component, index) => (
+    return Object.entries(currentSketch.component).map(([id, component]) => (
       <ComponentContainer
-        key={component.id}
+        id={id}
+        key={id}
         sketch={currentSketch}
-        componentIndex={index}
         dispatchAlertData={dispatchAlertData}
         getDispatchComponent={getDispatchComponent}
         onDistributorButtonClick={handleDistributorButtonClick}
@@ -325,6 +348,7 @@ const App: FunctionComponent = memo(() => {
         onRemoveConnectionsRequest={removeConnections}
       >
         <ComponentActions
+          id={id}
           component={component}
           getDispatchComponent={getDispatchComponent}
           player={player}
