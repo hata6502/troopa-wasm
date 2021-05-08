@@ -43,6 +43,13 @@ import { initialSketch, validateSketch } from "./sketch";
 
 const drawerWidth = 200;
 
+interface AlertData {
+  isOpen?: SnackbarProps["open"];
+  severity?: AlertProps["severity"];
+  title?: AlertTitleProps["children"];
+  description?: AlertProps["children"];
+}
+
 const svgContainerStyle: ArcherContainerProps["svgContainerStyle"] = {
   // To display arrows in front of components.
   zIndex: 1,
@@ -77,13 +84,7 @@ const useStyles = makeStyles(({ mixins, palette, spacing }) => ({
 }));
 
 const App: FunctionComponent = memo(() => {
-  const [alert, dispatchAlert] = useState<{
-    isOpen?: SnackbarProps["open"];
-    severity?: AlertProps["severity"];
-    title?: AlertTitleProps["children"];
-    description?: AlertProps["children"];
-  }>({});
-
+  const [alertData, dispatchAlertData] = useState<AlertData>({});
   const [player, setPlayer] = useState<Player>();
 
   const [originalSketch, setOriginalSketch] = useState(initialSketch);
@@ -109,6 +110,25 @@ const App: FunctionComponent = memo(() => {
 
     return () => window.removeEventListener("beforeunload", handleBeforeunload);
   }, [currentSketch, originalSketch]);
+
+  const addComponentToCurrentSketch = useCallback(
+    ({ component }: { component: Component }) =>
+      setCurrentSketch((prevSketch) => {
+        return {
+          ...prevSketch,
+          components: [...prevSketch.components, component],
+        };
+      }),
+    []
+  );
+
+  const handleDistributorButtonClick = useCallback(
+    () =>
+      addComponentToCurrentSketch({
+        component: createComponent({ type: componentType.distributor }),
+      }),
+    [addComponentToCurrentSketch]
+  );
 
   const handleComponentDrag = useCallback(() => {
     if (!archerContainerElement.current) {
@@ -155,7 +175,7 @@ const App: FunctionComponent = memo(() => {
           // Because validateSketch() may mistaked.
           Sentry.captureMessage("Sketch validation failed.");
 
-          dispatchAlert({
+          dispatchAlertData({
             isOpen: true,
             severity: "error",
             title: "Failed to load",
@@ -243,7 +263,7 @@ const App: FunctionComponent = memo(() => {
 
   const handleAlertClose = useCallback(
     () =>
-      dispatchAlert((prevAlert) => ({
+      dispatchAlertData((prevAlert) => ({
         ...prevAlert,
         isOpen: false,
       })),
@@ -254,12 +274,7 @@ const App: FunctionComponent = memo(() => {
     () =>
       Object.values(componentType).map((type) => {
         const handleClick = () =>
-          setCurrentSketch((prevSketch) => {
-            return {
-              ...prevSketch,
-              components: [...prevSketch.components, createComponent({ type })],
-            };
-          });
+          addComponentToCurrentSketch({ component: createComponent({ type }) });
 
         return (
           <ListItem key={type} button onClick={handleClick}>
@@ -267,7 +282,7 @@ const App: FunctionComponent = memo(() => {
           </ListItem>
         );
       }),
-    []
+    [addComponentToCurrentSketch]
   );
 
   const componentContainerElements = useMemo(() => {
@@ -302,7 +317,9 @@ const App: FunctionComponent = memo(() => {
         key={component.id}
         sketch={currentSketch}
         componentIndex={index}
+        dispatchAlertData={dispatchAlertData}
         getDispatchComponent={getDispatchComponent}
+        onDistributorButtonClick={handleDistributorButtonClick}
         onDrag={handleComponentDrag}
         onRemoveComponentRequest={handleRemoveComponentRequest}
         onRemoveConnectionsRequest={removeConnections}
@@ -316,6 +333,7 @@ const App: FunctionComponent = memo(() => {
     ));
   }, [
     handleComponentDrag,
+    handleDistributorButtonClick,
     handleRemoveComponentRequest,
     player,
     removeConnections,
@@ -405,10 +423,10 @@ const App: FunctionComponent = memo(() => {
         </ArcherContainer>
       </main>
 
-      <Snackbar open={alert.isOpen}>
-        <Alert severity={alert.severity} onClose={handleAlertClose}>
-          <AlertTitle>{alert.title}</AlertTitle>
-          {alert.description}
+      <Snackbar open={alertData.isOpen}>
+        <Alert severity={alertData.severity} onClose={handleAlertClose}>
+          <AlertTitle>{alertData.title}</AlertTitle>
+          {alertData.description}
         </Alert>
       </Snackbar>
     </div>
@@ -416,3 +434,4 @@ const App: FunctionComponent = memo(() => {
 });
 
 export { App };
+export type { AlertData };

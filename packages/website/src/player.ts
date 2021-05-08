@@ -2,6 +2,8 @@ import { componentType, distributorComponentInInput } from "./component";
 import type { Component } from "./component";
 import type { Sketch } from "./sketch";
 
+const coreComponentOutputLength = 8;
+
 const core = await import("core-wasm/core_wasm");
 
 interface Player {
@@ -173,5 +175,11 @@ const initPlayer = ({ sketch }: { sketch: Sketch }): Player => {
 const closePlayer = ({ player }: { player: Player }): Promise<void> =>
   player.audioContext.close();
 
-export { initPlayer, closePlayer, inputValueToPlayer };
+export {
+  coreComponentOutputLength,
+  initPlayer,
+  closePlayer,
+  inputValueToPlayer,
+};
+
 export type { Player };
