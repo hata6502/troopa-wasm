@@ -354,6 +354,12 @@ const App: FunctionComponent = memo(() => {
             </Grid>
 
             <Grid item>
+              <Typography variant="subtitle1">
+                <a href="https://github.com/hata6502/troopa-wasm">α version</a>
+              </Typography>
+            </Grid>
+
+            <Grid item>
               <Button
                 variant="contained"
                 color="primary"
