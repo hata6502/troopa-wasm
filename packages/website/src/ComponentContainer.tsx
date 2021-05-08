@@ -94,6 +94,7 @@ const useStyles = makeStyles(({ palette, spacing }) => ({
 
 interface ComponentContainerProps {
   id: string;
+  component: Component;
   sketch: Sketch;
   dispatchAlertData: Dispatch<SetStateAction<AlertData>>;
   getDispatchComponent: <T extends Component>(props: {
@@ -113,6 +114,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
   ({
     id,
     children,
+    component,
     sketch,
     dispatchAlertData,
     getDispatchComponent,
@@ -121,8 +123,6 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
     onRemoveComponentRequest,
     onRemoveConnectionsRequest,
   }) => {
-    const component = sketch.component[id];
-
     const [connectionCuror, setConnectionCuror] = useState<DraggableData>();
 
     const dispatchComponent = useMemo(
@@ -373,8 +373,13 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
                 id={`${id}-output-anchor`}
                 relations={[
                   ...component.outputDestinations.map((outputDestination) => {
-                    const destinationComponent =
-                      sketch.component[outputDestination.componentID];
+                    const destinationComponent = new Map(
+                      Object.entries(sketch.component)
+                    ).get(outputDestination.componentID);
+
+                    if (!destinationComponent) {
+                      throw new Error();
+                    }
 
                     return {
                       ...detectArcherAnchorPosition({

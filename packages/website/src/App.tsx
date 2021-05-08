@@ -313,12 +313,14 @@ const App: FunctionComponent = memo(() => {
     }) => {
       const dispatchComponent: Dispatch<SetStateAction<T>> = (action) =>
         setCurrentSketch((prevSketch) => {
-          const prevComponent = prevSketch.component[id];
+          const prevComponent = new Map(
+            Object.entries(prevSketch.component)
+          ).get(id);
 
           const isComponentT = (target: Component): target is T =>
             target.implementation === component.implementation;
 
-          if (!isComponentT(prevComponent)) {
+          if (!prevComponent || !isComponentT(prevComponent)) {
             throw new Error();
           }
 
@@ -339,6 +341,7 @@ const App: FunctionComponent = memo(() => {
       <ComponentContainer
         id={id}
         key={id}
+        component={component}
         sketch={currentSketch}
         dispatchAlertData={dispatchAlertData}
         getDispatchComponent={getDispatchComponent}
