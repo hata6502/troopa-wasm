@@ -14,10 +14,12 @@ const inputValueToPlayer = ({
   player,
   componentID,
   value,
+  onCoreInfiniteLoopDetected,
 }: {
   player: Player;
   componentID: string;
   value: number;
+  onCoreInfiniteLoopDetected?: () => void;
 }): void => {
   const componentIndex = player.componentIndexMap.get(componentID);
 
@@ -25,10 +27,24 @@ const inputValueToPlayer = ({
     throw new Error();
   }
 
-  core.input_value(componentIndex, distributorComponentInInput, value);
+  try {
+    core.input_value(componentIndex, distributorComponentInInput, value);
+  } catch (exception: unknown) {
+    if (exception === "CoreInfiniteLoopDetected") {
+      onCoreInfiniteLoopDetected?.();
+    } else {
+      throw exception;
+    }
+  }
 };
 
-const initPlayer = ({ sketch }: { sketch: Sketch }): Player => {
+const play = ({
+  sketch,
+  onCoreInfiniteLoopDetected,
+}: {
+  sketch: Sketch;
+  onCoreInfiniteLoopDetected?: () => void;
+}): Player => {
   const audioContext = new AudioContext();
 
   core.init(audioContext.sampleRate);
@@ -106,6 +122,7 @@ const initPlayer = ({ sketch }: { sketch: Sketch }): Player => {
           player,
           componentID: id,
           value: Number(component.extendedData.value),
+          onCoreInfiniteLoopDetected,
         });
 
         break;
@@ -155,9 +172,18 @@ const initPlayer = ({ sketch }: { sketch: Sketch }): Player => {
     }
 
     const bufferSize = event.outputBuffer.getChannelData(0).length;
-    const buffer = core.process(bufferSize, outputComponentIndex);
 
-    event.outputBuffer.copyToChannel(buffer, 0);
+    try {
+      const buffer = core.process(bufferSize, outputComponentIndex);
+
+      event.outputBuffer.copyToChannel(buffer, 0);
+    } catch (exception: unknown) {
+      if (exception === "CoreInfiniteLoopDetected") {
+        onCoreInfiniteLoopDetected?.();
+      } else {
+        throw exception;
+      }
+    }
   });
 
   scriptNode.connect(audioContext.destination);
@@ -168,11 +194,6 @@ const initPlayer = ({ sketch }: { sketch: Sketch }): Player => {
 const closePlayer = ({ player }: { player: Player }): Promise<void> =>
   player.audioContext.close();
 
-export {
-  coreComponentOutputLength,
-  initPlayer,
-  closePlayer,
-  inputValueToPlayer,
-};
+export { coreComponentOutputLength, play, closePlayer, inputValueToPlayer };
 
 export type { Player };

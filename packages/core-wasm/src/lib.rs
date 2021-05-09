@@ -149,7 +149,7 @@ impl Sketch {
             self.components[destination.0].loop_count+=1;
 
             if self.components[destination.0].loop_count > SKETCH_MAX_LOOP_COUNT {
-                return Err(JsValue::from_str("InfiniteLoopDetected"));
+                return Err(JsValue::from_str("CoreInfiniteLoopDetected"));
             }
 
             for output_destination_index in

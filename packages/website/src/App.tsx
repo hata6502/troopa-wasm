@@ -37,7 +37,7 @@ import {
   createComponent,
 } from "./component";
 import type { Component, OutputDestination } from "./component";
-import { initPlayer, closePlayer } from "./player";
+import { play, closePlayer } from "./player";
 import type { Player } from "./player";
 import { initialSketch, validateSketch } from "./sketch";
 
@@ -125,6 +125,22 @@ const App: FunctionComponent = memo(() => {
     []
   );
 
+  const handleCoreInfiniteLoopDetected = useCallback(async () => {
+    dispatchAlertData({
+      isOpen: true,
+      severity: "error",
+      title: "Infinite loop detected",
+      description: "TODO",
+    });
+
+    if (!player) {
+      return;
+    }
+
+    await closePlayer({ player });
+    setPlayer(undefined);
+  }, [player]);
+
   const handleDistributorButtonClick = useCallback(
     () =>
       addComponentToCurrentSketch(
@@ -142,8 +158,14 @@ const App: FunctionComponent = memo(() => {
   }, []);
 
   const handlePlayButtonClick = useCallback(
-    () => setPlayer(initPlayer({ sketch: currentSketch })),
-    [currentSketch]
+    () =>
+      setPlayer(
+        play({
+          sketch: currentSketch,
+          onCoreInfiniteLoopDetected: handleCoreInfiniteLoopDetected,
+        })
+      ),
+    [currentSketch, handleCoreInfiniteLoopDetected]
   );
 
   const handleStopButtonClick = useCallback(async () => {
@@ -355,11 +377,13 @@ const App: FunctionComponent = memo(() => {
           component={component}
           getDispatchComponent={getDispatchComponent}
           player={player}
+          onCoreInfiniteLoopDetected={handleCoreInfiniteLoopDetected}
         />
       </ComponentContainer>
     ));
   }, [
     handleComponentDrag,
+    handleCoreInfiniteLoopDetected,
     handleDistributorButtonClick,
     handleRemoveComponentRequest,
     player,
