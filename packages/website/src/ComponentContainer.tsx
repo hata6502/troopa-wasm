@@ -26,9 +26,9 @@ import type {
   DraggableEventHandler,
 } from "react-draggable";
 import type { AlertData } from "./App";
+import { Player } from "./Player";
 import { componentInputNames, diffTimeInput } from "./component";
 import type { Component, OutputDestination } from "./component";
-import { coreComponentOutputLength } from "./player";
 import type { Sketch } from "./sketch";
 
 const detectArcherAnchorPosition = ({
@@ -220,7 +220,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
             ).values(),
           ];
 
-          if (uniqueOutputDestinations.length <= coreComponentOutputLength) {
+          if (uniqueOutputDestinations.length <= Player.coreComponentOutputLength) {
             onRemoveConnectionsRequest?.(newOutputDestinations);
 
             dispatchComponent((prevComponent) => ({
@@ -234,7 +234,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
               title: "Please use distributor component",
               description: (
                 <>
-                  A component can output to up to {coreComponentOutputLength}{" "}
+                  A component can output to up to {Player.coreComponentOutputLength}{" "}
                   destinations. Please use&nbsp;
                   <Button
                     variant="outlined"

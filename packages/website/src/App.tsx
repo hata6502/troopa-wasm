@@ -30,6 +30,7 @@ import type { ArcherContainerProps } from "react-archer";
 import { ComponentActions } from "./ComponentActions";
 import { ComponentContainer } from "./ComponentContainer";
 import type { ComponentContainerProps } from "./ComponentContainer";
+import { Player } from "./Player";
 import {
   componentInputNames,
   componentNames,
@@ -37,8 +38,6 @@ import {
   createComponent,
 } from "./component";
 import type { Component, OutputDestination } from "./component";
-import { play, closePlayer } from "./player";
-import type { Player } from "./player";
 import { initialSketch, validateSketch } from "./sketch";
 
 const drawerWidth = 200;
@@ -125,22 +124,6 @@ const App: FunctionComponent = memo(() => {
     []
   );
 
-  const handleCoreInfiniteLoopDetected = useCallback(async () => {
-    dispatchAlertData({
-      isOpen: true,
-      severity: "error",
-      title: "Infinite loop detected",
-      description: "TODO",
-    });
-
-    if (!player) {
-      return;
-    }
-
-    await closePlayer({ player });
-    setPlayer(undefined);
-  }, [player]);
-
   const handleDistributorButtonClick = useCallback(
     () =>
       addComponentToCurrentSketch(
@@ -158,14 +141,31 @@ const App: FunctionComponent = memo(() => {
   }, []);
 
   const handlePlayButtonClick = useCallback(
-    () =>
+    () => {
+      const handleCoreInfiniteLoopDetected = async () => {
+        dispatchAlertData({
+          isOpen: true,
+          severity: "error",
+          title: "Infinite loop detected",
+          description: "TODO",
+        });
+    
+        if (!player) {
+          return;
+        }
+    
+        await player.close();
+        setPlayer(undefined);
+      };
+    
       setPlayer(
-        play({
+        new Player({
           sketch: currentSketch,
           onCoreInfiniteLoopDetected: handleCoreInfiniteLoopDetected,
         })
-      ),
-    [currentSketch, handleCoreInfiniteLoopDetected]
+      )
+    },
+    [currentSketch, player]
   );
 
   const handleStopButtonClick = useCallback(async () => {
@@ -173,7 +173,7 @@ const App: FunctionComponent = memo(() => {
       return;
     }
 
-    await closePlayer({ player });
+    player.close();
     setPlayer(undefined);
   }, [player]);
 
@@ -377,13 +377,11 @@ const App: FunctionComponent = memo(() => {
           component={component}
           getDispatchComponent={getDispatchComponent}
           player={player}
-          onCoreInfiniteLoopDetected={handleCoreInfiniteLoopDetected}
         />
       </ComponentContainer>
     ));
   }, [
     handleComponentDrag,
-    handleCoreInfiniteLoopDetected,
     handleDistributorButtonClick,
     handleRemoveComponentRequest,
     player,

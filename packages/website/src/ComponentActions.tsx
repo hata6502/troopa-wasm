@@ -2,10 +2,9 @@ import { TextField } from "@material-ui/core";
 import type { TextFieldProps } from "@material-ui/core";
 import { memo, useMemo } from "react";
 import type { Dispatch, FunctionComponent, SetStateAction } from "react";
+import type { Player } from "./Player";
 import { componentType } from "./component";
 import type { Component } from "./component";
-import { inputValueToPlayer } from "./player";
-import type { Player } from "./player";
 
 const ComponentActions: FunctionComponent<{
   id: string;
@@ -15,14 +14,12 @@ const ComponentActions: FunctionComponent<{
     component: T;
   }) => Dispatch<SetStateAction<T>>;
   player?: Player;
-  onCoreInfiniteLoopDetected?: () => void;
 }> = memo(
   ({
     id,
     component,
     getDispatchComponent,
     player,
-    onCoreInfiniteLoopDetected,
   }) =>
     useMemo(() => {
       switch (component.implementation) {
@@ -42,11 +39,9 @@ const ComponentActions: FunctionComponent<{
               return;
             }
 
-            inputValueToPlayer({
-              player,
+            player.inputValue({
               componentID: id,
               value: Number(event.target.value),
-              onCoreInfiniteLoopDetected,
             });
           };
 
@@ -95,7 +90,6 @@ const ComponentActions: FunctionComponent<{
       getDispatchComponent,
       id,
       player,
-      onCoreInfiniteLoopDetected,
     ])
 );
 
