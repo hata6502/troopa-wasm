@@ -31,6 +31,7 @@ import { ComponentActions } from "./ComponentActions";
 import { ComponentContainer } from "./ComponentContainer";
 import type { ComponentContainerProps } from "./ComponentContainer";
 import { Player } from "./Player";
+import type { CoreInfiniteLoopDetectedEventHandler } from "./Player";
 import {
   componentInputNames,
   componentNames,
@@ -140,33 +141,28 @@ const App: FunctionComponent = memo(() => {
     archerContainerElement.current.refreshScreen();
   }, []);
 
-  const handlePlayButtonClick = useCallback(
-    () => {
-      const handleCoreInfiniteLoopDetected = async () => {
-        dispatchAlertData({
-          isOpen: true,
-          severity: "error",
-          title: "Infinite loop detected",
-          description: "TODO",
-        });
-    
-        if (!player) {
-          return;
-        }
-    
-        await player.close();
-        setPlayer(undefined);
-      };
-    
-      setPlayer(
-        new Player({
-          sketch: currentSketch,
-          onCoreInfiniteLoopDetected: handleCoreInfiniteLoopDetected,
-        })
-      )
-    },
-    [currentSketch, player]
-  );
+  const handlePlayButtonClick = useCallback(() => {
+    const handleCoreInfiniteLoopDetected: CoreInfiniteLoopDetectedEventHandler = async ({
+      player,
+    }) => {
+      dispatchAlertData({
+        isOpen: true,
+        severity: "error",
+        title: "Infinite loop detected",
+        description: "TODO",
+      });
+
+      await player.close();
+      setPlayer(undefined);
+    };
+
+    setPlayer(
+      new Player({
+        sketch: currentSketch,
+        onCoreInfiniteLoopDetected: handleCoreInfiniteLoopDetected,
+      })
+    );
+  }, [currentSketch]);
 
   const handleStopButtonClick = useCallback(async () => {
     if (!player) {

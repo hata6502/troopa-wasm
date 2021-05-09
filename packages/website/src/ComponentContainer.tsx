@@ -220,7 +220,9 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
             ).values(),
           ];
 
-          if (uniqueOutputDestinations.length <= Player.coreComponentOutputLength) {
+          if (
+            uniqueOutputDestinations.length <= Player.coreComponentOutputLength
+          ) {
             onRemoveConnectionsRequest?.(newOutputDestinations);
 
             dispatchComponent((prevComponent) => ({
@@ -234,8 +236,9 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
               title: "Please use distributor component",
               description: (
                 <>
-                  A component can output to up to {Player.coreComponentOutputLength}{" "}
-                  destinations. Please use&nbsp;
+                  A component can output to up to{" "}
+                  {Player.coreComponentOutputLength} destinations. Please
+                  use&nbsp;
                   <Button
                     variant="outlined"
                     size="small"
