@@ -35,10 +35,7 @@ const initialSketch: Sketch = {
       name: "sine",
       implementation: 10,
       outputDestinations: [
-        {
-          componentID: "5446b319-e7bc-4430-9773-1021cf7e2a7a",
-          inputIndex: 1,
-        },
+        { componentID: "5446b319-e7bc-4430-9773-1021cf7e2a7a", inputIndex: 1 },
       ],
       position: { x: 285, y: 36 },
       extendedData: {},
@@ -53,22 +50,16 @@ const initialSketch: Sketch = {
     "2979e003-3e55-4f18-a76e-097c94373540": {
       name: "keyboard frequency",
       outputDestinations: [
-        {
-          componentID: "df5bb750-e9fe-fbf3-26e0-bbd601fe98c9",
-          inputIndex: 1,
-        },
+        { componentID: "df5bb750-e9fe-fbf3-26e0-bbd601fe98c9", inputIndex: 1 },
       ],
-      position: { x: 36, y: 41 },
+      position: { x: 38, y: 23 },
       implementation: 16,
       extendedData: {},
     },
     "c0f78421-49bb-49c1-a065-bd9fbabe65f1": {
       name: "keyboard switch",
       outputDestinations: [
-        {
-          componentID: "5446b319-e7bc-4430-9773-1021cf7e2a7a",
-          inputIndex: 2,
-        },
+        { componentID: "5446b319-e7bc-4430-9773-1021cf7e2a7a", inputIndex: 2 },
       ],
       position: { x: 280, y: 217 },
       implementation: 17,
@@ -77,10 +68,7 @@ const initialSketch: Sketch = {
     "5446b319-e7bc-4430-9773-1021cf7e2a7a": {
       name: "amplifier",
       outputDestinations: [
-        {
-          componentID: "d417eb39-d2d7-4023-a58f-f058658b7c40",
-          inputIndex: 1,
-        },
+        { componentID: "d417eb39-d2d7-4023-a58f-f058658b7c40", inputIndex: 1 },
       ],
       position: { x: 524, y: 104 },
       implementation: 0,

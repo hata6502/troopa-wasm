@@ -9,7 +9,7 @@ const KeyboardSwitch: FunctionComponent<{
   const [isKeyDown, setIsKeyDown] = useState(false);
 
   useEffect(() => {
-    const handleKeyDown = () => {
+    const handleKeydown = () => {
       if (!player) {
         return;
       }
@@ -22,7 +22,7 @@ const KeyboardSwitch: FunctionComponent<{
       setIsKeyDown(true);
     };
 
-    const handleKeyUp = () => {
+    const handleKeyup = () => {
       if (!player) {
         return;
       }
@@ -35,12 +35,12 @@ const KeyboardSwitch: FunctionComponent<{
       setIsKeyDown(false);
     };
 
-    document.addEventListener("keydown", handleKeyDown);
-    document.addEventListener("keyup", handleKeyUp);
+    document.addEventListener("keydown", handleKeydown);
+    document.addEventListener("keyup", handleKeyup);
 
     return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      document.removeEventListener("keyup", handleKeyUp);
+      document.removeEventListener("keydown", handleKeydown);
+      document.removeEventListener("keyup", handleKeyup);
     };
   }, [id, player]);
 
