@@ -146,7 +146,6 @@ const App: FunctionComponent = memo(() => {
         isOpen: true,
         severity: "error",
         title: "Infinite loop detected",
-        // TODO: detect component
         description: (
           <>
             Please clear the infinite loop.&nbsp;

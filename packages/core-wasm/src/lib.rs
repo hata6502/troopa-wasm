@@ -181,17 +181,6 @@ impl Sketch {
             inputs.push(((index, DIFF_TIME_INPUT), diff_time));
         }
 
-        match self.input_values(inputs) {
-            Ok(v) => v,
-            Err(e) => return Err(e),
-        };
-
-        let mut inputs = Vec::new();
-
-        for index in 0..self.component_length {
-            inputs.push(((index, DIFF_TIME_INPUT), 0.0));
-        }
-
         self.input_values(inputs)
     }
 }
@@ -339,6 +328,8 @@ impl Component {
         let is_changed = (self.output_value - next_output_value).abs() >= f32::EPSILON;
 
         self.output_value = next_output_value;
+        self.input_values[DIFF_TIME_INPUT] = 0.0;
+
         is_changed
     }
 
