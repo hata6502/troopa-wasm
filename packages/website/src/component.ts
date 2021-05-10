@@ -21,10 +21,11 @@ const componentType = {
 
   // Interface components
   input: 15,
-  keyboard: 16,
-  speaker: 17,
-  meter: 18,
-  scope: 19,
+  keyboardFrequency: 16,
+  keyboardSwitch: 17,
+  speaker: 18,
+  meter: 19,
+  scope: 20,
 } as const;
 
 type ComponentType =
@@ -44,7 +45,8 @@ type ComponentType =
   | typeof componentType.triangle
   | typeof componentType.upperSaturator
   | typeof componentType.input
-  | typeof componentType.keyboard
+  | typeof componentType.keyboardFrequency
+  | typeof componentType.keyboardSwitch
   | typeof componentType.speaker
   | typeof componentType.meter
   | typeof componentType.scope;
@@ -66,7 +68,8 @@ const componentNames = {
   [componentType.triangle]: "triangle",
   [componentType.upperSaturator]: "upper saturator",
   [componentType.input]: "input",
-  [componentType.keyboard]: "keyboard",
+  [componentType.keyboardFrequency]: "keyboard frequency",
+  [componentType.keyboardSwitch]: "keyboard switch",
   [componentType.speaker]: "speaker",
   [componentType.meter]: "meter",
   [componentType.scope]: "scope",
@@ -94,7 +97,8 @@ const componentInputNames = {
   [componentType.triangle]: [diffTimeInputName, "frequency"],
   [componentType.upperSaturator]: [diffTimeInputName, "in 1", "in 2"],
   [componentType.input]: [diffTimeInputName],
-  [componentType.keyboard]: [diffTimeInputName],
+  [componentType.keyboardFrequency]: [diffTimeInputName],
+  [componentType.keyboardSwitch]: [diffTimeInputName],
   [componentType.speaker]: [diffTimeInputName, "sound"],
   [componentType.meter]: [diffTimeInputName, "in"],
   [componentType.scope]: [diffTimeInputName, "in"],
@@ -116,6 +120,11 @@ interface ComponentBase<
   extendedData: ExtendedData;
 }
 
+type InputComponent = ComponentBase<
+  typeof componentType.input,
+  { value: string }
+>;
+
 type Component =
   | ComponentBase<typeof componentType.amplifier, Record<string, never>>
   | ComponentBase<typeof componentType.buffer, Record<string, never>>
@@ -132,8 +141,9 @@ type Component =
   | ComponentBase<typeof componentType.subtractor, Record<string, never>>
   | ComponentBase<typeof componentType.triangle, Record<string, never>>
   | ComponentBase<typeof componentType.upperSaturator, Record<string, never>>
-  | ComponentBase<typeof componentType.input, { value: string }>
-  | ComponentBase<typeof componentType.keyboard, Record<string, never>>
+  | InputComponent
+  | ComponentBase<typeof componentType.keyboardFrequency, Record<string, never>>
+  | ComponentBase<typeof componentType.keyboardSwitch, Record<string, never>>
   | ComponentBase<typeof componentType.speaker, Record<string, never>>
   | ComponentBase<typeof componentType.meter, Record<string, never>>
   | ComponentBase<typeof componentType.scope, Record<string, never>>;
@@ -180,7 +190,8 @@ const createComponent = ({
     case componentType.subtractor:
     case componentType.triangle:
     case componentType.upperSaturator:
-    case componentType.keyboard:
+    case componentType.keyboardFrequency:
+    case componentType.keyboardSwitch:
     case componentType.speaker:
     case componentType.meter:
     case componentType.scope: {
@@ -212,4 +223,4 @@ export {
   distributorComponentInInput,
 };
 
-export type { Component, OutputDestination };
+export type { Component, InputComponent, OutputDestination };
