@@ -3,6 +3,7 @@ const COMPONENT_OUTPUT_LENGTH: usize = 8;
 const COMPONENT_REGISTER_LENGTH: usize = 8;
 
 const SKETCH_COMPONENT_LENGTH: usize = 1024;
+const SKETCH_MAX_LOOP_COUNT: i32 = 255;
 
 extern crate wasm_bindgen;
 
@@ -59,25 +60,29 @@ pub fn create_component(component_type: ComponentType) -> usize {
     SKETCH.lock().unwrap().create_component(component_type)
 }
 
-#[wasm_bindgen]
-pub fn input_value(component_index: usize, input_index: usize, value: f32) {
+#[wasm_bindgen(catch)]
+pub fn input_value(component_index: usize, input_index: usize, value: f32) -> Result<(), JsValue> {
     SKETCH
         .lock()
         .unwrap()
-        .input_values(vec![((component_index, input_index), value)]);
+        .input_values(vec![((component_index, input_index), value)])
 }
 
-#[wasm_bindgen]
-pub fn process(buffer_size: usize, output_component_index: usize) -> Vec<f32> {
+#[wasm_bindgen(catch)]
+pub fn process(buffer_size: usize, output_component_index: usize) -> Result<Vec<f32>, JsValue> {
     let mut sketch = SKETCH.lock().unwrap();
     let mut buffer = Vec::<f32>::new();
 
     for _index in 0..buffer_size {
         buffer.push(sketch.get_output_value(output_component_index));
-        sketch.next_tick();
+
+        match sketch.next_tick() {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
     }
 
-    buffer
+    Ok(buffer)
 }
 
 const DIFF_TIME_INPUT: usize = 0;
@@ -126,7 +131,11 @@ impl Sketch {
         self.components[index].output_value
     }
 
-    fn input_values(&mut self, inputs: Vec<(Destination, f32)>) {
+    fn input_values(&mut self, inputs: Vec<(Destination, f32)>) -> Result<(), JsValue> {
+        for index in 0..self.component_length {
+            self.components[index].loop_count = 0;
+        }
+
         let mut sync_queue = VecDeque::new();
 
         for input in inputs {
@@ -136,6 +145,15 @@ impl Sketch {
 
         while let Some(destination) = sync_queue.pop_front() {
             let is_changed = self.components[destination.0].sync();
+
+            self.components[destination.0].loop_count += 1;
+
+            if self.components[destination.0].loop_count > SKETCH_MAX_LOOP_COUNT {
+                return Err(JsValue::from_str(&format!(
+                    "CoreInfiniteLoopDetected {}",
+                    destination.0
+                )));
+            }
 
             for output_destination_index in
                 0..self.components[destination.0].output_destination_length
@@ -151,9 +169,11 @@ impl Sketch {
                 };
             }
         }
+
+        Ok(())
     }
 
-    fn next_tick(&mut self) {
+    fn next_tick(&mut self) -> Result<(), JsValue> {
         let diff_time = 1.0 / self.sample_rate;
         let mut inputs = Vec::new();
 
@@ -161,15 +181,7 @@ impl Sketch {
             inputs.push(((index, DIFF_TIME_INPUT), diff_time));
         }
 
-        self.input_values(inputs);
-
-        let mut inputs = Vec::new();
-
-        for index in 0..self.component_length {
-            inputs.push(((index, DIFF_TIME_INPUT), 0.0));
-        }
-
-        self.input_values(inputs);
+        self.input_values(inputs)
     }
 }
 
@@ -177,6 +189,7 @@ impl Sketch {
 struct Component {
     component_type: ComponentType,
     input_values: [f32; COMPONENT_INPUT_LENGTH],
+    loop_count: i32,
     output_value: f32,
     output_destinations: [Destination; COMPONENT_OUTPUT_LENGTH],
     output_destination_length: usize,
@@ -192,6 +205,7 @@ impl Component {
         Component {
             component_type,
             input_values: [0.0; COMPONENT_REGISTER_LENGTH],
+            loop_count: 0,
             output_value: 0.0,
             output_destinations: [(0, 0); COMPONENT_OUTPUT_LENGTH],
             output_destination_length: 0,
@@ -314,6 +328,8 @@ impl Component {
         let is_changed = (self.output_value - next_output_value).abs() >= f32::EPSILON;
 
         self.output_value = next_output_value;
+        self.input_values[DIFF_TIME_INPUT] = 0.0;
+
         is_changed
     }
 

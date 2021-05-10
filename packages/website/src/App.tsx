@@ -30,6 +30,7 @@ import type { ArcherContainerProps } from "react-archer";
 import { ComponentActions } from "./ComponentActions";
 import { ComponentContainer } from "./ComponentContainer";
 import type { ComponentContainerProps } from "./ComponentContainer";
+import { Player } from "./Player";
 import {
   componentInputNames,
   componentNames,
@@ -37,8 +38,6 @@ import {
   createComponent,
 } from "./component";
 import type { Component, OutputDestination } from "./component";
-import { initPlayer, closePlayer } from "./player";
-import type { Player } from "./player";
 import { initialSketch, validateSketch } from "./sketch";
 
 const drawerWidth = 200;
@@ -85,6 +84,7 @@ const useStyles = makeStyles(({ mixins, palette, spacing }) => ({
 
 const App: FunctionComponent = memo(() => {
   const [alertData, dispatchAlertData] = useState<AlertData>({});
+  const [errorComponentIDs, setErrorComponentIDs] = useState<string[]>([]);
   const [player, setPlayer] = useState<Player>();
 
   const [originalSketch, setOriginalSketch] = useState(initialSketch);
@@ -125,6 +125,51 @@ const App: FunctionComponent = memo(() => {
     []
   );
 
+  useEffect(() => {
+    if (!player) {
+      return;
+    }
+
+    const handleBufferButtonClick = () => {
+      addComponentToCurrentSketch(
+        createComponent({ type: componentType.buffer })
+      );
+
+      dispatchAlertData((prevAlertData) => ({
+        ...prevAlertData,
+        isOpen: false,
+      }));
+    };
+
+    player.setCoreInfiniteLoopDetectedHandler(async ({ componentID }) => {
+      dispatchAlertData({
+        isOpen: true,
+        severity: "error",
+        title: "Infinite loop detected",
+        description: (
+          <>
+            Please clear the infinite loop.&nbsp;
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={handleBufferButtonClick}
+            >
+              buffer
+            </Button>
+            &nbsp;component may help to fix it.
+          </>
+        ),
+      });
+
+      setErrorComponentIDs([componentID]);
+
+      await player.close();
+      setPlayer(undefined);
+    });
+
+    return () => player.setCoreInfiniteLoopDetectedHandler(undefined);
+  }, [addComponentToCurrentSketch, player]);
+
   const handleDistributorButtonClick = useCallback(
     () =>
       addComponentToCurrentSketch(
@@ -141,17 +186,22 @@ const App: FunctionComponent = memo(() => {
     archerContainerElement.current.refreshScreen();
   }, []);
 
-  const handlePlayButtonClick = useCallback(
-    () => setPlayer(initPlayer({ sketch: currentSketch })),
-    [currentSketch]
-  );
+  const handlePlayButtonClick = useCallback(() => {
+    setErrorComponentIDs([]);
+
+    setPlayer(
+      new Player({
+        sketch: currentSketch,
+      })
+    );
+  }, [currentSketch]);
 
   const handleStopButtonClick = useCallback(async () => {
     if (!player) {
       return;
     }
 
-    await closePlayer({ player });
+    player.close();
     setPlayer(undefined);
   }, [player]);
 
@@ -345,6 +395,7 @@ const App: FunctionComponent = memo(() => {
         sketch={currentSketch}
         dispatchAlertData={dispatchAlertData}
         getDispatchComponent={getDispatchComponent}
+        isError={errorComponentIDs.includes(id)}
         onDistributorButtonClick={handleDistributorButtonClick}
         onDrag={handleComponentDrag}
         onRemoveComponentRequest={handleRemoveComponentRequest}
@@ -359,12 +410,13 @@ const App: FunctionComponent = memo(() => {
       </ComponentContainer>
     ));
   }, [
+    currentSketch,
+    errorComponentIDs,
     handleComponentDrag,
     handleDistributorButtonClick,
     handleRemoveComponentRequest,
     player,
     removeConnections,
-    currentSketch,
   ]);
 
   return (

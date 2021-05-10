@@ -8,7 +8,7 @@ import {
   Typography,
   makeStyles,
 } from "@material-ui/core";
-import { Delete } from "@material-ui/icons";
+import { Delete, Error as ErrorIcon } from "@material-ui/icons";
 import { memo, useCallback, useMemo, useState } from "react";
 import type {
   CSSProperties,
@@ -26,9 +26,9 @@ import type {
   DraggableEventHandler,
 } from "react-draggable";
 import type { AlertData } from "./App";
+import { Player } from "./Player";
 import { componentInputNames, diffTimeInput } from "./component";
 import type { Component, OutputDestination } from "./component";
-import { coreComponentOutputLength } from "./player";
 import type { Sketch } from "./sketch";
 
 const detectArcherAnchorPosition = ({
@@ -66,6 +66,11 @@ const useStyles = makeStyles(({ palette, spacing }) => ({
     right: spacing(1),
     top: spacing(1),
   },
+  errorIcon: {
+    position: "absolute",
+    left: spacing(0),
+    top: spacing(-4),
+  },
   input: {
     position: "relative",
     paddingLeft: spacing(2),
@@ -101,6 +106,7 @@ interface ComponentContainerProps {
     id: string;
     component: T;
   }) => Dispatch<SetStateAction<T>>;
+  isError?: boolean;
   onDistributorButtonClick?: MouseEventHandler<HTMLButtonElement>;
   onDrag?: DraggableEventHandler;
   onRemoveComponentRequest?: (event: {
@@ -118,6 +124,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
     sketch,
     dispatchAlertData,
     getDispatchComponent,
+    isError = false,
     onDistributorButtonClick,
     onDrag,
     onRemoveComponentRequest,
@@ -220,7 +227,9 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
             ).values(),
           ];
 
-          if (uniqueOutputDestinations.length <= coreComponentOutputLength) {
+          if (
+            uniqueOutputDestinations.length <= Player.coreComponentOutputLength
+          ) {
             onRemoveConnectionsRequest?.(newOutputDestinations);
 
             dispatchComponent((prevComponent) => ({
@@ -234,8 +243,9 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
               title: "Please use distributor component",
               description: (
                 <>
-                  A component can output to up to {coreComponentOutputLength}{" "}
-                  destinations. Please use&nbsp;
+                  A component can output to up to&nbsp;
+                  {Player.coreComponentOutputLength} destinations. Please
+                  use&nbsp;
                   <Button
                     variant="outlined"
                     size="small"
@@ -284,12 +294,12 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
             },
           ]);
 
-        const isConnected = Object.entries(
+        const isConnected = Object.values(
           sketch.component
-        ).some(([otherID, otherComponent]) =>
+        ).some((otherComponent) =>
           otherComponent.outputDestinations.some(
             (outputDestination) =>
-              outputDestination.componentID === otherID &&
+              outputDestination.componentID === id &&
               outputDestination.inputIndex === inputIndex
           )
         );
@@ -353,6 +363,14 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
 
             <CardActions>{children}</CardActions>
           </Card>
+
+          {isError && (
+            <ErrorIcon
+              className={classes.errorIcon}
+              color="error"
+              fontSize="small"
+            />
+          )}
 
           <IconButton
             className={classes.deleteButton}

@@ -2,10 +2,9 @@ import { TextField } from "@material-ui/core";
 import type { TextFieldProps } from "@material-ui/core";
 import { memo, useMemo } from "react";
 import type { Dispatch, FunctionComponent, SetStateAction } from "react";
+import type { Player } from "./Player";
 import { componentType } from "./component";
 import type { Component } from "./component";
-import { inputValueToPlayer } from "./player";
-import type { Player } from "./player";
 
 const ComponentActions: FunctionComponent<{
   id: string;
@@ -34,8 +33,7 @@ const ComponentActions: FunctionComponent<{
             return;
           }
 
-          inputValueToPlayer({
-            player,
+          player.inputValue({
             componentID: id,
             value: Number(event.target.value),
           });
