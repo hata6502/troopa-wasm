@@ -41,7 +41,8 @@ class Player {
           }
 
           case componentType.input:
-          case componentType.keyboard:
+          case componentType.keyboardFrequency:
+          case componentType.keyboardSwitch:
           case componentType.speaker:
           case componentType.meter:
           case componentType.scope: {
@@ -115,7 +116,8 @@ class Player {
         case componentType.subtractor:
         case componentType.triangle:
         case componentType.upperSaturator:
-        case componentType.keyboard:
+        case componentType.keyboardFrequency:
+        case componentType.keyboardSwitch:
         case componentType.meter:
         case componentType.scope: {
           break;
