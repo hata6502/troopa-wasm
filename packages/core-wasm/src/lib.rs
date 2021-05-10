@@ -69,7 +69,7 @@ pub fn input_value(component_index: usize, input_index: usize, value: f32) -> Re
 }
 
 #[wasm_bindgen(catch)]
-pub fn process(buffer_size: usize, output_component_index: usize) -> Result<Vec::<f32>, JsValue> {
+pub fn process(buffer_size: usize, output_component_index: usize) -> Result<Vec<f32>, JsValue> {
     let mut sketch = SKETCH.lock().unwrap();
     let mut buffer = Vec::<f32>::new();
 
@@ -146,7 +146,7 @@ impl Sketch {
         while let Some(destination) = sync_queue.pop_front() {
             let is_changed = self.components[destination.0].sync();
 
-            self.components[destination.0].loop_count+=1;
+            self.components[destination.0].loop_count += 1;
 
             if self.components[destination.0].loop_count > SKETCH_MAX_LOOP_COUNT {
                 return Err(JsValue::from_str("CoreInfiniteLoopDetected"));
@@ -165,12 +165,12 @@ impl Sketch {
                     sync_queue.push_back(output_destination);
                 };
             }
-        };
+        }
 
         Ok(())
     }
 
-    fn next_tick(&mut self)-> Result<(), JsValue> {
+    fn next_tick(&mut self) -> Result<(), JsValue> {
         let diff_time = 1.0 / self.sample_rate;
         let mut inputs = Vec::new();
 

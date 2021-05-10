@@ -12,15 +12,8 @@ class Player {
   #componentIndexMap: Map<string, number>;
   #onCoreInfiniteLoopDetected?: CoreInfiniteLoopDetectedEventHandler;
 
-  constructor({
-    sketch,
-    onCoreInfiniteLoopDetected,
-  }: {
-    sketch: Sketch;
-    onCoreInfiniteLoopDetected?: CoreInfiniteLoopDetectedEventHandler;
-  }) {
+  constructor({sketch}: {sketch: Sketch}) {
     this.#audioContext = new AudioContext();
-    this.#onCoreInfiniteLoopDetected = onCoreInfiniteLoopDetected;
 
     core.init(this.#audioContext.sampleRate);
 
@@ -168,6 +161,10 @@ class Player {
     return this.#audioContext.close();
   }
 
+  setCoreInfiniteLoopDetectedHandler(onCoreInfiniteLoopDetected?: CoreInfiniteLoopDetectedEventHandler): void {
+    this.#onCoreInfiniteLoopDetected = onCoreInfiniteLoopDetected;
+  }
+
   inputValue({
     componentID,
     value,
@@ -194,4 +191,3 @@ class Player {
 }
 
 export { Player };
-export type { CoreInfiniteLoopDetectedEventHandler };

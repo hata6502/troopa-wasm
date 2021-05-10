@@ -236,7 +236,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
               title: "Please use distributor component",
               description: (
                 <>
-                  A component can output to up to{" "}
+                  A component can output to up to&nbsp;
                   {Player.coreComponentOutputLength} destinations. Please
                   use&nbsp;
                   <Button

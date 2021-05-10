@@ -31,7 +31,6 @@ import { ComponentActions } from "./ComponentActions";
 import { ComponentContainer } from "./ComponentContainer";
 import type { ComponentContainerProps } from "./ComponentContainer";
 import { Player } from "./Player";
-import type { CoreInfiniteLoopDetectedEventHandler } from "./Player";
 import {
   componentInputNames,
   componentNames,
@@ -125,6 +124,50 @@ const App: FunctionComponent = memo(() => {
     []
   );
 
+  useEffect(() => {
+    if (!player) {
+      return;
+    }
+
+    const handleBufferButtonClick = () => {
+      addComponentToCurrentSketch(
+        createComponent({ type: componentType.buffer })
+      );
+
+      dispatchAlertData((prevAlertData) => ({
+        ...prevAlertData,
+        isOpen: false,
+      }));
+    };
+
+    player.setCoreInfiniteLoopDetectedHandler(async ({ player }) => {
+      dispatchAlertData({
+        isOpen: true,
+        severity: "error",
+        title: "Infinite loop detected",
+        // TODO: detect component
+        description: (
+          <>
+            Please clear the infinite loop.&nbsp;
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={handleBufferButtonClick}
+            >
+              buffer
+            </Button>
+            &nbsp;component may help to fix it.
+          </>
+        ),
+      });
+
+      await player.close();
+      setPlayer(undefined);
+    });
+
+    return () => player.setCoreInfiniteLoopDetectedHandler(undefined);
+  }, [addComponentToCurrentSketch, player]);
+
   const handleDistributorButtonClick = useCallback(
     () =>
       addComponentToCurrentSketch(
@@ -141,28 +184,15 @@ const App: FunctionComponent = memo(() => {
     archerContainerElement.current.refreshScreen();
   }, []);
 
-  const handlePlayButtonClick = useCallback(() => {
-    const handleCoreInfiniteLoopDetected: CoreInfiniteLoopDetectedEventHandler = async ({
-      player,
-    }) => {
-      dispatchAlertData({
-        isOpen: true,
-        severity: "error",
-        title: "Infinite loop detected",
-        description: "TODO",
-      });
-
-      await player.close();
-      setPlayer(undefined);
-    };
-
-    setPlayer(
-      new Player({
-        sketch: currentSketch,
-        onCoreInfiniteLoopDetected: handleCoreInfiniteLoopDetected,
-      })
-    );
-  }, [currentSketch]);
+  const handlePlayButtonClick = useCallback(
+    () =>
+      setPlayer(
+        new Player({
+          sketch: currentSketch,
+        })
+      ),
+    [currentSketch]
+  );
 
   const handleStopButtonClick = useCallback(async () => {
     if (!player) {
