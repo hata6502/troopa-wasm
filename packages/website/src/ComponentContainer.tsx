@@ -8,7 +8,7 @@ import {
   Typography,
   makeStyles,
 } from "@material-ui/core";
-import { Delete } from "@material-ui/icons";
+import { Delete, Error as ErrorIcon } from "@material-ui/icons";
 import { memo, useCallback, useMemo, useState } from "react";
 import type {
   CSSProperties,
@@ -66,6 +66,11 @@ const useStyles = makeStyles(({ palette, spacing }) => ({
     right: spacing(1),
     top: spacing(1),
   },
+  errorIcon: {
+    position: "absolute",
+    left: spacing(0),
+    top: spacing(-4),
+  },
   input: {
     position: "relative",
     paddingLeft: spacing(2),
@@ -101,6 +106,7 @@ interface ComponentContainerProps {
     id: string;
     component: T;
   }) => Dispatch<SetStateAction<T>>;
+  isError?: boolean;
   onDistributorButtonClick?: MouseEventHandler<HTMLButtonElement>;
   onDrag?: DraggableEventHandler;
   onRemoveComponentRequest?: (event: {
@@ -118,6 +124,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
     sketch,
     dispatchAlertData,
     getDispatchComponent,
+    isError = false,
     onDistributorButtonClick,
     onDrag,
     onRemoveComponentRequest,
@@ -356,6 +363,14 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
 
             <CardActions>{children}</CardActions>
           </Card>
+
+          {isError && (
+            <ErrorIcon
+              className={classes.errorIcon}
+              color="error"
+              fontSize="small"
+            />
+          )}
 
           <IconButton
             className={classes.deleteButton}

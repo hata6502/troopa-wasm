@@ -84,6 +84,7 @@ const useStyles = makeStyles(({ mixins, palette, spacing }) => ({
 
 const App: FunctionComponent = memo(() => {
   const [alertData, dispatchAlertData] = useState<AlertData>({});
+  const [errorComponentIDs, setErrorComponentIDs] = useState<string[]>([]);
   const [player, setPlayer] = useState<Player>();
 
   const [originalSketch, setOriginalSketch] = useState(initialSketch);
@@ -140,7 +141,7 @@ const App: FunctionComponent = memo(() => {
       }));
     };
 
-    player.setCoreInfiniteLoopDetectedHandler(async ({ player }) => {
+    player.setCoreInfiniteLoopDetectedHandler(async ({ componentID }) => {
       dispatchAlertData({
         isOpen: true,
         severity: "error",
@@ -160,6 +161,8 @@ const App: FunctionComponent = memo(() => {
           </>
         ),
       });
+
+      setErrorComponentIDs([componentID]);
 
       await player.close();
       setPlayer(undefined);
@@ -184,15 +187,15 @@ const App: FunctionComponent = memo(() => {
     archerContainerElement.current.refreshScreen();
   }, []);
 
-  const handlePlayButtonClick = useCallback(
-    () =>
-      setPlayer(
-        new Player({
-          sketch: currentSketch,
-        })
-      ),
-    [currentSketch]
-  );
+  const handlePlayButtonClick = useCallback(() => {
+    setErrorComponentIDs([]);
+
+    setPlayer(
+      new Player({
+        sketch: currentSketch,
+      })
+    );
+  }, [currentSketch]);
 
   const handleStopButtonClick = useCallback(async () => {
     if (!player) {
@@ -393,6 +396,7 @@ const App: FunctionComponent = memo(() => {
         sketch={currentSketch}
         dispatchAlertData={dispatchAlertData}
         getDispatchComponent={getDispatchComponent}
+        isError={errorComponentIDs.includes(id)}
         onDistributorButtonClick={handleDistributorButtonClick}
         onDrag={handleComponentDrag}
         onRemoveComponentRequest={handleRemoveComponentRequest}
@@ -407,12 +411,13 @@ const App: FunctionComponent = memo(() => {
       </ComponentContainer>
     ));
   }, [
+    currentSketch,
+    errorComponentIDs,
     handleComponentDrag,
     handleDistributorButtonClick,
     handleRemoveComponentRequest,
     player,
     removeConnections,
-    currentSketch,
   ]);
 
   return (

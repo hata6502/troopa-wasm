@@ -1,7 +1,9 @@
 import { componentType, distributorComponentInInput } from "./component";
 import type { Sketch } from "./sketch";
 
-type CoreInfiniteLoopDetectedEventHandler = (event: { player: Player }) => void;
+type CoreInfiniteLoopDetectedEventHandler = (event: {
+  componentID: string;
+}) => void;
 
 const core = await import("core-wasm/core_wasm");
 
@@ -12,7 +14,7 @@ class Player {
   #componentIndexMap: Map<string, number>;
   #onCoreInfiniteLoopDetected?: CoreInfiniteLoopDetectedEventHandler;
 
-  constructor({sketch}: {sketch: Sketch}) {
+  constructor({ sketch }: { sketch: Sketch }) {
     this.#audioContext = new AudioContext();
 
     core.init(this.#audioContext.sampleRate);
@@ -146,11 +148,7 @@ class Player {
 
         event.outputBuffer.copyToChannel(buffer, 0);
       } catch (exception: unknown) {
-        if (exception === "CoreInfiniteLoopDetected") {
-          this.#onCoreInfiniteLoopDetected?.({ player: this });
-        } else {
-          throw exception;
-        }
+        this.catchCoreException(exception);
       }
     });
 
@@ -161,7 +159,9 @@ class Player {
     return this.#audioContext.close();
   }
 
-  setCoreInfiniteLoopDetectedHandler(onCoreInfiniteLoopDetected?: CoreInfiniteLoopDetectedEventHandler): void {
+  setCoreInfiniteLoopDetectedHandler(
+    onCoreInfiniteLoopDetected?: CoreInfiniteLoopDetectedEventHandler
+  ): void {
     this.#onCoreInfiniteLoopDetected = onCoreInfiniteLoopDetected;
   }
 
@@ -181,12 +181,32 @@ class Player {
     try {
       core.input_value(componentIndex, distributorComponentInInput, value);
     } catch (exception: unknown) {
-      if (exception === "CoreInfiniteLoopDetected") {
-        this.#onCoreInfiniteLoopDetected?.({ player: this });
-      } else {
-        throw exception;
+      this.catchCoreException(exception);
+    }
+  }
+
+  catchCoreException(exception: unknown): void {
+    if (typeof exception === "string") {
+      const matchArray = exception.match(/^CoreInfiniteLoopDetected (\d+)$/);
+
+      if (matchArray) {
+        const componentIndex = Number(matchArray[1]);
+
+        const componentID = [...this.#componentIndexMap.entries()].find(
+          ([, index]) => index === componentIndex
+        )?.[0];
+
+        if (componentID === undefined) {
+          throw new Error();
+        }
+
+        this.#onCoreInfiniteLoopDetected?.({ componentID });
+
+        return;
       }
     }
+
+    throw exception;
   }
 }
 
