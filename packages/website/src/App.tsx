@@ -1,12 +1,7 @@
 import {
   AppBar,
   Button,
-  Divider,
-  Drawer,
   Grid,
-  List,
-  ListItem,
-  ListItemText,
   Snackbar,
   Toolbar,
   Typography,
@@ -31,16 +26,14 @@ import { ComponentActions } from "./ComponentActions";
 import { ComponentContainer } from "./ComponentContainer";
 import type { ComponentContainerProps } from "./ComponentContainer";
 import { Player } from "./Player";
+import { Sidebar, sidebarWidth } from "./Sidebar";
 import {
   componentInputNames,
-  componentNames,
   componentType,
   createComponent,
 } from "./component";
 import type { Component, OutputDestination } from "./component";
 import { initialSketch, validateSketch } from "./sketch";
-
-const drawerWidth = 200;
 
 interface AlertData {
   isOpen?: SnackbarProps["open"];
@@ -56,8 +49,8 @@ const svgContainerStyle: ArcherContainerProps["svgContainerStyle"] = {
 
 const useStyles = makeStyles(({ mixins, palette, spacing }) => ({
   appBar: {
-    width: `calc(100% - ${drawerWidth}px)`,
-    marginLeft: drawerWidth,
+    width: `calc(100% - ${sidebarWidth}px)`,
+    marginLeft: sidebarWidth,
   },
   archerContainer: {
     position: "relative",
@@ -66,13 +59,6 @@ const useStyles = makeStyles(({ mixins, palette, spacing }) => ({
   },
   container: {
     display: "flex",
-  },
-  drawer: {
-    width: drawerWidth,
-    flexShrink: 0,
-  },
-  drawerPaper: {
-    width: drawerWidth,
   },
   main: {
     flexGrow: 1,
@@ -88,7 +74,7 @@ const App: FunctionComponent = memo(() => {
   const [player, setPlayer] = useState<Player>();
 
   const [originalSketch, setOriginalSketch] = useState(initialSketch);
-  const [currentSketch, setCurrentSketch] = useState(originalSketch);
+  const [currentSketch, dispatchCurrentSketch] = useState(originalSketch);
 
   const archerContainerElement = useRef<ArcherContainer>(null);
 
@@ -111,33 +97,26 @@ const App: FunctionComponent = memo(() => {
     return () => window.removeEventListener("beforeunload", handleBeforeunload);
   }, [currentSketch, originalSketch]);
 
-  const addComponentToCurrentSketch = useCallback(
-    ({ id, component }: { id: string; component: Component }) =>
-      setCurrentSketch((prevSketch) => {
-        return {
-          ...prevSketch,
-          component: {
-            ...prevSketch.component,
-            [id]: component,
-          },
-        };
-      }),
-    []
-  );
-
   useEffect(() => {
     if (!player) {
       return;
     }
 
     const handleBufferButtonClick = () => {
-      addComponentToCurrentSketch(
-        createComponent({ type: componentType.buffer })
-      );
-
       dispatchAlertData((prevAlertData) => ({
         ...prevAlertData,
         isOpen: false,
+      }));
+
+      const newComponentEntry = createComponent({ type: componentType.buffer });
+
+      dispatchCurrentSketch((prevCurrentSketch) => 
+      ({
+        ...prevCurrentSketch,
+        component: {
+          ...prevCurrentSketch.component,
+          [newComponentEntry.id]: newComponentEntry.component,
+        },
       }));
     };
 
@@ -168,14 +147,22 @@ const App: FunctionComponent = memo(() => {
     });
 
     return () => player.setCoreInfiniteLoopDetectedHandler(undefined);
-  }, [addComponentToCurrentSketch, player]);
+  }, [player]);
 
   const handleDistributorButtonClick = useCallback(
-    () =>
-      addComponentToCurrentSketch(
-        createComponent({ type: componentType.distributor })
-      ),
-    [addComponentToCurrentSketch]
+    () => {
+      const newComponentEntry = createComponent({ type: componentType.distributor });
+
+      dispatchCurrentSketch((prevCurrentSketch) => 
+      ({
+        ...prevCurrentSketch,
+        component: {
+          ...prevCurrentSketch.component,
+          [newComponentEntry.id]: newComponentEntry.component,
+        },
+      }));
+    },
+    []
   );
 
   const handleComponentDrag = useCallback(() => {
@@ -238,7 +225,7 @@ const App: FunctionComponent = memo(() => {
           return;
         }
 
-        setCurrentSketch(loadedData);
+        dispatchCurrentSketch(loadedData);
         setOriginalSketch(loadedData);
       });
 
@@ -273,7 +260,7 @@ const App: FunctionComponent = memo(() => {
 
   const removeConnections = useCallback(
     (targets: OutputDestination[]) =>
-      setCurrentSketch((prevSketch) => {
+      dispatchCurrentSketch((prevSketch) => {
         const componentEntries = Object.entries(prevSketch.component).map(
           ([id, component]) => [
             id,
@@ -313,7 +300,7 @@ const App: FunctionComponent = memo(() => {
         }))
       );
 
-      setCurrentSketch((prevSketch) => {
+      dispatchCurrentSketch((prevSketch) => {
         const componentEntries = Object.entries(
           prevSketch.component
         ).flatMap(([id, component]) =>
@@ -338,21 +325,6 @@ const App: FunctionComponent = memo(() => {
     []
   );
 
-  const componentListItemElements = useMemo(
-    () =>
-      Object.values(componentType).map((type) => {
-        const handleClick = () =>
-          addComponentToCurrentSketch(createComponent({ type }));
-
-        return (
-          <ListItem key={type} button onClick={handleClick}>
-            <ListItemText primary={componentNames[type]} />
-          </ListItem>
-        );
-      }),
-    [addComponentToCurrentSketch]
-  );
-
   const componentContainerElements = useMemo(() => {
     const getDispatchComponent = <T extends Component>({
       id,
@@ -362,7 +334,7 @@ const App: FunctionComponent = memo(() => {
       component: T;
     }) => {
       const dispatchComponent: Dispatch<SetStateAction<T>> = (action) =>
-        setCurrentSketch((prevSketch) => {
+        dispatchCurrentSketch((prevSketch) => {
           const prevComponent = new Map(
             Object.entries(prevSketch.component)
           ).get(id);
@@ -480,20 +452,7 @@ const App: FunctionComponent = memo(() => {
         </Toolbar>
       </AppBar>
 
-      <Drawer
-        variant="permanent"
-        className={classes.drawer}
-        classes={{
-          paper: classes.drawerPaper,
-        }}
-        anchor="left"
-      >
-        <div className={classes.toolbar} />
-
-        <Divider />
-
-        <List>{componentListItemElements}</List>
-      </Drawer>
+      <Sidebar dispatchSketch={dispatchCurrentSketch} />
 
       <main className={classes.main}>
         <div className={classes.toolbar} />
