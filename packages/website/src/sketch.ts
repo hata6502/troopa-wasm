@@ -3,6 +3,7 @@ import type { JSONSchemaType } from "ajv";
 import type { Component } from "./component";
 
 interface Sketch {
+  name: string;
   component: Record<string, Component>;
 }
 
@@ -22,14 +23,18 @@ const sketchSchema: JSONSchemaType<Sketch> = {
     component: {
       $ref: "#/definitions/Record<string,Component>",
     },
+    name: {
+      type: "string",
+    },
   },
-  required: ["component"],
+  required: ["component", "name"],
   type: "object",
 };
 
 const validateSketch = new Ajv().compile(sketchSchema);
 
 const initialSketch: Sketch = {
+  name: "example",
   component: {
     "df5bb750-e9fe-fbf3-26e0-bbd601fe98c9": {
       name: "sine",
