@@ -397,20 +397,6 @@ const App: FunctionComponent = memo(() => {
         <Toolbar>
           <Grid container spacing={2} alignItems="baseline">
             <Grid item>
-              <Typography variant="h6">👀 troopa</Typography>
-            </Grid>
-
-            <Grid item>
-              <Typography variant="subtitle1">web toy synthesizer</Typography>
-            </Grid>
-
-            <Grid item>
-              <Typography variant="subtitle1">
-                <a href="https://github.com/hata6502/troopa-wasm">α version</a>
-              </Typography>
-            </Grid>
-
-            <Grid item>
               <Button
                 variant="contained"
                 color="primary"
