@@ -5,12 +5,14 @@ import {
   CardActions,
   IconButton,
   Radio,
+  TextField,
   Typography,
   makeStyles,
 } from "@material-ui/core";
 import { Delete, Error as ErrorIcon } from "@material-ui/icons";
 import { memo, useCallback, useMemo, useState } from "react";
 import type {
+  ChangeEventHandler,
   CSSProperties,
   Dispatch,
   FunctionComponent,
@@ -63,8 +65,8 @@ const useStyles = makeStyles(({ palette, spacing }) => ({
   },
   deleteButton: {
     position: "absolute",
-    right: spacing(1),
-    top: spacing(1),
+    right: spacing(0),
+    top: spacing(-4),
   },
   errorIcon: {
     position: "absolute",
@@ -137,6 +139,15 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
       [component, getDispatchComponent, id]
     );
 
+    const handleNameChange: ChangeEventHandler<HTMLInputElement> = useCallback(
+      (event) =>
+        dispatchComponent((prevComponent) => ({
+          ...prevComponent,
+          name: event.target.value,
+        })),
+      [dispatchComponent]
+    );
+
     const handleDrag: DraggableEventHandler = useCallback(
       (event, data) => {
         dispatchComponent((prevComponent) => ({
@@ -169,17 +180,18 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
       [onDrag]
     );
 
-    const handleDistributorButtonClick: MouseEventHandler<HTMLButtonElement> = useCallback(
-      (event) => {
-        dispatchAlertData((prevAlertData) => ({
-          ...prevAlertData,
-          isOpen: false,
-        }));
+    const handleDistributorButtonClick: MouseEventHandler<HTMLButtonElement> =
+      useCallback(
+        (event) => {
+          dispatchAlertData((prevAlertData) => ({
+            ...prevAlertData,
+            isOpen: false,
+          }));
 
-        onDistributorButtonClick?.(event);
-      },
-      [dispatchAlertData, onDistributorButtonClick]
-    );
+          onDistributorButtonClick?.(event);
+        },
+        [dispatchAlertData, onDistributorButtonClick]
+      );
 
     const handleOutputAnchorStop: DraggableEventHandler = useCallback(
       (event, data) => {
@@ -294,14 +306,13 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
             },
           ]);
 
-        const isConnected = Object.values(
-          sketch.component
-        ).some((otherComponent) =>
-          otherComponent.outputDestinations.some(
-            (outputDestination) =>
-              outputDestination.componentID === id &&
-              outputDestination.inputIndex === inputIndex
-          )
+        const isConnected = Object.values(sketch.component).some(
+          (otherComponent) =>
+            otherComponent.outputDestinations.some(
+              (outputDestination) =>
+                outputDestination.componentID === id &&
+                outputDestination.inputIndex === inputIndex
+            )
         );
 
         return [
@@ -352,10 +363,12 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
         <div className={classes.container}>
           <Card className={classes.card}>
             <Box pb={2} pt={2}>
-              <Box pl={2} pr={2}>
-                <Typography variant="body1" gutterBottom>
-                  {component.name}
-                </Typography>
+              <Box mb={2} pl={2} pr={2}>
+                <TextField
+                  size="small"
+                  value={component.name}
+                  onChange={handleNameChange}
+                />
               </Box>
 
               {inputElements}
