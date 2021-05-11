@@ -3,8 +3,8 @@ import {
   Button,
   Grid,
   Snackbar,
+  TextField,
   Toolbar,
-  Typography,
   makeStyles,
   useTheme,
 } from "@material-ui/core";
@@ -110,8 +110,7 @@ const App: FunctionComponent = memo(() => {
 
       const newComponentEntry = createComponent({ type: componentType.buffer });
 
-      dispatchCurrentSketch((prevCurrentSketch) => 
-      ({
+      dispatchCurrentSketch((prevCurrentSketch) => ({
         ...prevCurrentSketch,
         component: {
           ...prevCurrentSketch.component,
@@ -149,21 +148,19 @@ const App: FunctionComponent = memo(() => {
     return () => player.setCoreInfiniteLoopDetectedHandler(undefined);
   }, [player]);
 
-  const handleDistributorButtonClick = useCallback(
-    () => {
-      const newComponentEntry = createComponent({ type: componentType.distributor });
+  const handleDistributorButtonClick = useCallback(() => {
+    const newComponentEntry = createComponent({
+      type: componentType.distributor,
+    });
 
-      dispatchCurrentSketch((prevCurrentSketch) => 
-      ({
-        ...prevCurrentSketch,
-        component: {
-          ...prevCurrentSketch.component,
-          [newComponentEntry.id]: newComponentEntry.component,
-        },
-      }));
-    },
-    []
-  );
+    dispatchCurrentSketch((prevCurrentSketch) => ({
+      ...prevCurrentSketch,
+      component: {
+        ...prevCurrentSketch.component,
+        [newComponentEntry.id]: newComponentEntry.component,
+      },
+    }));
+  }, []);
 
   const handleComponentDrag = useCallback(() => {
     if (!archerContainerElement.current) {
@@ -172,6 +169,16 @@ const App: FunctionComponent = memo(() => {
 
     archerContainerElement.current.refreshScreen();
   }, []);
+
+  const handleSketchNameChange: ChangeEventHandler<HTMLInputElement> =
+    useCallback(
+      (event) =>
+        dispatchCurrentSketch((prevCurrentSketch) => ({
+          ...prevCurrentSketch,
+          name: event.target.value,
+        })),
+      []
+    );
 
   const handlePlayButtonClick = useCallback(() => {
     setErrorComponentIDs([]);
@@ -192,8 +199,8 @@ const App: FunctionComponent = memo(() => {
     setPlayer(undefined);
   }, [player]);
 
-  const handleLoadInputChange: ChangeEventHandler<HTMLInputElement> = useCallback(
-    (event) => {
+  const handleLoadInputChange: ChangeEventHandler<HTMLInputElement> =
+    useCallback((event) => {
       const files = event.target.files;
 
       if (!files || files.length < 1) {
@@ -230,9 +237,7 @@ const App: FunctionComponent = memo(() => {
       });
 
       fileReader.readAsText(files[0]);
-    },
-    []
-  );
+    }, []);
 
   const handleSaveButtonClick = useCallback(async () => {
     const url = URL.createObjectURL(
@@ -242,7 +247,7 @@ const App: FunctionComponent = memo(() => {
     try {
       const anchorElement = document.createElement("a");
 
-      anchorElement.download = `sketch.json`;
+      anchorElement.download = `${currentSketch.name}.json`;
       anchorElement.href = url;
       document.body.append(anchorElement);
 
@@ -301,10 +306,8 @@ const App: FunctionComponent = memo(() => {
       );
 
       dispatchCurrentSketch((prevSketch) => {
-        const componentEntries = Object.entries(
-          prevSketch.component
-        ).flatMap(([id, component]) =>
-          id === event.id ? [] : [[id, component]]
+        const componentEntries = Object.entries(prevSketch.component).flatMap(
+          ([id, component]) => (id === event.id ? [] : [[id, component]])
         );
 
         return {
@@ -395,7 +398,17 @@ const App: FunctionComponent = memo(() => {
     <div className={classes.container}>
       <AppBar className={classes.appBar} color="inherit" position="fixed">
         <Toolbar>
-          <Grid container spacing={2} alignItems="baseline">
+          <Grid container spacing={2}>
+            <Grid item>
+              <TextField
+                variant="outlined"
+                label="sketch name"
+                size="small"
+                value={currentSketch.name}
+                onChange={handleSketchNameChange}
+              />
+            </Grid>
+
             <Grid item>
               <Button
                 variant="contained"
