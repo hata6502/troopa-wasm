@@ -189,7 +189,7 @@ class Player {
 
   catchCoreException(exception: unknown): void {
     if (typeof exception === "string") {
-      const matchArray = exception.match(/^CoreInfiniteLoopDetected (\d+)$/);
+      const matchArray = /^CoreInfiniteLoopDetected (\d+)$/.exec(exception);
 
       if (matchArray) {
         const componentIndex = Number(matchArray[1]);
