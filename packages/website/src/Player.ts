@@ -10,16 +10,16 @@ const core = await import("core-wasm/core_wasm");
 class Player {
   static coreComponentOutputLength = 8;
 
-  #audioContext;
-  #componentIndexMap: Map<string, number>;
-  #onCoreInfiniteLoopDetected?: CoreInfiniteLoopDetectedEventHandler;
+  private audioContext;
+  private componentIndexMap: Map<string, number>;
+  private onCoreInfiniteLoopDetected?: CoreInfiniteLoopDetectedEventHandler;
 
   constructor({ sketch }: { sketch: Sketch }) {
-    this.#audioContext = new AudioContext();
+    this.audioContext = new AudioContext();
 
-    core.init(this.#audioContext.sampleRate);
+    core.init(this.audioContext.sampleRate);
 
-    this.#componentIndexMap = new Map(
+    this.componentIndexMap = new Map(
       Object.entries(sketch.component).map(([id, component]) => {
         switch (component.implementation) {
           case componentType.amplifier:
@@ -61,11 +61,11 @@ class Player {
 
     Object.entries(sketch.component).forEach(([id, component]) =>
       component.outputDestinations.forEach((outputDestination) => {
-        const inputComponentIndex = this.#componentIndexMap.get(
+        const inputComponentIndex = this.componentIndexMap.get(
           outputDestination.componentID
         );
 
-        const outputComponentIndex = this.#componentIndexMap.get(id);
+        const outputComponentIndex = this.componentIndexMap.get(id);
 
         if (
           inputComponentIndex === undefined ||
@@ -96,7 +96,7 @@ class Player {
         }
 
         case componentType.speaker: {
-          outputComponentIndex = this.#componentIndexMap.get(id);
+          outputComponentIndex = this.componentIndexMap.get(id);
 
           break;
         }
@@ -132,11 +132,7 @@ class Player {
       }
     });
 
-    const scriptNode = this.#audioContext.createScriptProcessor(
-      undefined,
-      0,
-      1
-    );
+    const scriptNode = this.audioContext.createScriptProcessor(undefined, 0, 1);
 
     scriptNode.addEventListener("audioprocess", (event) => {
       if (outputComponentIndex === undefined) {
@@ -154,17 +150,17 @@ class Player {
       }
     });
 
-    scriptNode.connect(this.#audioContext.destination);
+    scriptNode.connect(this.audioContext.destination);
   }
 
   close(): Promise<void> {
-    return this.#audioContext.close();
+    return this.audioContext.close();
   }
 
   setCoreInfiniteLoopDetectedHandler(
     onCoreInfiniteLoopDetected?: CoreInfiniteLoopDetectedEventHandler
   ): void {
-    this.#onCoreInfiniteLoopDetected = onCoreInfiniteLoopDetected;
+    this.onCoreInfiniteLoopDetected = onCoreInfiniteLoopDetected;
   }
 
   inputValue({
@@ -174,7 +170,7 @@ class Player {
     componentID: string;
     value: number;
   }): void {
-    const componentIndex = this.#componentIndexMap.get(componentID);
+    const componentIndex = this.componentIndexMap.get(componentID);
 
     if (componentIndex === undefined) {
       throw new Error();
@@ -187,14 +183,14 @@ class Player {
     }
   }
 
-  catchCoreException(exception: unknown): void {
+  private catchCoreException(exception: unknown): void {
     if (typeof exception === "string") {
       const matchArray = /^CoreInfiniteLoopDetected (\d+)$/.exec(exception);
 
       if (matchArray) {
         const componentIndex = Number(matchArray[1]);
 
-        const componentID = [...this.#componentIndexMap.entries()].find(
+        const componentID = [...this.componentIndexMap.entries()].find(
           ([, index]) => index === componentIndex
         )?.[0];
 
@@ -202,7 +198,7 @@ class Player {
           throw new Error();
         }
 
-        this.#onCoreInfiniteLoopDetected?.({ componentID });
+        this.onCoreInfiniteLoopDetected?.({ componentID });
 
         return;
       }
