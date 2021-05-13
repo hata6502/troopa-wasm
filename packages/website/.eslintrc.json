@@ -1,0 +1,9 @@
+{
+  "extends": [
+    "../../.eslintrc.json",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking"
+  ],
+  "parserOptions": {
+    "project": "packages/website/tsconfig.json"
+  }
+}
