@@ -23,33 +23,30 @@ const theme = createMuiTheme({
   },
 });
 
-const main = async () => {
-  if (process.env["NODE_ENV"] === "production") {
-    Sentry.init({
-      dsn: process.env["SENTRY_DSN"],
-      integrations: [new Integrations.BrowserTracing()],
-      tracesSampleRate: 1.0,
-    });
+if (process.env["NODE_ENV"] === "production") {
+  Sentry.init({
+    dsn: process.env["SENTRY_DSN"],
+    integrations: [new Integrations.BrowserTracing()],
+    tracesSampleRate: 1.0,
+  });
 
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () =>
-        navigator.serviceWorker.register("service-worker.js")
-      );
-    }
+  if ("serviceWorker" in navigator) {
+    window.addEventListener(
+      "load",
+      () => void navigator.serviceWorker.register("service-worker.js")
+    );
   }
+}
 
-  ReactDOM.render(
-    <>
-      <CssBaseline />
+ReactDOM.render(
+  <>
+    <CssBaseline />
 
-      <StylesProvider injectFirst>
-        <ThemeProvider theme={theme}>
-          <App />
-        </ThemeProvider>
-      </StylesProvider>
-    </>,
-    document.querySelector(".app")
-  );
-};
-
-main();
+    <StylesProvider injectFirst>
+      <ThemeProvider theme={theme}>
+        <App />
+      </ThemeProvider>
+    </StylesProvider>
+  </>,
+  document.querySelector(".app")
+);

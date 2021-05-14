@@ -119,7 +119,7 @@ const App: FunctionComponent = memo(() => {
       }));
     };
 
-    player.setCoreInfiniteLoopDetectedHandler(async ({ componentID }) => {
+    player.setCoreInfiniteLoopDetectedHandler(({ componentID }) => {
       dispatchAlertData({
         isOpen: true,
         severity: "error",
@@ -140,9 +140,9 @@ const App: FunctionComponent = memo(() => {
       });
 
       setErrorComponentIDs([componentID]);
-
-      await player.close();
       setPlayer(undefined);
+
+      void player.close();
     });
 
     return () => player.setCoreInfiniteLoopDetectedHandler(undefined);
@@ -190,13 +190,14 @@ const App: FunctionComponent = memo(() => {
     );
   }, [currentSketch]);
 
-  const handleStopButtonClick = useCallback(async () => {
+  const handleStopButtonClick = useCallback(() => {
     if (!player) {
       return;
     }
 
-    player.close();
     setPlayer(undefined);
+
+    void player.close();
   }, [player]);
 
   const handleLoadInputChange: ChangeEventHandler<HTMLInputElement> =
@@ -239,7 +240,7 @@ const App: FunctionComponent = memo(() => {
       fileReader.readAsText(files[0]);
     }, []);
 
-  const handleSaveButtonClick = useCallback(async () => {
+  const handleSaveButtonClick = useCallback(() => {
     const url = URL.createObjectURL(
       new Blob([JSON.stringify(currentSketch)], { type: "application/json" })
     );
@@ -265,9 +266,10 @@ const App: FunctionComponent = memo(() => {
 
   const removeConnections = useCallback(
     (targets: OutputDestination[]) =>
-      dispatchCurrentSketch((prevSketch) => {
-        const componentEntries = Object.entries(prevSketch.component).map(
-          ([id, component]) => [
+      dispatchCurrentSketch((prevSketch) => ({
+        ...prevSketch,
+        component: Object.fromEntries(
+          Object.entries(prevSketch.component).map(([id, component]) => [
             id,
             {
               ...component,
@@ -280,14 +282,9 @@ const App: FunctionComponent = memo(() => {
                   )
               ),
             },
-          ]
-        );
-
-        return {
-          ...prevSketch,
-          component: Object.fromEntries(componentEntries),
-        };
-      }),
+          ])
+        ),
+      })),
     []
   );
 
@@ -305,16 +302,14 @@ const App: FunctionComponent = memo(() => {
         }))
       );
 
-      dispatchCurrentSketch((prevSketch) => {
-        const componentEntries = Object.entries(prevSketch.component).flatMap(
-          ([id, component]) => (id === event.id ? [] : [[id, component]])
-        );
-
-        return {
-          ...prevSketch,
-          component: Object.fromEntries(componentEntries),
-        };
-      });
+      dispatchCurrentSketch((prevSketch) => ({
+        ...prevSketch,
+        component: Object.fromEntries(
+          Object.entries(prevSketch.component).flatMap(([id, component]) =>
+            id === event.id ? [] : [[id, component]]
+          )
+        ),
+      }));
     },
     [removeConnections]
   );

@@ -1,4 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
 const CopyPlugin = require("copy-webpack-plugin");
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { EnvironmentPlugin } = require("webpack");
@@ -40,6 +40,7 @@ module.exports = {
     ],
   },
   plugins: [
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     new CopyPlugin({
       patterns: [{ from: "resources" }],
     }),
