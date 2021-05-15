@@ -278,8 +278,7 @@ const App: FunctionComponent = memo(() => {
     ComponentContainerProps["onRemoveComponentRequest"]
   > = useCallback(
     (event) => {
-      const inputLength =
-        componentInputNames[event.component.type].length;
+      const inputLength = componentInputNames[event.component.type].length;
 
       removeConnections(
         [...Array(inputLength).keys()].map((index) => ({
