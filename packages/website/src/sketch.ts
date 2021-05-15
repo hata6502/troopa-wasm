@@ -1,8 +1,10 @@
-import type { Component } from "./component";
+import type { Component, Destination } from "./component";
 
 interface Sketch {
   name: string;
   component: Record<string, Component>;
+  inputDestinations: Destination[];
+  outputComponentID?: string;
 }
 
 const initialSketch: Sketch = {
@@ -34,6 +36,7 @@ const initialSketch: Sketch = {
       extendedData: { value: "440" },
     },
   },
+  inputDestinations: []
 };
 
 export { initialSketch };

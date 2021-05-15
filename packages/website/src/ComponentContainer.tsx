@@ -30,7 +30,7 @@ import type {
 import type { AlertData } from "./App";
 import { Player } from "./Player";
 import { componentInputNames, diffTimeInput } from "./component";
-import type { Component, OutputDestination } from "./component";
+import type { Component, Destination } from "./component";
 import type { Sketch } from "./sketch";
 
 const detectArcherAnchorPosition = ({
@@ -115,7 +115,7 @@ interface ComponentContainerProps {
     id: string;
     component: Component;
   }) => void;
-  onRemoveConnectionsRequest?: (event: OutputDestination[]) => void;
+  onRemoveConnectionsRequest?: (event: Destination[]) => void;
 }
 
 const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
@@ -204,7 +204,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
           );
 
           const newOutputDestinations = elements.flatMap(
-            (element): OutputDestination[] => {
+            (element): Destination[] => {
               if (!(element instanceof HTMLElement)) {
                 return [];
               }

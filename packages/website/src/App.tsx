@@ -31,7 +31,7 @@ import {
   componentType,
   createComponent,
 } from "./component";
-import type { Component, OutputDestination } from "./component";
+import type { Component, Destination } from "./component";
 import { initialSketch } from "./sketch";
 import type { Sketch } from "./sketch";
 
@@ -251,7 +251,7 @@ const App: FunctionComponent = memo(() => {
   }, [currentSketch]);
 
   const removeConnections = useCallback(
-    (targets: OutputDestination[]) =>
+    (targets: Destination[]) =>
       dispatchCurrentSketch((prevSketch) => ({
         ...prevSketch,
         component: Object.fromEntries(

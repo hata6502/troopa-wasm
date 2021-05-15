@@ -110,7 +110,7 @@ const componentInputNames: Record<ComponentType, string[]> = {
   [componentType.sketch]: [diffTimeInputName],
 };
 
-interface OutputDestination {
+interface Destination {
   componentID: string;
   inputIndex: number;
 }
@@ -118,7 +118,7 @@ interface OutputDestination {
 interface ComponentBase<Type extends ComponentType, ExtendedData> {
   name: string;
   type: Type;
-  outputDestinations: OutputDestination[];
+  outputDestinations: Destination[];
   position: ControlPosition;
   extendedData: ExtendedData;
 }
@@ -179,6 +179,21 @@ const createComponent = ({
       };
     }
 
+    case componentType.sketch: {
+      return {
+        id,
+        component: {
+          ...componentBase,
+          type: type,
+          extendedData: {
+            name: 'empty sketch',
+            component: {},
+            inputDestinations: []
+          },
+        },
+      };
+    }
+
     case componentType.amplifier:
     case componentType.buffer:
     case componentType.differentiator:
@@ -227,4 +242,4 @@ export {
   distributorComponentInInput,
 };
 
-export type { Component, InputComponent, OutputDestination };
+export type { Component, Destination, InputComponent };
