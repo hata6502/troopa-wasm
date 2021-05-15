@@ -291,7 +291,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
     const classes = useStyles();
 
     const inputElements = useMemo(() => {
-      const inputLength = componentInputNames[component.implementation].length;
+      const inputLength = componentInputNames[component.type].length;
 
       return [...Array(inputLength).keys()].flatMap((inputIndex) => {
         if ([diffTimeInput].includes(inputIndex)) {
@@ -318,7 +318,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
         return [
           <Box key={inputIndex} className={classes.input}>
             <Typography variant="body2" gutterBottom>
-              {componentInputNames[component.implementation][inputIndex]}
+              {componentInputNames[component.type][inputIndex]}
             </Typography>
 
             <ArcherElement id={`${id}-input-anchor-${inputIndex}`}>
@@ -337,7 +337,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
     }, [
       classes.input,
       classes.inputAnchor,
-      component.implementation,
+      component.type,
       id,
       onRemoveConnectionsRequest,
       sketch.component,

@@ -21,7 +21,7 @@ class Player {
 
     this.componentIndexMap = new Map(
       Object.entries(sketch.component).map(([id, component]) => {
-        switch (component.implementation) {
+        switch (component.type) {
           case componentType.amplifier:
           case componentType.buffer:
           case componentType.differentiator:
@@ -37,7 +37,7 @@ class Player {
           case componentType.subtractor:
           case componentType.triangle:
           case componentType.upperSaturator: {
-            return [id, core.create_component(component.implementation)];
+            return [id, core.create_component(component.type)];
           }
 
           case componentType.input:
@@ -85,7 +85,7 @@ class Player {
     let outputComponentIndex: number | undefined;
 
     Object.entries(sketch.component).forEach(([id, component]) => {
-      switch (component.implementation) {
+      switch (component.type) {
         case componentType.input: {
           this.inputValue({
             componentID: id,

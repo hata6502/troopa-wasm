@@ -279,7 +279,7 @@ const App: FunctionComponent = memo(() => {
   > = useCallback(
     (event) => {
       const inputLength =
-        componentInputNames[event.component.implementation].length;
+        componentInputNames[event.component.type].length;
 
       removeConnections(
         [...Array(inputLength).keys()].map((index) => ({
@@ -324,7 +324,7 @@ const App: FunctionComponent = memo(() => {
           ).get(id);
 
           const isComponentT = (target: Component): target is T =>
-            target.implementation === component.implementation;
+            target.type === component.type;
 
           if (!prevComponent || !isComponentT(prevComponent)) {
             throw new Error();

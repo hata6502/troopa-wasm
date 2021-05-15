@@ -16,7 +16,7 @@ const ComponentActions: FunctionComponent<{
   }) => Dispatch<SetStateAction<T>>;
   player?: Player;
 }> = memo(({ id, component, getDispatchComponent, player }) => {
-  switch (component.implementation) {
+  switch (component.type) {
     case componentType.input: {
       const dispatchComponent = getDispatchComponent({ id, component });
 

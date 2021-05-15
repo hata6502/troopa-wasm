@@ -110,11 +110,11 @@ interface OutputDestination {
 }
 
 interface ComponentBase<
-  Implementation extends ComponentType,
+  Type extends ComponentType,
   ExtendedData extends Record<string, unknown>
 > {
   name: string;
-  implementation: Implementation;
+  type: Type;
   outputDestinations: OutputDestination[];
   position: ControlPosition;
   extendedData: ExtendedData;
@@ -167,7 +167,7 @@ const createComponent = ({
         id,
         component: {
           ...componentBase,
-          implementation: type,
+          type: type,
           extendedData: {
             value: "0",
           },
@@ -199,7 +199,7 @@ const createComponent = ({
         id,
         component: {
           ...componentBase,
-          implementation: type,
+          type: type,
           extendedData: {},
         },
       };
