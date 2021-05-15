@@ -35,7 +35,10 @@ const ComponentActions: FunctionComponent<{
     }
 
     case componentType.keyboardSwitch: {
-      return <KeyboardSwitch id={id} player={player} />;
+      return (
+        // Reset the state on playing or stopping.
+        <KeyboardSwitch id={id} key={String(Boolean(player))} player={player} />
+      );
     }
 
     case componentType.amplifier:

@@ -14,12 +14,12 @@ const KeyboardSwitch: FunctionComponent<{
         return;
       }
 
-      setPressedKeys((prevPressedKeys) => [...prevPressedKeys, event.key]);
-
       player.inputValue({
         componentID: id,
         value: 1.0,
       });
+
+      setPressedKeys((prevPressedKeys) => [...prevPressedKeys, event.key]);
     };
 
     const handleKeyup = (event: KeyboardEvent) => {

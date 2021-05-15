@@ -11,7 +11,6 @@ import {
 import type { SnackbarProps } from "@material-ui/core";
 import { Alert, AlertTitle } from "@material-ui/lab";
 import type { AlertProps, AlertTitleProps } from "@material-ui/lab";
-import * as Sentry from "@sentry/react";
 import equal from "fast-deep-equal";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
@@ -33,7 +32,8 @@ import {
   createComponent,
 } from "./component";
 import type { Component, OutputDestination } from "./component";
-import { initialSketch, validateSketch } from "./sketch";
+import { initialSketch } from "./sketch";
+import type { Sketch } from "./sketch";
 
 interface AlertData {
   isOpen?: SnackbarProps["open"];
@@ -217,24 +217,10 @@ const App: FunctionComponent = memo(() => {
           throw new Error();
         }
 
-        const loadedData: unknown = JSON.parse(result);
+        const loadedSketch = JSON.parse(result) as Sketch;
 
-        if (!validateSketch(loadedData)) {
-          // Because validateSketch() may mistaked.
-          Sentry.captureMessage("Sketch validation failed.");
-
-          dispatchAlertData({
-            isOpen: true,
-            severity: "error",
-            title: "Failed to load",
-            description: "This sketch file is invalid.",
-          });
-
-          return;
-        }
-
-        dispatchCurrentSketch(loadedData);
-        setOriginalSketch(loadedData);
+        dispatchCurrentSketch(loadedSketch);
+        setOriginalSketch(loadedSketch);
       });
 
       fileReader.readAsText(files[0]);
