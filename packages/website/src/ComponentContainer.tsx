@@ -27,6 +27,7 @@ import type {
   DraggableData,
   DraggableEventHandler,
 } from "react-draggable";
+import { sketchHeight, sketchWidth } from "./App";
 import type { AlertData } from "./App";
 import { Player } from "./Player";
 import { componentInputNames, diffTimeInput } from "./component";
@@ -152,7 +153,10 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
       (event, data) => {
         dispatchComponent((prevComponent) => ({
           ...prevComponent,
-          position: { x: data.x, y: data.y },
+          position: {
+            x: Math.min(Math.max(data.x, 0.0), sketchWidth),
+            y: Math.min(Math.max(data.y, 0.0), sketchHeight),
+          },
         }));
 
         onDrag?.(event, data);

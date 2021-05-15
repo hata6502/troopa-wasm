@@ -47,6 +47,9 @@ const svgContainerStyle: ArcherContainerProps["svgContainerStyle"] = {
   zIndex: 1,
 };
 
+const sketchHeight = 1080;
+const sketchWidth = 1920;
+
 const useStyles = makeStyles(({ mixins, palette, spacing }) => ({
   appBar: {
     width: `calc(100% - ${sidebarWidth}px)`,
@@ -54,8 +57,8 @@ const useStyles = makeStyles(({ mixins, palette, spacing }) => ({
   },
   archerContainer: {
     position: "relative",
-    height: 2160,
-    width: 3840,
+    height: sketchHeight,
+    width: sketchWidth,
   },
   container: {
     display: "flex",
@@ -457,5 +460,5 @@ const App: FunctionComponent = memo(() => {
   );
 });
 
-export { App };
+export { App, sketchHeight, sketchWidth };
 export type { AlertData };
