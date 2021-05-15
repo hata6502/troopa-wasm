@@ -6,10 +6,10 @@ const KeyboardSwitch: FunctionComponent<{
   id: string;
   player?: Player;
 }> = memo(({ id, player }) => {
-  const [isKeyDown, setIsKeyDown] = useState(false);
+  const [pressedKeys, setPressedKeys] = useState<string[]>([]);
 
   useEffect(() => {
-    const handleKeydown = () => {
+    const handleKeydown = (event: KeyboardEvent) => {
       if (!player) {
         return;
       }
@@ -19,11 +19,21 @@ const KeyboardSwitch: FunctionComponent<{
         value: 1.0,
       });
 
-      setIsKeyDown(true);
+      setPressedKeys((prevPressedKeys) => [...prevPressedKeys, event.key]);
     };
 
-    const handleKeyup = () => {
+    const handleKeyup = (event: KeyboardEvent) => {
       if (!player) {
+        return;
+      }
+
+      const filteredPressedKeys = pressedKeys.filter(
+        (pressedKey) => pressedKey !== event.key
+      );
+
+      setPressedKeys(filteredPressedKeys);
+
+      if (filteredPressedKeys.length !== 0) {
         return;
       }
 
@@ -31,8 +41,6 @@ const KeyboardSwitch: FunctionComponent<{
         componentID: id,
         value: 0.0,
       });
-
-      setIsKeyDown(false);
     };
 
     document.addEventListener("keydown", handleKeydown);
@@ -42,9 +50,9 @@ const KeyboardSwitch: FunctionComponent<{
       document.removeEventListener("keydown", handleKeydown);
       document.removeEventListener("keyup", handleKeyup);
     };
-  }, [id, player]);
+  }, [id, player, pressedKeys]);
 
-  return <>{isKeyDown ? "on" : "off"}</>;
+  return <>{pressedKeys.length === 0 ? "off" : "on"}</>;
 });
 
 export { KeyboardSwitch };
