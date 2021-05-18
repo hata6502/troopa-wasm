@@ -104,7 +104,7 @@ const componentInputNames = {
   [componentType.scope]: [diffTimeInputName, "in"],
 };
 
-interface OutputDestination {
+interface Destination {
   componentID: string;
   inputIndex: number;
 }
@@ -115,7 +115,7 @@ interface ComponentBase<
 > {
   name: string;
   implementation: Implementation;
-  outputDestinations: OutputDestination[];
+  outputDestinations: Destination[];
   position: ControlPosition;
   extendedData: ExtendedData;
 }
@@ -223,4 +223,9 @@ export {
   distributorComponentInInput,
 };
 
-export type { Component, InputComponent, OutputDestination };
+export type {
+  Component,
+  Destination,
+  InputComponent,
+  Destination as OutputDestination,
+};

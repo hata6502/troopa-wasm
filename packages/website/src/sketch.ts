@@ -1,8 +1,24 @@
-import type { Component } from "./component";
+import type { Component, Destination } from "./component";
+
+interface SketchInput {
+  name: string;
+  destination?: Destination;
+}
 
 interface Sketch {
   name: string;
   component: Record<string, Component>;
+  inputs: [
+    SketchInput,
+    SketchInput,
+    SketchInput,
+    SketchInput,
+    SketchInput,
+    SketchInput,
+    SketchInput,
+    SketchInput
+  ];
+  outputComponentID?: string;
 }
 
 const initialSketch: Sketch = {
@@ -34,7 +50,17 @@ const initialSketch: Sketch = {
       extendedData: { value: "440" },
     },
   },
+  inputs: [
+    { name: "" },
+    { name: "" },
+    { name: "" },
+    { name: "" },
+    { name: "" },
+    { name: "" },
+    { name: "" },
+    { name: "" },
+  ],
 };
 
 export { initialSketch };
-export type { Sketch };
+export type { Sketch, SketchInput };

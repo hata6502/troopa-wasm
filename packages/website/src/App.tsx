@@ -1,31 +1,18 @@
-import {
-  AppBar,
-  Button,
-  Grid,
-  Snackbar,
-  TextField,
-  Toolbar,
-  makeStyles,
-  useTheme,
-} from "@material-ui/core";
+import { Button, Snackbar, makeStyles, useTheme } from "@material-ui/core";
 import type { SnackbarProps } from "@material-ui/core";
 import { Alert, AlertTitle } from "@material-ui/lab";
 import type { AlertProps, AlertTitleProps } from "@material-ui/lab";
-import equal from "fast-deep-equal";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type {
-  ChangeEventHandler,
-  Dispatch,
-  FunctionComponent,
-  SetStateAction,
-} from "react";
+import type { Dispatch, FunctionComponent, SetStateAction } from "react";
 import { ArcherContainer } from "react-archer";
 import type { ArcherContainerProps } from "react-archer";
 import { ComponentActions } from "./ComponentActions";
 import { ComponentContainer } from "./ComponentContainer";
 import type { ComponentContainerProps } from "./ComponentContainer";
-import { Player } from "./Player";
-import { Sidebar, sidebarWidth } from "./Sidebar";
+import type { Player } from "./Player";
+import { Sidebar } from "./Sidebar";
+import { SketchInputContainer } from "./SketchInputContainer";
+import { TopBar } from "./TopBar";
 import {
   componentInputNames,
   componentType,
@@ -33,7 +20,7 @@ import {
 } from "./component";
 import type { Component, OutputDestination } from "./component";
 import { initialSketch } from "./sketch";
-import type { Sketch } from "./sketch";
+import type { Sketch, SketchInput } from "./sketch";
 
 interface AlertData {
   isOpen?: SnackbarProps["open"];
@@ -51,10 +38,6 @@ const sketchHeight = 1080;
 const sketchWidth = 1920;
 
 const useStyles = makeStyles(({ mixins, palette, spacing }) => ({
-  appBar: {
-    width: `calc(100% - ${sidebarWidth}px)`,
-    marginLeft: sidebarWidth,
-  },
   archerContainer: {
     position: "relative",
     height: sketchHeight,
@@ -63,42 +46,38 @@ const useStyles = makeStyles(({ mixins, palette, spacing }) => ({
   container: {
     display: "flex",
   },
+  inputContainer: {
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-evenly",
+    position: "absolute",
+    bottom: 0,
+    right: "calc(100% - 10px)",
+    top: 0,
+  },
   main: {
     flexGrow: 1,
     backgroundColor: palette.background.default,
     padding: spacing(3),
+  },
+  sketch: {
+    position: "relative",
+    border: `1px solid ${palette.divider}`,
+    marginLeft: spacing(20),
   },
   toolbar: mixins.toolbar,
 }));
 
 const App: FunctionComponent = memo(() => {
   const [alertData, dispatchAlertData] = useState<AlertData>({});
-  const [errorComponentIDs, setErrorComponentIDs] = useState<string[]>([]);
-  const [player, setPlayer] = useState<Player>();
-
-  const [originalSketch, setOriginalSketch] = useState(initialSketch);
-  const [currentSketch, dispatchCurrentSketch] = useState(originalSketch);
+  const [errorComponentIDs, dispatchErrorComponentIDs] = useState<string[]>([]);
+  const [player, dispatchPlayer] = useState<Player>();
+  const [sketch, dispatchSketch] = useState(initialSketch);
 
   const archerContainerElement = useRef<ArcherContainer>(null);
 
   const classes = useStyles();
   const theme = useTheme();
-
-  useEffect(() => {
-    if (equal(currentSketch, originalSketch)) {
-      return;
-    }
-
-    const handleBeforeunload = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-      // For Chrome.
-      event.returnValue = "";
-    };
-
-    window.addEventListener("beforeunload", handleBeforeunload);
-
-    return () => window.removeEventListener("beforeunload", handleBeforeunload);
-  }, [currentSketch, originalSketch]);
 
   useEffect(() => {
     if (!player) {
@@ -113,10 +92,10 @@ const App: FunctionComponent = memo(() => {
 
       const newComponentEntry = createComponent({ type: componentType.buffer });
 
-      dispatchCurrentSketch((prevCurrentSketch) => ({
-        ...prevCurrentSketch,
+      dispatchSketch((prevSketch) => ({
+        ...prevSketch,
         component: {
-          ...prevCurrentSketch.component,
+          ...prevSketch.component,
           [newComponentEntry.id]: newComponentEntry.component,
         },
       }));
@@ -142,8 +121,8 @@ const App: FunctionComponent = memo(() => {
         ),
       });
 
-      setErrorComponentIDs([componentID]);
-      setPlayer(undefined);
+      dispatchErrorComponentIDs([componentID]);
+      dispatchPlayer(undefined);
 
       void player.close();
     });
@@ -156,16 +135,16 @@ const App: FunctionComponent = memo(() => {
       type: componentType.distributor,
     });
 
-    dispatchCurrentSketch((prevCurrentSketch) => ({
-      ...prevCurrentSketch,
+    dispatchSketch((prevSketch) => ({
+      ...prevSketch,
       component: {
-        ...prevCurrentSketch.component,
+        ...prevSketch.component,
         [newComponentEntry.id]: newComponentEntry.component,
       },
     }));
   }, []);
 
-  const handleComponentDrag = useCallback(() => {
+  const handleDrag = useCallback(() => {
     if (!archerContainerElement.current) {
       throw new Error();
     }
@@ -173,89 +152,9 @@ const App: FunctionComponent = memo(() => {
     archerContainerElement.current.refreshScreen();
   }, []);
 
-  const handleSketchNameChange: ChangeEventHandler<HTMLInputElement> =
-    useCallback(
-      (event) =>
-        dispatchCurrentSketch((prevCurrentSketch) => ({
-          ...prevCurrentSketch,
-          name: event.target.value,
-        })),
-      []
-    );
-
-  const handlePlayButtonClick = useCallback(() => {
-    setErrorComponentIDs([]);
-
-    setPlayer(
-      new Player({
-        sketch: currentSketch,
-      })
-    );
-  }, [currentSketch]);
-
-  const handleStopButtonClick = useCallback(() => {
-    if (!player) {
-      return;
-    }
-
-    setPlayer(undefined);
-
-    void player.close();
-  }, [player]);
-
-  const handleLoadInputChange: ChangeEventHandler<HTMLInputElement> =
-    useCallback((event) => {
-      const files = event.target.files;
-
-      if (!files || files.length < 1) {
-        return;
-      }
-
-      const fileReader = new FileReader();
-
-      fileReader.addEventListener("load", () => {
-        const result = fileReader.result;
-
-        if (typeof result !== "string") {
-          throw new Error();
-        }
-
-        const loadedSketch = JSON.parse(result) as Sketch;
-
-        dispatchCurrentSketch(loadedSketch);
-        setOriginalSketch(loadedSketch);
-      });
-
-      fileReader.readAsText(files[0]);
-    }, []);
-
-  const handleSaveButtonClick = useCallback(() => {
-    const url = URL.createObjectURL(
-      new Blob([JSON.stringify(currentSketch)], { type: "application/json" })
-    );
-
-    try {
-      const anchorElement = document.createElement("a");
-
-      anchorElement.download = `${currentSketch.name}.json`;
-      anchorElement.href = url;
-      document.body.append(anchorElement);
-
-      try {
-        anchorElement.click();
-      } finally {
-        anchorElement.remove();
-      }
-    } finally {
-      URL.revokeObjectURL(url);
-    }
-
-    setOriginalSketch(currentSketch);
-  }, [currentSketch]);
-
   const removeConnections = useCallback(
     (targets: OutputDestination[]) =>
-      dispatchCurrentSketch((prevSketch) => ({
+      dispatchSketch((prevSketch) => ({
         ...prevSketch,
         component: Object.fromEntries(
           Object.entries(prevSketch.component).map(([id, component]) => [
@@ -291,7 +190,7 @@ const App: FunctionComponent = memo(() => {
         }))
       );
 
-      dispatchCurrentSketch((prevSketch) => ({
+      dispatchSketch((prevSketch) => ({
         ...prevSketch,
         component: Object.fromEntries(
           Object.entries(prevSketch.component).flatMap(([id, component]) =>
@@ -321,7 +220,7 @@ const App: FunctionComponent = memo(() => {
       component: T;
     }) => {
       const dispatchComponent: Dispatch<SetStateAction<T>> = (action) =>
-        dispatchCurrentSketch((prevSketch) => {
+        dispatchSketch((prevSketch) => {
           const prevComponent = new Map(
             Object.entries(prevSketch.component)
           ).get(id);
@@ -346,17 +245,17 @@ const App: FunctionComponent = memo(() => {
       return dispatchComponent;
     };
 
-    return Object.entries(currentSketch.component).map(([id, component]) => (
+    return Object.entries(sketch.component).map(([id, component]) => (
       <ComponentContainer
         id={id}
         key={id}
         component={component}
-        sketch={currentSketch}
+        sketch={sketch}
         dispatchAlertData={dispatchAlertData}
         getDispatchComponent={getDispatchComponent}
         isError={errorComponentIDs.includes(id)}
         onDistributorButtonClick={handleDistributorButtonClick}
-        onDrag={handleComponentDrag}
+        onDrag={handleDrag}
         onRemoveComponentRequest={handleRemoveComponentRequest}
         onRemoveConnectionsRequest={removeConnections}
       >
@@ -369,85 +268,78 @@ const App: FunctionComponent = memo(() => {
       </ComponentContainer>
     ));
   }, [
-    currentSketch,
+    sketch,
     errorComponentIDs,
-    handleComponentDrag,
+    handleDrag,
     handleDistributorButtonClick,
     handleRemoveComponentRequest,
     player,
     removeConnections,
   ]);
 
+  const inputContainerElements = useMemo(
+    () =>
+      sketch.inputs.map((input, index) => {
+        const dispatchInput: Dispatch<SetStateAction<SketchInput>> = (
+          action
+        ) => {
+          dispatchSketch((prevSketch) => {
+            const inputs: Sketch["inputs"] = [...prevSketch.inputs];
+
+            inputs[index] =
+              typeof action === "function"
+                ? action(prevSketch.inputs[index])
+                : action;
+
+            return {
+              ...prevSketch,
+              inputs,
+            };
+          });
+        };
+
+        return (
+          <SketchInputContainer
+            key={index}
+            index={index}
+            dispatchInput={dispatchInput}
+            input={input}
+            onDrag={handleDrag}
+          />
+        );
+      }),
+    [handleDrag, sketch.inputs]
+  );
+
   return (
     <div className={classes.container}>
-      <AppBar className={classes.appBar} color="inherit" position="fixed">
-        <Toolbar>
-          <Grid container spacing={2}>
-            <Grid item>
-              <TextField
-                variant="outlined"
-                label="sketch name"
-                size="small"
-                value={currentSketch.name}
-                onChange={handleSketchNameChange}
-              />
-            </Grid>
+      <TopBar
+        currentSketch={sketch}
+        dispatchCurrentSketch={dispatchSketch}
+        dispatchErrorComponentIDs={dispatchErrorComponentIDs}
+        dispatchPlayer={dispatchPlayer}
+        player={player}
+      />
 
-            <Grid item>
-              <Button
-                variant="contained"
-                color="primary"
-                disabled={Boolean(player)}
-                onClick={handlePlayButtonClick}
-              >
-                play
-              </Button>
-            </Grid>
-
-            <Grid item>
-              <Button
-                variant="contained"
-                disabled={!player}
-                onClick={handleStopButtonClick}
-              >
-                stop
-              </Button>
-            </Grid>
-
-            <Grid item>
-              <Button variant="contained" component="label">
-                load
-                <input
-                  type="file"
-                  accept="application/json"
-                  hidden
-                  onChange={handleLoadInputChange}
-                />
-              </Button>
-            </Grid>
-
-            <Grid item>
-              <Button variant="contained" onClick={handleSaveButtonClick}>
-                save
-              </Button>
-            </Grid>
-          </Grid>
-        </Toolbar>
-      </AppBar>
-
-      <Sidebar dispatchSketch={dispatchCurrentSketch} />
+      <Sidebar dispatchSketch={dispatchSketch} />
 
       <main className={classes.main}>
         <div className={classes.toolbar} />
 
-        <ArcherContainer
-          className={classes.archerContainer}
-          ref={archerContainerElement}
-          strokeColor={theme.palette.divider}
-          svgContainerStyle={svgContainerStyle}
-        >
-          {componentContainerElements}
-        </ArcherContainer>
+        <div className={classes.sketch}>
+          <ArcherContainer
+            className={classes.archerContainer}
+            ref={archerContainerElement}
+            strokeColor={theme.palette.divider}
+            svgContainerStyle={svgContainerStyle}
+          >
+            {componentContainerElements}
+
+            <div className={classes.inputContainer}>
+              {inputContainerElements}
+            </div>
+          </ArcherContainer>
+        </div>
       </main>
 
       <Snackbar open={alertData.isOpen}>
