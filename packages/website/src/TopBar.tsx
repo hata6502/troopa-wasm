@@ -26,15 +26,13 @@ const useStyles = makeStyles({
   },
 });
 
-interface TopBarProps {
+const TopBar: FunctionComponent<{
   currentSketch: Sketch;
   dispatchCurrentSketch: Dispatch<SetStateAction<Sketch>>;
   dispatchErrorComponentIDs: Dispatch<SetStateAction<string[]>>;
   dispatchPlayer: Dispatch<SetStateAction<Player | undefined>>;
   player?: Player;
-}
-
-const TopBar: FunctionComponent<TopBarProps> = memo(
+}> = memo(
   ({
     currentSketch,
     dispatchCurrentSketch,

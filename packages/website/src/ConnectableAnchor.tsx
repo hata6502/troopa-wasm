@@ -14,86 +14,82 @@ const useStyles = makeStyles(({ palette }) => ({
   },
 }));
 
-interface ConnectableAnchorProps {
+const ConnectableAnchor: FunctionComponent<{
   id: string;
   relations?: Relation[];
   onDrag?: DraggableEventHandler;
   onStop?: DraggableEventHandler;
-}
+}> = memo(({ id, relations = [], onDrag, onStop }) => {
+  const [connectionCuror, setConnectionCuror] = useState<DraggableData>();
 
-const ConnectableAnchor: FunctionComponent<ConnectableAnchorProps> = memo(
-  ({ id, relations = [], onDrag, onStop }) => {
-    const [connectionCuror, setConnectionCuror] = useState<DraggableData>();
+  const classes = useStyles();
 
-    const classes = useStyles();
+  const handleDrag: DraggableEventHandler = useCallback(
+    (event, data) => {
+      event.stopPropagation();
 
-    const handleDrag: DraggableEventHandler = useCallback(
-      (event, data) => {
-        event.stopPropagation();
+      setConnectionCuror(data);
 
-        setConnectionCuror(data);
+      onDrag?.(event, data);
+    },
+    [onDrag]
+  );
 
-        onDrag?.(event, data);
+  const handleStop: DraggableEventHandler = useCallback(
+    (event, data) => {
+      setConnectionCuror(undefined);
+
+      onStop?.(event, data);
+    },
+    [onStop]
+  );
+
+  const connectionCurorStyle = useMemo(
+    (): CSSProperties | undefined =>
+      connectionCuror && {
+        position: "absolute",
+        left: connectionCuror.x,
+        top: connectionCuror.y,
       },
-      [onDrag]
-    );
+    [connectionCuror]
+  );
 
-    const handleStop: DraggableEventHandler = useCallback(
-      (event, data) => {
-        setConnectionCuror(undefined);
-
-        onStop?.(event, data);
-      },
-      [onStop]
-    );
-
-    const connectionCurorStyle = useMemo(
-      (): CSSProperties | undefined =>
-        connectionCuror && {
-          position: "absolute",
-          left: connectionCuror.x,
-          top: connectionCuror.y,
-        },
-      [connectionCuror]
-    );
-
-    return (
-      <>
-        <DraggableCore
-          onStart={handleDrag}
-          onDrag={handleDrag}
-          onStop={handleStop}
-        >
-          {/* DraggableCore target. */}
-          <div>
-            <ArcherElement
-              id={`${id}-radio`}
-              relations={[
-                ...relations,
-                ...(connectionCuror
-                  ? [
-                      {
-                        sourceAnchor: "right" as const,
-                        targetAnchor: "left" as const,
-                        targetId: `${id}-cursor`,
-                      },
-                    ]
-                  : []),
-              ]}
-            >
-              <Radio checked={false} className={classes.radio} size="small" />
-            </ArcherElement>
-          </div>
-        </DraggableCore>
-
-        {connectionCurorStyle && (
-          <ArcherElement id={`${id}-cursor`}>
-            <div style={connectionCurorStyle} />
+  return (
+    <>
+      <DraggableCore
+        onStart={handleDrag}
+        onDrag={handleDrag}
+        onStop={handleStop}
+      >
+        {/* DraggableCore target. */}
+        <div>
+          <ArcherElement
+            id={`${id}-radio`}
+            relations={[
+              ...relations,
+              ...(connectionCuror
+                ? [
+                    {
+                      sourceAnchor: "right" as const,
+                      targetAnchor: "left" as const,
+                      targetId: `${id}-cursor`,
+                    },
+                  ]
+                : []),
+            ]}
+          >
+            <Radio checked={false} className={classes.radio} size="small" />
           </ArcherElement>
-        )}
-      </>
-    );
-  }
-);
+        </div>
+      </DraggableCore>
+
+      {connectionCurorStyle && (
+        <ArcherElement id={`${id}-cursor`}>
+          <div style={connectionCurorStyle} />
+        </ArcherElement>
+      )}
+    </>
+  );
+});
 
 export { ConnectableAnchor };

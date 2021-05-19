@@ -18,15 +18,13 @@ const useStyles = makeStyles(({ spacing }) => ({
   },
 }));
 
-interface SketchInputProps {
+const SketchInputContainer: FunctionComponent<{
   index: number;
   dispatchInput: Dispatch<SetStateAction<SketchInput>>;
   input: SketchInput;
   onDrag?: DraggableEventHandler;
   onRemoveConnectionsRequest?: (event: Destination[]) => void;
-}
-
-const SketchInputContainer: FunctionComponent<SketchInputProps> = memo(
+}> = memo(
   ({ index, dispatchInput, input, onDrag, onRemoveConnectionsRequest }) => {
     const classes = useStyles();
 
