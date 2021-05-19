@@ -10,50 +10,26 @@ import {
   makeStyles,
 } from "@material-ui/core";
 import { Delete, Error as ErrorIcon } from "@material-ui/icons";
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useMemo } from "react";
 import type {
   ChangeEventHandler,
-  CSSProperties,
   Dispatch,
   FunctionComponent,
   MouseEventHandler,
   SetStateAction,
 } from "react";
 import { ArcherElement } from "react-archer";
-import type { Relation } from "react-archer";
-import Draggable, { DraggableCore } from "react-draggable";
-import type {
-  ControlPosition,
-  DraggableData,
-  DraggableEventHandler,
-} from "react-draggable";
+import Draggable from "react-draggable";
+import type { DraggableEventHandler } from "react-draggable";
 import { sketchHeight, sketchWidth } from "./App";
 import type { AlertData } from "./App";
+import { ConnectableAnchor } from "./ConnectableAnchor";
 import { Player } from "./Player";
 import { componentInputNames, diffTimeInput } from "./component";
-import type { Component, OutputDestination } from "./component";
+import type { Component } from "./component";
+import { getDestinationsByPosition } from "./destination";
+import type { Destination } from "./destination";
 import type { Sketch } from "./sketch";
-
-const detectArcherAnchorPosition = ({
-  sourceX,
-  targetX,
-}: {
-  sourceX: ControlPosition["x"];
-  targetX: ControlPosition["x"];
-}): Pick<Relation, "sourceAnchor" | "targetAnchor"> => {
-  return sourceX < targetX
-    ? {
-        sourceAnchor: "right",
-        targetAnchor: "left",
-      }
-    : {
-        sourceAnchor: "left",
-        targetAnchor: "right",
-      };
-};
-
-const anchorWidth = 20;
-const containerWidth = 160;
 
 const useStyles = makeStyles(({ palette, spacing }) => ({
   card: {
@@ -62,7 +38,7 @@ const useStyles = makeStyles(({ palette, spacing }) => ({
   container: {
     position: "absolute",
     cursor: "move",
-    width: containerWidth,
+    width: 160,
   },
   deleteButton: {
     position: "absolute",
@@ -75,28 +51,24 @@ const useStyles = makeStyles(({ palette, spacing }) => ({
     top: spacing(-4),
   },
   input: {
-    position: "relative",
-    paddingLeft: spacing(2),
-    paddingRight: spacing(2),
-  },
-  inputAnchor: {
     position: "absolute",
     left: 0,
     top: "50%",
     transform: "translate(-50%, -50%)",
     backgroundColor: palette.background.paper,
     padding: 0,
-    width: anchorWidth,
+    width: 20,
   },
-  outputAnchor: {
+  inputContainer: {
+    position: "relative",
+    paddingLeft: spacing(2),
+    paddingRight: spacing(2),
+  },
+  output: {
     position: "absolute",
     right: 0,
     top: "50%",
     transform: "translate(50%, -50%)",
-    backgroundColor: palette.background.paper,
-    cursor: "alias",
-    padding: 0,
-    width: anchorWidth,
   },
 }));
 
@@ -116,7 +88,7 @@ interface ComponentContainerProps {
     id: string;
     component: Component;
   }) => void;
-  onRemoveConnectionsRequest?: (event: OutputDestination[]) => void;
+  onRemoveConnectionsRequest?: (event: Destination[]) => void;
 }
 
 const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
@@ -133,8 +105,6 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
     onRemoveComponentRequest,
     onRemoveConnectionsRequest,
   }) => {
-    const [connectionCuror, setConnectionCuror] = useState<DraggableData>();
-
     const dispatchComponent = useMemo(
       () => getDispatchComponent({ id, component }),
       [component, getDispatchComponent, id]
@@ -173,17 +143,6 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
       [component, id, onRemoveComponentRequest]
     );
 
-    const handleOutputAnchorDrag: DraggableEventHandler = useCallback(
-      (event, data) => {
-        event.stopPropagation();
-
-        setConnectionCuror(data);
-
-        onDrag?.(event, data);
-      },
-      [onDrag]
-    );
-
     const handleDistributorButtonClick: MouseEventHandler<HTMLButtonElement> =
       useCallback(
         (event) => {
@@ -197,37 +156,15 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
         [dispatchAlertData, onDistributorButtonClick]
       );
 
-    const handleOutputAnchorStop: DraggableEventHandler = useCallback(
+    const handleOutputStop: DraggableEventHandler = useCallback(
       (event, data) => {
         event.stopPropagation();
 
         if (event instanceof MouseEvent) {
-          const elements = document.elementsFromPoint(
-            event.clientX,
-            event.clientY
-          );
-
-          const newOutputDestinations = elements.flatMap(
-            (element): OutputDestination[] => {
-              if (!(element instanceof HTMLElement)) {
-                return [];
-              }
-
-              const componentID = element.dataset["componentId"];
-              const inputIndexString = element.dataset["inputIndex"];
-
-              if (componentID === undefined || inputIndexString === undefined) {
-                return [];
-              }
-
-              return [
-                {
-                  componentID,
-                  inputIndex: Number(inputIndexString),
-                },
-              ];
-            }
-          );
+          const newOutputDestinations = getDestinationsByPosition({
+            x: event.clientX,
+            y: event.clientY,
+          });
 
           const appendedOutputDestinations = [
             ...component.outputDestinations,
@@ -278,8 +215,6 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
           throw new Error();
         }
 
-        setConnectionCuror(undefined);
-
         onDrag?.(event, data);
       },
       [
@@ -302,7 +237,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
           return [];
         }
 
-        const handleInputAnchorClick = () =>
+        const handleInputClick = () =>
           onRemoveConnectionsRequest?.([
             {
               componentID: id,
@@ -310,51 +245,68 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
             },
           ]);
 
-        const isConnected = Object.values(sketch.component).some(
-          (otherComponent) =>
+        const isConnected =
+          Object.values(sketch.component).some((otherComponent) =>
             otherComponent.outputDestinations.some(
               (outputDestination) =>
                 outputDestination.componentID === id &&
                 outputDestination.inputIndex === inputIndex
             )
-        );
+          ) ||
+          sketch.inputs.some(
+            (input) =>
+              input.destination &&
+              input.destination.componentID === id &&
+              input.destination.inputIndex === inputIndex
+          );
 
         return [
-          <Box key={inputIndex} className={classes.input}>
+          <div key={inputIndex} className={classes.inputContainer}>
             <Typography variant="body2" gutterBottom>
               {componentInputNames[component.implementation][inputIndex]}
             </Typography>
 
-            <ArcherElement id={`${id}-input-anchor-${inputIndex}`}>
+            <ArcherElement id={`component-${id}-input-${inputIndex}`}>
               <Radio
                 data-component-id={id}
                 data-input-index={inputIndex}
                 checked={isConnected}
-                className={classes.inputAnchor}
+                className={classes.input}
                 size="small"
-                onClick={handleInputAnchorClick}
+                onClick={handleInputClick}
               />
             </ArcherElement>
-          </Box>,
+          </div>,
         ];
       });
     }, [
       classes.input,
-      classes.inputAnchor,
+      classes.inputContainer,
       component.implementation,
       id,
       onRemoveConnectionsRequest,
       sketch.component,
+      sketch.inputs,
     ]);
 
-    const connectionCurorStyle = useMemo(
-      (): CSSProperties | undefined =>
-        connectionCuror && {
-          position: "absolute",
-          left: connectionCuror.x,
-          top: connectionCuror.y,
-        },
-      [connectionCuror]
+    const outputRelations = useMemo(
+      () =>
+        component.outputDestinations.map((outputDestination) => {
+          const destinationComponent = new Map(
+            Object.entries(sketch.component)
+          ).get(outputDestination.componentID);
+
+          if (!destinationComponent) {
+            throw new Error();
+          }
+
+          return {
+            sourceAnchor: "right" as const,
+            targetAnchor: "left" as const,
+            targetId: `component-${outputDestination.componentID}-input-${outputDestination.inputIndex}`,
+          };
+        }),
+      [component.outputDestinations, sketch.component]
     );
 
     return (
@@ -397,67 +349,14 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
             <Delete fontSize="small" />
           </IconButton>
 
-          <DraggableCore
-            onStart={handleOutputAnchorDrag}
-            onDrag={handleOutputAnchorDrag}
-            onStop={handleOutputAnchorStop}
-          >
-            {/* DraggableCore target. */}
-            <div>
-              <ArcherElement
-                id={`${id}-output-anchor`}
-                relations={[
-                  ...component.outputDestinations.map((outputDestination) => {
-                    const destinationComponent = new Map(
-                      Object.entries(sketch.component)
-                    ).get(outputDestination.componentID);
-
-                    if (!destinationComponent) {
-                      throw new Error();
-                    }
-
-                    return {
-                      ...detectArcherAnchorPosition({
-                        sourceX:
-                          component.position.x +
-                          containerWidth +
-                          anchorWidth / 2,
-                        targetX:
-                          destinationComponent.position.x - anchorWidth / 2,
-                      }),
-                      targetId: `${outputDestination.componentID}-input-anchor-${outputDestination.inputIndex}`,
-                    };
-                  }),
-                  ...(connectionCuror
-                    ? [
-                        {
-                          ...detectArcherAnchorPosition({
-                            sourceX:
-                              component.position.x +
-                              containerWidth +
-                              anchorWidth / 2,
-                            targetX: component.position.x + connectionCuror.x,
-                          }),
-                          targetId: `${id}-connection-cursor`,
-                        },
-                      ]
-                    : []),
-                ]}
-              >
-                <Radio
-                  checked={false}
-                  className={classes.outputAnchor}
-                  size="small"
-                />
-              </ArcherElement>
-            </div>
-          </DraggableCore>
-
-          {connectionCurorStyle && (
-            <ArcherElement id={`${id}-connection-cursor`}>
-              <div style={connectionCurorStyle} />
-            </ArcherElement>
-          )}
+          <div className={classes.output}>
+            <ConnectableAnchor
+              id={`component-${id}-output`}
+              relations={outputRelations}
+              onDrag={onDrag}
+              onStop={handleOutputStop}
+            />
+          </div>
         </div>
       </Draggable>
     );

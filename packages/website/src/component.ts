@@ -1,5 +1,6 @@
 import type { ControlPosition } from "react-draggable";
 import { v4 as uuidv4 } from "uuid";
+import type { Destination } from "./destination";
 
 const componentType = {
   // Core components
@@ -104,18 +105,13 @@ const componentInputNames = {
   [componentType.scope]: [diffTimeInputName, "in"],
 };
 
-interface OutputDestination {
-  componentID: string;
-  inputIndex: number;
-}
-
 interface ComponentBase<
   Implementation extends ComponentType,
   ExtendedData extends Record<string, unknown>
 > {
   name: string;
   implementation: Implementation;
-  outputDestinations: OutputDestination[];
+  outputDestinations: Destination[];
   position: ControlPosition;
   extendedData: ExtendedData;
 }
@@ -223,4 +219,4 @@ export {
   distributorComponentInInput,
 };
 
-export type { Component, InputComponent, OutputDestination };
+export type { Component, InputComponent };
