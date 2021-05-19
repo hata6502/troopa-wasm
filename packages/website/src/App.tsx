@@ -18,7 +18,8 @@ import {
   componentType,
   createComponent,
 } from "./component";
-import type { Component, OutputDestination } from "./component";
+import type { Component } from "./component";
+import type { Destination } from "./destination";
 import { initialSketch } from "./sketch";
 import type { Sketch, SketchInput } from "./sketch";
 
@@ -153,10 +154,9 @@ const App: FunctionComponent = memo(() => {
   }, []);
 
   const removeConnections = useCallback(
-    (targets: OutputDestination[]) =>
-      dispatchSketch((prevSketch) => ({
-        ...prevSketch,
-        component: Object.fromEntries(
+    (targets: Destination[]) =>
+      dispatchSketch((prevSketch) => {
+        const component: Sketch["component"] = Object.fromEntries(
           Object.entries(prevSketch.component).map(([id, component]) => [
             id,
             {
@@ -171,8 +171,32 @@ const App: FunctionComponent = memo(() => {
               ),
             },
           ])
-        ),
-      })),
+        );
+
+        const inputs: Sketch["inputs"] = [...prevSketch.inputs];
+
+        for (const index in inputs) {
+          const input = inputs[index];
+
+          inputs[index] = {
+            ...input,
+            destination: targets.some(
+              (target) =>
+                input.destination &&
+                input.destination.componentID === target.componentID &&
+                input.destination.inputIndex === target.inputIndex
+            )
+              ? undefined
+              : input.destination,
+          };
+        }
+
+        return {
+          ...prevSketch,
+          component,
+          inputs,
+        };
+      }),
     []
   );
 
@@ -305,10 +329,11 @@ const App: FunctionComponent = memo(() => {
             dispatchInput={dispatchInput}
             input={input}
             onDrag={handleDrag}
+            onRemoveConnectionsRequest={removeConnections}
           />
         );
       }),
-    [handleDrag, sketch.inputs]
+    [handleDrag, removeConnections, sketch.inputs]
   );
 
   return (

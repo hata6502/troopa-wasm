@@ -26,7 +26,9 @@ import type { AlertData } from "./App";
 import { ConnectableAnchor } from "./ConnectableAnchor";
 import { Player } from "./Player";
 import { componentInputNames, diffTimeInput } from "./component";
-import type { Component, OutputDestination } from "./component";
+import type { Component } from "./component";
+import { getDestinationsByPosition } from "./destination";
+import type { Destination } from "./destination";
 import type { Sketch } from "./sketch";
 
 const useStyles = makeStyles(({ palette, spacing }) => ({
@@ -86,7 +88,7 @@ interface ComponentContainerProps {
     id: string;
     component: Component;
   }) => void;
-  onRemoveConnectionsRequest?: (event: OutputDestination[]) => void;
+  onRemoveConnectionsRequest?: (event: Destination[]) => void;
 }
 
 const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
@@ -159,32 +161,10 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
         event.stopPropagation();
 
         if (event instanceof MouseEvent) {
-          const elements = document.elementsFromPoint(
-            event.clientX,
-            event.clientY
-          );
-
-          const newOutputDestinations = elements.flatMap(
-            (element): OutputDestination[] => {
-              if (!(element instanceof HTMLElement)) {
-                return [];
-              }
-
-              const componentID = element.dataset["componentId"];
-              const inputIndexString = element.dataset["inputIndex"];
-
-              if (componentID === undefined || inputIndexString === undefined) {
-                return [];
-              }
-
-              return [
-                {
-                  componentID,
-                  inputIndex: Number(inputIndexString),
-                },
-              ];
-            }
-          );
+          const newOutputDestinations = getDestinationsByPosition({
+            x: event.clientX,
+            y: event.clientY,
+          });
 
           const appendedOutputDestinations = [
             ...component.outputDestinations,
@@ -265,14 +245,20 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
             },
           ]);
 
-        const isConnected = Object.values(sketch.component).some(
-          (otherComponent) =>
+        const isConnected =
+          Object.values(sketch.component).some((otherComponent) =>
             otherComponent.outputDestinations.some(
               (outputDestination) =>
                 outputDestination.componentID === id &&
                 outputDestination.inputIndex === inputIndex
             )
-        );
+          ) ||
+          sketch.inputs.some(
+            (input) =>
+              input.destination &&
+              input.destination.componentID === id &&
+              input.destination.inputIndex === inputIndex
+          );
 
         return [
           <div key={inputIndex} className={classes.inputContainer}>
@@ -300,6 +286,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
       id,
       onRemoveConnectionsRequest,
       sketch.component,
+      sketch.inputs,
     ]);
 
     const outputRelations = useMemo(

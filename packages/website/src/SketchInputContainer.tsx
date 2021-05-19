@@ -1,5 +1,5 @@
 import { Grid, TextField, makeStyles } from "@material-ui/core";
-import { memo, useCallback } from "react";
+import { memo, useCallback, useMemo } from "react";
 import type {
   ChangeEventHandler,
   Dispatch,
@@ -8,6 +8,8 @@ import type {
 } from "react";
 import type { DraggableEventHandler } from "react-draggable";
 import { ConnectableAnchor } from "./ConnectableAnchor";
+import { getDestinationsByPosition } from "./destination";
+import type { Destination } from "./destination";
 import type { SketchInput } from "./sketch";
 
 const useStyles = makeStyles(({ spacing }) => ({
@@ -21,10 +23,11 @@ interface SketchInputProps {
   dispatchInput: Dispatch<SetStateAction<SketchInput>>;
   input: SketchInput;
   onDrag?: DraggableEventHandler;
+  onRemoveConnectionsRequest?: (event: Destination[]) => void;
 }
 
 const SketchInputContainer: FunctionComponent<SketchInputProps> = memo(
-  ({ index, dispatchInput, input, onDrag }) => {
+  ({ index, dispatchInput, input, onDrag, onRemoveConnectionsRequest }) => {
     const classes = useStyles();
 
     const handleInputNameChange: ChangeEventHandler<HTMLInputElement> =
@@ -36,6 +39,45 @@ const SketchInputContainer: FunctionComponent<SketchInputProps> = memo(
           })),
         [dispatchInput]
       );
+
+    const handleAnchorStop: DraggableEventHandler = useCallback(
+      (event, data) => {
+        if (event instanceof MouseEvent) {
+          const destinations = getDestinationsByPosition({
+            x: event.clientX,
+            y: event.clientY,
+          });
+
+          onRemoveConnectionsRequest?.(destinations);
+
+          if (destinations.length !== 0) {
+            dispatchInput((prevInput) => ({
+              ...prevInput,
+              destination: destinations[0],
+            }));
+          }
+        } else {
+          throw new Error();
+        }
+
+        onDrag?.(event, data);
+      },
+      [dispatchInput, onDrag, onRemoveConnectionsRequest]
+    );
+
+    const anchorRelations = useMemo(
+      () =>
+        input.destination
+          ? [
+              {
+                sourceAnchor: "right" as const,
+                targetAnchor: "left" as const,
+                targetId: `component-${input.destination.componentID}-input-${input.destination.inputIndex}`,
+              },
+            ]
+          : [],
+      [input.destination]
+    );
 
     return (
       <Grid container alignItems="center" spacing={2} wrap="nowrap">
@@ -53,9 +95,9 @@ const SketchInputContainer: FunctionComponent<SketchInputProps> = memo(
         <Grid item>
           <ConnectableAnchor
             id={`sketch-input-${index}`}
-            //relations={anchorRelations}
+            relations={anchorRelations}
             onDrag={onDrag}
-            onStop={onDrag}
+            onStop={handleAnchorStop}
           />
         </Grid>
       </Grid>

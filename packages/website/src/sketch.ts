@@ -1,4 +1,5 @@
-import type { Component, Destination } from "./component";
+import type { Component } from "./component";
+import type { Destination } from "./destination";
 
 interface SketchInput {
   name: string;
