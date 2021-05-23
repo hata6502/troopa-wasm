@@ -1,4 +1,4 @@
-import { componentType, distributorComponentInInput } from "./component";
+import { distributorComponentInInput, primitiveComponentType } from "./component";
 import type { Sketch } from "./sketch";
 
 type CoreInfiniteLoopDetectedEventHandler = (event: {
@@ -22,31 +22,31 @@ class Player {
     this.componentIndexMap = new Map(
       Object.entries(sketch.component).map(([id, component]) => {
         switch (component.implementation) {
-          case componentType.amplifier:
-          case componentType.buffer:
-          case componentType.differentiator:
-          case componentType.distributor:
-          case componentType.divider:
-          case componentType.integrator:
-          case componentType.lowerSaturator:
-          case componentType.mixer:
-          case componentType.noise:
-          case componentType.saw:
-          case componentType.sine:
-          case componentType.square:
-          case componentType.subtractor:
-          case componentType.triangle:
-          case componentType.upperSaturator: {
+          case primitiveComponentType.amplifier:
+          case primitiveComponentType.buffer:
+          case primitiveComponentType.differentiator:
+          case primitiveComponentType.distributor:
+          case primitiveComponentType.divider:
+          case primitiveComponentType.integrator:
+          case primitiveComponentType.lowerSaturator:
+          case primitiveComponentType.mixer:
+          case primitiveComponentType.noise:
+          case primitiveComponentType.saw:
+          case primitiveComponentType.sine:
+          case primitiveComponentType.square:
+          case primitiveComponentType.subtractor:
+          case primitiveComponentType.triangle:
+          case primitiveComponentType.upperSaturator: {
             return [id, core.create_component(component.implementation)];
           }
 
-          case componentType.input:
-          case componentType.keyboardFrequency:
-          case componentType.keyboardSwitch:
-          case componentType.speaker:
-          case componentType.meter:
-          case componentType.scope: {
-            return [id, core.create_component(componentType.distributor)];
+          case primitiveComponentType.input:
+          case primitiveComponentType.keyboardFrequency:
+          case primitiveComponentType.keyboardSwitch:
+          case primitiveComponentType.speaker:
+          case primitiveComponentType.meter:
+          case primitiveComponentType.scope: {
+            return [id, core.create_component(primitiveComponentType.distributor)];
           }
 
           default: {
@@ -103,7 +103,7 @@ class Player {
 
     Object.entries(sketch.component).forEach(([id, component]) => {
       switch (component.implementation) {
-        case componentType.input: {
+        case primitiveComponentType.input: {
           this.inputValue({
             componentID: id,
             value: Number(component.extendedData.value),
@@ -112,31 +112,31 @@ class Player {
           break;
         }
 
-        case componentType.speaker: {
+        case primitiveComponentType.speaker: {
           outputComponentIndex = this.componentIndexMap.get(id);
 
           break;
         }
 
-        case componentType.amplifier:
-        case componentType.buffer:
-        case componentType.differentiator:
-        case componentType.distributor:
-        case componentType.divider:
-        case componentType.integrator:
-        case componentType.lowerSaturator:
-        case componentType.mixer:
-        case componentType.noise:
-        case componentType.saw:
-        case componentType.sine:
-        case componentType.square:
-        case componentType.subtractor:
-        case componentType.triangle:
-        case componentType.upperSaturator:
-        case componentType.keyboardFrequency:
-        case componentType.keyboardSwitch:
-        case componentType.meter:
-        case componentType.scope: {
+        case primitiveComponentType.amplifier:
+        case primitiveComponentType.buffer:
+        case primitiveComponentType.differentiator:
+        case primitiveComponentType.distributor:
+        case primitiveComponentType.divider:
+        case primitiveComponentType.integrator:
+        case primitiveComponentType.lowerSaturator:
+        case primitiveComponentType.mixer:
+        case primitiveComponentType.noise:
+        case primitiveComponentType.saw:
+        case primitiveComponentType.sine:
+        case primitiveComponentType.square:
+        case primitiveComponentType.subtractor:
+        case primitiveComponentType.triangle:
+        case primitiveComponentType.upperSaturator:
+        case primitiveComponentType.keyboardFrequency:
+        case primitiveComponentType.keyboardSwitch:
+        case primitiveComponentType.meter:
+        case primitiveComponentType.scope: {
           break;
         }
 

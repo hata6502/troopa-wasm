@@ -9,6 +9,7 @@ interface SketchInput {
 interface Sketch {
   name: string;
   component: Record<string, Component>;
+  // maxComponentInputLength
   inputs: [
     SketchInput,
     SketchInput,
@@ -19,7 +20,6 @@ interface Sketch {
     SketchInput,
     SketchInput
   ];
-  outputComponentID?: string;
 }
 
 const initialSketch: Sketch = {
@@ -27,7 +27,10 @@ const initialSketch: Sketch = {
   component: {
     "df5bb750-e9fe-fbf3-26e0-bbd601fe98c9": {
       name: "sine",
-      implementation: 10,
+      implementation: {
+        type: 'primitive',
+        componentType: 10
+      },
       outputDestinations: [
         {
           type: "component",
@@ -42,7 +45,10 @@ const initialSketch: Sketch = {
       name: "speaker",
       outputDestinations: [],
       position: { x: 545, y: 25 },
-      implementation: 18,
+      implementation: {
+        type: 'primitive',
+        componentType: 18
+      },
       extendedData: {},
     },
     "e02d7ee9-dcf2-40ab-ba7f-8beac91e411b": {
@@ -55,7 +61,10 @@ const initialSketch: Sketch = {
         },
       ],
       position: { x: 40, y: 41 },
-      implementation: 15,
+      implementation: {
+        type: 'primitive',
+        componentType: 15
+      },
       extendedData: { value: "440" },
     },
   },

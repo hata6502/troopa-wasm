@@ -26,7 +26,7 @@ import { sketchHeight, sketchOutputDestination, sketchWidth } from "./App";
 import type { AlertData } from "./App";
 import { ConnectableAnchor } from "./ConnectableAnchor";
 import { Player } from "./Player";
-import { componentInputNames, diffTimeInput } from "./component";
+import { diffTimeInput, primitiveComponentInputNames } from "./component";
 import type { Component } from "./component";
 import { getDestinationsByPosition, serializeDestination } from "./destination";
 import type { Destination } from "./destination";
@@ -236,7 +236,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
     const classes = useStyles();
 
     const inputElements = useMemo(() => {
-      const inputLength = componentInputNames[component.implementation].length;
+      const inputLength = primitiveComponentInputNames[component.implementation].length;
 
       return [...Array(inputLength).keys()].flatMap((inputIndex) => {
         if ([diffTimeInput].includes(inputIndex)) {
@@ -265,7 +265,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
         return [
           <div key={inputIndex} className={classes.inputContainer}>
             <Typography variant="body2" gutterBottom>
-              {componentInputNames[component.implementation][inputIndex]}
+              {primitiveComponentInputNames[component.implementation][inputIndex]}
             </Typography>
 
             <ArcherElement

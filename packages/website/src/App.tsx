@@ -21,9 +21,9 @@ import { Sidebar } from "./Sidebar";
 import { SketchInputContainer } from "./SketchInputContainer";
 import { TopBar } from "./TopBar";
 import {
-  componentInputNames,
-  componentType,
   createComponent,
+  maxComponentInputLength,
+  primitiveComponentType,
 } from "./component";
 import type { Component } from "./component";
 import { serializeDestination } from "./destination";
@@ -112,7 +112,7 @@ const App: FunctionComponent = memo(() => {
         isOpen: false,
       }));
 
-      const newComponentEntry = createComponent({ type: componentType.buffer });
+      const newComponentEntry = createComponent({ type: primitiveComponentType.buffer });
 
       dispatchSketch((prevSketch) => ({
         ...prevSketch,
@@ -154,7 +154,7 @@ const App: FunctionComponent = memo(() => {
 
   const handleDistributorButtonClick = useCallback(() => {
     const newComponentEntry = createComponent({
-      type: componentType.distributor,
+      type: primitiveComponentType.distributor,
     });
 
     dispatchSketch((prevSketch) => ({
@@ -218,11 +218,8 @@ const App: FunctionComponent = memo(() => {
     ComponentContainerProps["onRemoveComponentRequest"]
   > = useCallback(
     (event) => {
-      const inputLength =
-        componentInputNames[event.component.implementation].length;
-
       removeConnections(
-        [...Array(inputLength).keys()].map((index) => ({
+        [...Array(maxComponentInputLength).keys()].map((index) => ({
           type: "component",
           id: event.id,
           inputIndex: index,

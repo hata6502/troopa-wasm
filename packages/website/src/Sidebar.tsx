@@ -10,7 +10,7 @@ import {
 } from "@material-ui/core";
 import { memo, useMemo } from "react";
 import type { Dispatch, FunctionComponent, SetStateAction } from "react";
-import { componentNames, componentType, createComponent } from "./component";
+import { createComponent, primitiveComponentNames, primitiveComponentType } from "./component";
 import type { Sketch } from "./sketch";
 
 const sidebarWidth = 200;
@@ -33,7 +33,7 @@ const Sidebar: FunctionComponent<{
 
   const componentListItemElements = useMemo(
     () =>
-      Object.values(componentType).map((type) => {
+      Object.values(primitiveComponentType).map((type) => {
         const handleClick = () => {
           const newComponentEntry = createComponent({ type });
 
@@ -48,7 +48,7 @@ const Sidebar: FunctionComponent<{
 
         return (
           <ListItem key={type} button onClick={handleClick}>
-            <ListItemText primary={componentNames[type]} />
+            <ListItemText primary={primitiveComponentNames[type]} />
           </ListItem>
         );
       }),
