@@ -10,6 +10,7 @@ import {
   makeStyles,
 } from "@material-ui/core";
 import { Delete, Error as ErrorIcon } from "@material-ui/icons";
+import equal from "fast-deep-equal";
 import { memo, useCallback, useMemo } from "react";
 import type {
   ChangeEventHandler,
@@ -21,13 +22,13 @@ import type {
 import { ArcherElement } from "react-archer";
 import Draggable from "react-draggable";
 import type { DraggableEventHandler } from "react-draggable";
-import { sketchHeight, sketchWidth } from "./App";
+import { sketchHeight, sketchOutputDestination, sketchWidth } from "./App";
 import type { AlertData } from "./App";
 import { ConnectableAnchor } from "./ConnectableAnchor";
 import { Player } from "./Player";
 import { componentInputNames, diffTimeInput } from "./component";
 import type { Component } from "./component";
-import { getDestinationsByPosition } from "./destination";
+import { getDestinationsByPosition, serializeDestination } from "./destination";
 import type { Destination } from "./destination";
 import type { Sketch } from "./sketch";
 
@@ -171,14 +172,19 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
             ...newOutputDestinations,
           ];
 
-          const uniqueOutputDestinations = [
-            ...new Map(
-              appendedOutputDestinations.map((outputDestination) => [
-                `${outputDestination.componentID}-${outputDestination.inputIndex}`,
-                outputDestination,
-              ])
-            ).values(),
-          ];
+          const uniqueOutputDestinations = appendedOutputDestinations.some(
+            (appendedOutputDestination) =>
+              equal(appendedOutputDestination, sketchOutputDestination)
+          )
+            ? [sketchOutputDestination]
+            : [
+                ...new Map(
+                  appendedOutputDestinations.map((outputDestination) => [
+                    serializeDestination({ destination: outputDestination }),
+                    outputDestination,
+                  ])
+                ).values(),
+              ];
 
           if (
             uniqueOutputDestinations.length <= Player.coreComponentOutputLength
@@ -237,27 +243,23 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
           return [];
         }
 
+        const componentDestination: Destination = {
+          type: "component",
+          id,
+          inputIndex,
+        };
+
         const handleInputClick = () =>
-          onRemoveConnectionsRequest?.([
-            {
-              componentID: id,
-              inputIndex,
-            },
-          ]);
+          onRemoveConnectionsRequest?.([componentDestination]);
 
         const isConnected =
           Object.values(sketch.component).some((otherComponent) =>
-            otherComponent.outputDestinations.some(
-              (outputDestination) =>
-                outputDestination.componentID === id &&
-                outputDestination.inputIndex === inputIndex
+            otherComponent.outputDestinations.some((outputDestination) =>
+              equal(outputDestination, componentDestination)
             )
           ) ||
-          sketch.inputs.some(
-            (input) =>
-              input.destination &&
-              input.destination.componentID === id &&
-              input.destination.inputIndex === inputIndex
+          sketch.inputs.some((input) =>
+            equal(input.destination, componentDestination)
           );
 
         return [
@@ -266,7 +268,11 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
               {componentInputNames[component.implementation][inputIndex]}
             </Typography>
 
-            <ArcherElement id={`component-${id}-input-${inputIndex}`}>
+            <ArcherElement
+              id={serializeDestination({
+                destination: componentDestination,
+              })}
+            >
               <Radio
                 data-component-id={id}
                 data-input-index={inputIndex}
@@ -291,22 +297,12 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
 
     const outputRelations = useMemo(
       () =>
-        component.outputDestinations.map((outputDestination) => {
-          const destinationComponent = new Map(
-            Object.entries(sketch.component)
-          ).get(outputDestination.componentID);
-
-          if (!destinationComponent) {
-            throw new Error();
-          }
-
-          return {
-            sourceAnchor: "right" as const,
-            targetAnchor: "left" as const,
-            targetId: `component-${outputDestination.componentID}-input-${outputDestination.inputIndex}`,
-          };
-        }),
-      [component.outputDestinations, sketch.component]
+        component.outputDestinations.map((outputDestination) => ({
+          sourceAnchor: "right" as const,
+          targetAnchor: "left" as const,
+          targetId: serializeDestination({ destination: outputDestination }),
+        })),
+      [component.outputDestinations]
     );
 
     return (

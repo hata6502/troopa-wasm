@@ -61,24 +61,41 @@ class Player {
 
     Object.entries(sketch.component).forEach(([id, component]) =>
       component.outputDestinations.forEach((outputDestination) => {
-        const inputComponentIndex = this.componentIndexMap.get(
-          outputDestination.componentID
-        );
+        switch (outputDestination.type) {
+          case "component": {
+            const inputComponentIndex = this.componentIndexMap.get(
+              outputDestination.id
+            );
 
-        const outputComponentIndex = this.componentIndexMap.get(id);
+            const outputComponentIndex = this.componentIndexMap.get(id);
 
-        if (
-          inputComponentIndex === undefined ||
-          outputComponentIndex === undefined
-        ) {
-          throw new Error();
+            if (
+              inputComponentIndex === undefined ||
+              outputComponentIndex === undefined
+            ) {
+              throw new Error();
+            }
+
+            core.connect(
+              inputComponentIndex,
+              outputDestination.inputIndex,
+              outputComponentIndex
+            );
+
+            break;
+          }
+
+          case "sketchOutput": {
+            break;
+          }
+
+          default: {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const exhaustiveCheck: never = outputDestination;
+
+            throw new Error();
+          }
         }
-
-        core.connect(
-          inputComponentIndex,
-          outputDestination.inputIndex,
-          outputComponentIndex
-        );
       })
     );
 
