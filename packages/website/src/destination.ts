@@ -17,7 +17,7 @@ const getDestinationsByPosition = ({
 }): Destination[] => {
   const elements = document.elementsFromPoint(x, y);
 
-  return elements.flatMap((element) => {
+  return elements.flatMap((element): Destination[] => {
     if (!(element instanceof HTMLElement)) {
       return [];
     }
@@ -25,17 +25,25 @@ const getDestinationsByPosition = ({
     const componentID = element.dataset["componentId"];
     const inputIndexString = element.dataset["inputIndex"];
 
-    if (componentID === undefined || inputIndexString === undefined) {
-      return [];
+    if (componentID && inputIndexString) {
+      return [
+        {
+          type: "component",
+          id: componentID,
+          inputIndex: Number(inputIndexString),
+        },
+      ];
     }
 
-    return [
-      {
-        type: "component",
-        id: componentID,
-        inputIndex: Number(inputIndexString),
-      },
-    ];
+    if (element.dataset["sketchOutput"]) {
+      return [
+        {
+          type: "sketchOutput",
+        },
+      ];
+    }
+
+    return [];
   });
 };
 

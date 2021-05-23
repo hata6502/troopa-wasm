@@ -26,7 +26,8 @@ import {
   createComponent,
 } from "./component";
 import type { Component } from "./component";
-import { Destination, serializeDestination } from "./destination";
+import { serializeDestination } from "./destination";
+import type { Destination } from "./destination";
 import { initialSketch } from "./sketch";
 import type { Sketch, SketchInput } from "./sketch";
 
@@ -36,6 +37,10 @@ interface AlertData {
   title?: AlertTitleProps["children"];
   description?: AlertProps["children"];
 }
+
+const sketchOutputDestination: Destination = {
+  type: "sketchOutput",
+};
 
 const svgContainerStyle: ArcherContainerProps["svgContainerStyle"] = {
   // To display arrows in front of components.
@@ -245,6 +250,11 @@ const App: FunctionComponent = memo(() => {
     []
   );
 
+  const handleOutputClick = useCallback(
+    () => removeConnections([sketchOutputDestination]),
+    [removeConnections]
+  );
+
   const componentContainerElements = useMemo(() => {
     const getDispatchComponent = <T extends Component>({
       id,
@@ -346,10 +356,6 @@ const App: FunctionComponent = memo(() => {
     [handleDrag, removeConnections, sketch.inputs]
   );
 
-  const sketchOutputDestination: Destination = {
-    type: "sketchOutput",
-  };
-
   const isOutputConnected =
     Object.values(sketch.component).some((otherComponent) =>
       otherComponent.outputDestinations.some((outputDestination) =>
@@ -396,7 +402,7 @@ const App: FunctionComponent = memo(() => {
                   checked={isOutputConnected}
                   className={classes.output}
                   size="small"
-                  //onClick={handleOutputClick}
+                  onClick={handleOutputClick}
                 />
               </ArcherElement>
             </div>
@@ -414,5 +420,5 @@ const App: FunctionComponent = memo(() => {
   );
 });
 
-export { App, sketchHeight, sketchWidth };
+export { App, sketchHeight, sketchOutputDestination, sketchWidth };
 export type { AlertData };

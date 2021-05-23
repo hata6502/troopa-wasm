@@ -22,7 +22,7 @@ import type {
 import { ArcherElement } from "react-archer";
 import Draggable from "react-draggable";
 import type { DraggableEventHandler } from "react-draggable";
-import { sketchHeight, sketchWidth } from "./App";
+import { sketchHeight, sketchOutputDestination, sketchWidth } from "./App";
 import type { AlertData } from "./App";
 import { ConnectableAnchor } from "./ConnectableAnchor";
 import { Player } from "./Player";
@@ -172,14 +172,19 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
             ...newOutputDestinations,
           ];
 
-          const uniqueOutputDestinations = [
-            ...new Map(
-              appendedOutputDestinations.map((outputDestination) => [
-                serializeDestination({ destination: outputDestination }),
-                outputDestination,
-              ])
-            ).values(),
-          ];
+          const uniqueOutputDestinations = appendedOutputDestinations.some(
+            (appendedOutputDestination) =>
+              equal(appendedOutputDestination, sketchOutputDestination)
+          )
+            ? [sketchOutputDestination]
+            : [
+                ...new Map(
+                  appendedOutputDestinations.map((outputDestination) => [
+                    serializeDestination({ destination: outputDestination }),
+                    outputDestination,
+                  ])
+                ).values(),
+              ];
 
           if (
             uniqueOutputDestinations.length <= Player.coreComponentOutputLength
@@ -238,20 +243,14 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
           return [];
         }
 
-        const handleInputClick = () =>
-          onRemoveConnectionsRequest?.([
-            {
-              type: "component",
-              id,
-              inputIndex,
-            },
-          ]);
-
         const componentDestination: Destination = {
           type: "component",
           id,
           inputIndex,
         };
+
+        const handleInputClick = () =>
+          onRemoveConnectionsRequest?.([componentDestination]);
 
         const isConnected =
           Object.values(sketch.component).some((otherComponent) =>
