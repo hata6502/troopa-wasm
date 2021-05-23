@@ -1,7 +1,12 @@
-interface Destination {
-  componentID: string;
-  inputIndex: number;
-}
+type Destination =
+  | {
+      type: "component";
+      id: string;
+      inputIndex: number;
+    }
+  | {
+      type: "sketchOutput";
+    };
 
 const getDestinationsByPosition = ({
   x,
@@ -26,12 +31,36 @@ const getDestinationsByPosition = ({
 
     return [
       {
-        componentID,
+        type: "component",
+        id: componentID,
         inputIndex: Number(inputIndexString),
       },
     ];
   });
 };
 
-export { getDestinationsByPosition };
+const serializeDestination = ({
+  destination,
+}: {
+  destination: Destination;
+}): string => {
+  switch (destination.type) {
+    case "component": {
+      return `component-${destination.id}-input-${destination.inputIndex}`;
+    }
+
+    case "sketchOutput": {
+      return "sketch-output";
+    }
+
+    default: {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const exhaustiveCheck: never = destination;
+
+      throw new Error();
+    }
+  }
+};
+
+export { getDestinationsByPosition, serializeDestination };
 export type { Destination };

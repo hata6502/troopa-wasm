@@ -62,7 +62,7 @@ class Player {
     Object.entries(sketch.component).forEach(([id, component]) =>
       component.outputDestinations.forEach((outputDestination) => {
         const inputComponentIndex = this.componentIndexMap.get(
-          outputDestination.componentID
+          outputDestination.id
         );
 
         const outputComponentIndex = this.componentIndexMap.get(id);

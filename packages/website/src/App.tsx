@@ -1,10 +1,17 @@
-import { Button, Snackbar, makeStyles, useTheme } from "@material-ui/core";
+import {
+  Button,
+  Radio,
+  Snackbar,
+  makeStyles,
+  useTheme,
+} from "@material-ui/core";
 import type { SnackbarProps } from "@material-ui/core";
 import { Alert, AlertTitle } from "@material-ui/lab";
 import type { AlertProps, AlertTitleProps } from "@material-ui/lab";
+import equal from "fast-deep-equal";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Dispatch, FunctionComponent, SetStateAction } from "react";
-import { ArcherContainer } from "react-archer";
+import { ArcherContainer, ArcherElement } from "react-archer";
 import type { ArcherContainerProps } from "react-archer";
 import { ComponentActions } from "./ComponentActions";
 import { ComponentContainer } from "./ComponentContainer";
@@ -19,7 +26,7 @@ import {
   createComponent,
 } from "./component";
 import type { Component } from "./component";
-import type { Destination } from "./destination";
+import { Destination, serializeDestination } from "./destination";
 import { initialSketch } from "./sketch";
 import type { Sketch, SketchInput } from "./sketch";
 
@@ -47,7 +54,7 @@ const useStyles = makeStyles(({ mixins, palette, spacing }) => ({
   container: {
     display: "flex",
   },
-  inputContainer: {
+  input: {
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-evenly",
@@ -60,6 +67,15 @@ const useStyles = makeStyles(({ mixins, palette, spacing }) => ({
     flexGrow: 1,
     backgroundColor: palette.background.default,
     padding: spacing(3),
+  },
+  output: {
+    position: "absolute",
+    right: 0,
+    top: "50%",
+    transform: "translate(25%, -50%)",
+    backgroundColor: palette.background.paper,
+    padding: 0,
+    width: 20,
   },
   sketch: {
     position: "relative",
@@ -163,11 +179,7 @@ const App: FunctionComponent = memo(() => {
               ...component,
               outputDestinations: component.outputDestinations.filter(
                 (outputDestination) =>
-                  targets.every(
-                    (target) =>
-                      outputDestination.componentID !== target.componentID ||
-                      outputDestination.inputIndex !== target.inputIndex
-                  )
+                  targets.every((target) => !equal(outputDestination, target))
               ),
             },
           ])
@@ -180,11 +192,8 @@ const App: FunctionComponent = memo(() => {
 
           inputs[index] = {
             ...input,
-            destination: targets.some(
-              (target) =>
-                input.destination &&
-                input.destination.componentID === target.componentID &&
-                input.destination.inputIndex === target.inputIndex
+            destination: targets.some((target) =>
+              equal(input.destination, target)
             )
               ? undefined
               : input.destination,
@@ -209,7 +218,8 @@ const App: FunctionComponent = memo(() => {
 
       removeConnections(
         [...Array(inputLength).keys()].map((index) => ({
-          componentID: event.id,
+          type: "component",
+          id: event.id,
           inputIndex: index,
         }))
       );
@@ -301,7 +311,7 @@ const App: FunctionComponent = memo(() => {
     removeConnections,
   ]);
 
-  const inputContainerElements = useMemo(
+  const inputElements = useMemo(
     () =>
       sketch.inputs.map((input, index) => {
         const dispatchInput: Dispatch<SetStateAction<SketchInput>> = (
@@ -336,6 +346,20 @@ const App: FunctionComponent = memo(() => {
     [handleDrag, removeConnections, sketch.inputs]
   );
 
+  const sketchOutputDestination: Destination = {
+    type: "sketchOutput",
+  };
+
+  const isOutputConnected =
+    Object.values(sketch.component).some((otherComponent) =>
+      otherComponent.outputDestinations.some((outputDestination) =>
+        equal(outputDestination, sketchOutputDestination)
+      )
+    ) ||
+    sketch.inputs.some((input) =>
+      equal(input.destination, sketchOutputDestination)
+    );
+
   return (
     <div className={classes.container}>
       <TopBar
@@ -359,9 +383,22 @@ const App: FunctionComponent = memo(() => {
             svgContainerStyle={svgContainerStyle}
           >
             {componentContainerElements}
+            <div className={classes.input}>{inputElements}</div>
 
-            <div className={classes.inputContainer}>
-              {inputContainerElements}
+            <div className={classes.output}>
+              <ArcherElement
+                id={serializeDestination({
+                  destination: sketchOutputDestination,
+                })}
+              >
+                <Radio
+                  data-sketch-output
+                  checked={isOutputConnected}
+                  className={classes.output}
+                  size="small"
+                  //onClick={handleOutputClick}
+                />
+              </ArcherElement>
             </div>
           </ArcherContainer>
         </div>

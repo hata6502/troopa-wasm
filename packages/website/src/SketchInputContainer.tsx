@@ -8,7 +8,7 @@ import type {
 } from "react";
 import type { DraggableEventHandler } from "react-draggable";
 import { ConnectableAnchor } from "./ConnectableAnchor";
-import { getDestinationsByPosition } from "./destination";
+import { getDestinationsByPosition, serializeDestination } from "./destination";
 import type { Destination } from "./destination";
 import type { SketchInput } from "./sketch";
 
@@ -70,7 +70,9 @@ const SketchInputContainer: FunctionComponent<{
               {
                 sourceAnchor: "right" as const,
                 targetAnchor: "left" as const,
-                targetId: `component-${input.destination.componentID}-input-${input.destination.inputIndex}`,
+                targetId: serializeDestination({
+                  destination: input.destination,
+                }),
               },
             ]
           : [],
