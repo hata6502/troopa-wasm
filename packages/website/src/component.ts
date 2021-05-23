@@ -1,6 +1,7 @@
 import type { ControlPosition } from "react-draggable";
 import { v4 as uuidv4 } from "uuid";
 import type { Destination } from "./destination";
+import type { Sketch } from "./sketch";
 
 const componentType = {
   // Core components
@@ -52,7 +53,7 @@ type ComponentType =
   | typeof componentType.meter
   | typeof componentType.scope;
 
-const componentNames = {
+const componentNames: Record<ComponentType, string> = {
   [componentType.amplifier]: "amplifier",
   [componentType.buffer]: "buffer",
   [componentType.differentiator]: "differentiator",
@@ -81,7 +82,7 @@ const diffTimeInputName = "diff time";
 
 const distributorComponentInInput = 1;
 
-const componentInputNames = {
+const componentInputNames: Record<ComponentType, string[]> = {
   [componentType.amplifier]: [diffTimeInputName, "in 1", "in 2"],
   [componentType.buffer]: [diffTimeInputName, "in"],
   [componentType.differentiator]: [diffTimeInputName, "in"],
@@ -106,7 +107,7 @@ const componentInputNames = {
 };
 
 interface ComponentBase<
-  Implementation extends ComponentType,
+  Implementation extends ComponentType | Sketch,
   ExtendedData extends Record<string, unknown>
 > {
   name: string;
@@ -142,7 +143,8 @@ type Component =
   | ComponentBase<typeof componentType.keyboardSwitch, Record<string, never>>
   | ComponentBase<typeof componentType.speaker, Record<string, never>>
   | ComponentBase<typeof componentType.meter, Record<string, never>>
-  | ComponentBase<typeof componentType.scope, Record<string, never>>;
+  | ComponentBase<typeof componentType.scope, Record<string, never>>
+  | ComponentBase<Sketch, Record<string, never>>;
 
 const createComponent = ({
   type,
