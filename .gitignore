@@ -1,5 +1,4 @@
 /.env
 /node_modules/
-/packages/website/package-lock.json
 /packages/website/dist/
 /packages/website/node_modules/
