@@ -1,5 +1,4 @@
 import type { ControlPosition } from "react-draggable";
-import { v4 as uuidv4 } from "uuid";
 import type { Destination } from "./destination";
 import type { Sketch } from "./sketch";
 
@@ -32,7 +31,7 @@ const componentType = {
   sketch: 21,
 } as const;
 
-type ComponentType =
+type PrimitiveComponentType =
   | typeof componentType.amplifier
   | typeof componentType.buffer
   | typeof componentType.differentiator
@@ -53,10 +52,11 @@ type ComponentType =
   | typeof componentType.keyboardSwitch
   | typeof componentType.speaker
   | typeof componentType.meter
-  | typeof componentType.scope
-  | typeof componentType.sketch;
+  | typeof componentType.scope;
 
-const componentNames: Record<ComponentType, string> = {
+type ComponentType = PrimitiveComponentType | typeof componentType.sketch;
+
+const componentName: Record<ComponentType, string> = {
   [componentType.amplifier]: "amplifier",
   [componentType.buffer]: "buffer",
   [componentType.differentiator]: "differentiator",
@@ -81,42 +81,38 @@ const componentNames: Record<ComponentType, string> = {
   [componentType.sketch]: "sketch",
 };
 
-const diffTimeInput = 0;
-const diffTimeInputName = "diff time";
-
 const distributorComponentInInput = 1;
 
-const componentInputNames: Record<ComponentType, string[]> = {
-  [componentType.amplifier]: [diffTimeInputName, "in 1", "in 2"],
-  [componentType.buffer]: [diffTimeInputName, "in"],
-  [componentType.differentiator]: [diffTimeInputName, "in"],
-  [componentType.distributor]: [diffTimeInputName, "in"],
-  [componentType.divider]: [diffTimeInputName, "in 1", "in 2"],
-  [componentType.integrator]: [diffTimeInputName, "in"],
-  [componentType.lowerSaturator]: [diffTimeInputName, "in 1", "in 2"],
-  [componentType.mixer]: [diffTimeInputName, "in 1", "in 2"],
-  [componentType.noise]: [diffTimeInputName],
-  [componentType.saw]: [diffTimeInputName, "frequency"],
-  [componentType.sine]: [diffTimeInputName, "frequency"],
-  [componentType.square]: [diffTimeInputName, "frequency"],
-  [componentType.subtractor]: [diffTimeInputName, "in 1", "in 2"],
-  [componentType.triangle]: [diffTimeInputName, "frequency"],
-  [componentType.upperSaturator]: [diffTimeInputName, "in 1", "in 2"],
-  [componentType.input]: [diffTimeInputName],
-  [componentType.keyboardFrequency]: [diffTimeInputName],
-  [componentType.keyboardSwitch]: [diffTimeInputName],
-  [componentType.speaker]: [diffTimeInputName, "sound"],
-  [componentType.meter]: [diffTimeInputName, "in"],
-  [componentType.scope]: [diffTimeInputName, "in"],
-  [componentType.sketch]: [diffTimeInputName],
+const primitiveComponentInputNames: Record<PrimitiveComponentType, string[]> = {
+  [componentType.amplifier]: ["", "in 1", "in 2"],
+  [componentType.buffer]: ["", "in"],
+  [componentType.differentiator]: ["", "in"],
+  [componentType.distributor]: ["", "in"],
+  [componentType.divider]: ["", "in 1", "in 2"],
+  [componentType.integrator]: ["", "in"],
+  [componentType.lowerSaturator]: ["", "in 1", "in 2"],
+  [componentType.mixer]: ["", "in 1", "in 2"],
+  [componentType.noise]: [""],
+  [componentType.saw]: ["", "frequency"],
+  [componentType.sine]: ["", "frequency"],
+  [componentType.square]: ["", "frequency"],
+  [componentType.subtractor]: ["", "in 1", "in 2"],
+  [componentType.triangle]: ["", "frequency"],
+  [componentType.upperSaturator]: ["", "in 1", "in 2"],
+  [componentType.input]: [""],
+  [componentType.keyboardFrequency]: [""],
+  [componentType.keyboardSwitch]: [""],
+  [componentType.speaker]: ["", "sound"],
+  [componentType.meter]: ["", "in"],
+  [componentType.scope]: ["", "in"],
 };
 
 interface ComponentBase<
-  Implementation extends ComponentType,
+  Type extends ComponentType,
   ExtendedData extends Record<string, unknown>
 > {
   name: string;
-  implementation: Implementation;
+  type: Type;
   outputDestinations: Destination[];
   position: ControlPosition;
   extendedData: ExtendedData;
@@ -151,33 +147,14 @@ type Component =
   | ComponentBase<typeof componentType.scope, Record<string, never>>
   | ComponentBase<typeof componentType.sketch, { sketch: Sketch }>;
 
-const createComponent = ({
-  type,
+const componentInputMaxLength = 8;
+
+const getComponentInputNames = ({
+  component,
 }: {
-  type: ComponentType;
-}): { id: string; component: Component } => {
-  const id = uuidv4();
-
-  const componentBase = {
-    name: componentNames[type],
-    outputDestinations: [],
-    position: { x: 0, y: 0 },
-  };
-
-  switch (type) {
-    case componentType.input: {
-      return {
-        id,
-        component: {
-          ...componentBase,
-          implementation: type,
-          extendedData: {
-            value: "0",
-          },
-        },
-      };
-    }
-
+  component: Component;
+}): string[] => {
+  switch (component.type) {
     case componentType.amplifier:
     case componentType.buffer:
     case componentType.differentiator:
@@ -193,24 +170,22 @@ const createComponent = ({
     case componentType.subtractor:
     case componentType.triangle:
     case componentType.upperSaturator:
+    case componentType.input:
     case componentType.keyboardFrequency:
     case componentType.keyboardSwitch:
     case componentType.speaker:
     case componentType.meter:
     case componentType.scope: {
-      return {
-        id,
-        component: {
-          ...componentBase,
-          implementation: type,
-          extendedData: {},
-        },
-      };
+      return primitiveComponentInputNames[component.type];
+    }
+
+    case componentType.sketch: {
+      return component.extendedData.sketch.inputs.map((input) => input.name);
     }
 
     default: {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const exhaustiveCheck: never = type;
+      const exhaustiveCheck: never = component;
 
       throw new Error();
     }
@@ -218,12 +193,16 @@ const createComponent = ({
 };
 
 export {
-  componentInputNames,
-  componentNames,
+  componentInputMaxLength,
+  componentName,
   componentType,
-  createComponent,
-  diffTimeInput,
   distributorComponentInInput,
+  getComponentInputNames,
 };
 
-export type { Component, InputComponent };
+export type {
+  Component,
+  ComponentType,
+  InputComponent,
+  PrimitiveComponentType,
+};

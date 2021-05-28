@@ -27,7 +27,7 @@ const initialSketch: Sketch = {
   component: {
     "df5bb750-e9fe-fbf3-26e0-bbd601fe98c9": {
       name: "sine",
-      implementation: 10,
+      type: 10,
       outputDestinations: [
         {
           type: "component",
@@ -42,7 +42,7 @@ const initialSketch: Sketch = {
       name: "speaker",
       outputDestinations: [],
       position: { x: 545, y: 25 },
-      implementation: 18,
+      type: 18,
       extendedData: {},
     },
     "e02d7ee9-dcf2-40ab-ba7f-8beac91e411b": {
@@ -55,7 +55,7 @@ const initialSketch: Sketch = {
         },
       ],
       position: { x: 40, y: 41 },
-      implementation: 15,
+      type: 15,
       extendedData: { value: "440" },
     },
   },
