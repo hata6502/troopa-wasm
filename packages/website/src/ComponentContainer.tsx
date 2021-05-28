@@ -239,7 +239,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
       () =>
         getComponentInputNames({ component }).flatMap(
           (inputName, inputIndex) => {
-            if (inputName === "") {
+            if (inputName === undefined) {
               return [];
             }
 

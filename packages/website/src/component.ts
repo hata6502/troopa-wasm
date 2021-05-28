@@ -83,28 +83,28 @@ const componentName: Record<ComponentType, string> = {
 
 const distributorComponentInInput = 1;
 
-const primitiveComponentInputNames: Record<PrimitiveComponentType, string[]> = {
-  [componentType.amplifier]: ["", "in 1", "in 2"],
-  [componentType.buffer]: ["", "in"],
-  [componentType.differentiator]: ["", "in"],
-  [componentType.distributor]: ["", "in"],
-  [componentType.divider]: ["", "in 1", "in 2"],
-  [componentType.integrator]: ["", "in"],
-  [componentType.lowerSaturator]: ["", "in 1", "in 2"],
-  [componentType.mixer]: ["", "in 1", "in 2"],
-  [componentType.noise]: [""],
-  [componentType.saw]: ["", "frequency"],
-  [componentType.sine]: ["", "frequency"],
-  [componentType.square]: ["", "frequency"],
-  [componentType.subtractor]: ["", "in 1", "in 2"],
-  [componentType.triangle]: ["", "frequency"],
-  [componentType.upperSaturator]: ["", "in 1", "in 2"],
-  [componentType.input]: [""],
-  [componentType.keyboardFrequency]: [""],
-  [componentType.keyboardSwitch]: [""],
-  [componentType.speaker]: ["", "sound"],
-  [componentType.meter]: ["", "in"],
-  [componentType.scope]: ["", "in"],
+const primitiveComponentInputNames: Record<PrimitiveComponentType, (string | undefined)[]> = {
+  [componentType.amplifier]: [undefined, "in 1", "in 2"],
+  [componentType.buffer]: [undefined, "in"],
+  [componentType.differentiator]: [undefined, "in"],
+  [componentType.distributor]: [undefined, "in"],
+  [componentType.divider]: [undefined, "in 1", "in 2"],
+  [componentType.integrator]: [undefined, "in"],
+  [componentType.lowerSaturator]: [undefined, "in 1", "in 2"],
+  [componentType.mixer]: [undefined, "in 1", "in 2"],
+  [componentType.noise]: [undefined],
+  [componentType.saw]: [undefined, "frequency"],
+  [componentType.sine]: [undefined, "frequency"],
+  [componentType.square]: [undefined, "frequency"],
+  [componentType.subtractor]: [undefined, "in 1", "in 2"],
+  [componentType.triangle]: [undefined, "frequency"],
+  [componentType.upperSaturator]: [undefined, "in 1", "in 2"],
+  [componentType.input]: [undefined],
+  [componentType.keyboardFrequency]: [undefined],
+  [componentType.keyboardSwitch]: [undefined],
+  [componentType.speaker]: [undefined, "sound"],
+  [componentType.meter]: [undefined, "in"],
+  [componentType.scope]: [undefined, "in"],
 };
 
 interface ComponentBase<
@@ -153,7 +153,7 @@ const getComponentInputNames = ({
   component,
 }: {
   component: Component;
-}): string[] => {
+}): (string | undefined)[] => {
   switch (component.type) {
     case componentType.amplifier:
     case componentType.buffer:
@@ -180,7 +180,7 @@ const getComponentInputNames = ({
     }
 
     case componentType.sketch: {
-      return component.extendedData.sketch.inputs.map((input) => input.name);
+      return component.extendedData.sketch.inputs.map((input) => input.destination && input.name);
     }
 
     default: {
