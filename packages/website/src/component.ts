@@ -1,6 +1,7 @@
 import type { ControlPosition } from "react-draggable";
 import { v4 as uuidv4 } from "uuid";
 import type { Destination } from "./destination";
+import type { Sketch } from "./sketch";
 
 const componentType = {
   // Core components
@@ -27,6 +28,8 @@ const componentType = {
   speaker: 18,
   meter: 19,
   scope: 20,
+
+  sketch: 21,
 } as const;
 
 type ComponentType =
@@ -50,9 +53,10 @@ type ComponentType =
   | typeof componentType.keyboardSwitch
   | typeof componentType.speaker
   | typeof componentType.meter
-  | typeof componentType.scope;
+  | typeof componentType.scope
+  | typeof componentType.sketch;
 
-const componentNames = {
+const componentNames: Record<ComponentType, string> = {
   [componentType.amplifier]: "amplifier",
   [componentType.buffer]: "buffer",
   [componentType.differentiator]: "differentiator",
@@ -74,6 +78,7 @@ const componentNames = {
   [componentType.speaker]: "speaker",
   [componentType.meter]: "meter",
   [componentType.scope]: "scope",
+  [componentType.sketch]: "sketch",
 };
 
 const diffTimeInput = 0;
@@ -81,7 +86,7 @@ const diffTimeInputName = "diff time";
 
 const distributorComponentInInput = 1;
 
-const componentInputNames = {
+const componentInputNames: Record<ComponentType, string[]> = {
   [componentType.amplifier]: [diffTimeInputName, "in 1", "in 2"],
   [componentType.buffer]: [diffTimeInputName, "in"],
   [componentType.differentiator]: [diffTimeInputName, "in"],
@@ -103,6 +108,7 @@ const componentInputNames = {
   [componentType.speaker]: [diffTimeInputName, "sound"],
   [componentType.meter]: [diffTimeInputName, "in"],
   [componentType.scope]: [diffTimeInputName, "in"],
+  [componentType.sketch]: [diffTimeInputName],
 };
 
 interface ComponentBase<
@@ -142,7 +148,8 @@ type Component =
   | ComponentBase<typeof componentType.keyboardSwitch, Record<string, never>>
   | ComponentBase<typeof componentType.speaker, Record<string, never>>
   | ComponentBase<typeof componentType.meter, Record<string, never>>
-  | ComponentBase<typeof componentType.scope, Record<string, never>>;
+  | ComponentBase<typeof componentType.scope, Record<string, never>>
+  | ComponentBase<typeof componentType.sketch, { sketch: Sketch }>;
 
 const createComponent = ({
   type,
