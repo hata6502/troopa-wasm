@@ -2,7 +2,7 @@ interface ComponentDestination {
   type: "component";
   id: string;
   inputIndex: number;
-};
+}
 
 type Destination =
   | ComponentDestination

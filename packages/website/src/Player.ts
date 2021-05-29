@@ -12,6 +12,56 @@ const core = await import("core-wasm/core_wasm");
 class Player {
   static coreComponentOutputLength = 8;
 
+  private static createCoreComponents({
+    sketch,
+  }: {
+    sketch: Sketch;
+  }): [string, number][] {
+    return Object.entries(sketch.component).flatMap(([id, component]) => {
+      switch (component.type) {
+        case componentType.amplifier:
+        case componentType.buffer:
+        case componentType.differentiator:
+        case componentType.distributor:
+        case componentType.divider:
+        case componentType.integrator:
+        case componentType.lowerSaturator:
+        case componentType.mixer:
+        case componentType.noise:
+        case componentType.saw:
+        case componentType.sine:
+        case componentType.square:
+        case componentType.subtractor:
+        case componentType.triangle:
+        case componentType.upperSaturator: {
+          return [[id, core.create_component(component.type)]];
+        }
+
+        case componentType.input:
+        case componentType.keyboardFrequency:
+        case componentType.keyboardSwitch:
+        case componentType.speaker:
+        case componentType.meter:
+        case componentType.scope: {
+          return [[id, core.create_component(componentType.distributor)]];
+        }
+
+        case componentType.sketch: {
+          return Player.createCoreComponents({
+            sketch: component.extendedData.sketch,
+          });
+        }
+
+        default: {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const exhaustiveCheck: never = component;
+
+          throw new Error();
+        }
+      }
+    });
+  }
+
   private static resolveDestination({
     destination,
     history,
@@ -120,45 +170,7 @@ class Player {
 
     core.init(this.audioContext.sampleRate);
 
-    this.componentIndexMap = new Map(
-      Object.entries(sketch.component).map(([id, component]) => {
-        switch (component.type) {
-          case componentType.amplifier:
-          case componentType.buffer:
-          case componentType.differentiator:
-          case componentType.distributor:
-          case componentType.divider:
-          case componentType.integrator:
-          case componentType.lowerSaturator:
-          case componentType.mixer:
-          case componentType.noise:
-          case componentType.saw:
-          case componentType.sine:
-          case componentType.square:
-          case componentType.subtractor:
-          case componentType.triangle:
-          case componentType.upperSaturator: {
-            return [id, core.create_component(component.type)];
-          }
-
-          case componentType.input:
-          case componentType.keyboardFrequency:
-          case componentType.keyboardSwitch:
-          case componentType.speaker:
-          case componentType.meter:
-          case componentType.scope: {
-            return [id, core.create_component(componentType.distributor)];
-          }
-
-          default: {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const exhaustiveCheck: never = component;
-
-            throw new Error();
-          }
-        }
-      })
-    );
+    this.componentIndexMap = new Map(Player.createCoreComponents({ sketch }));
 
     Object.entries(sketch.component).forEach(([id, component]) =>
       component.outputDestinations.forEach((outputDestination) => {

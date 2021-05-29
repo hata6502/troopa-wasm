@@ -215,5 +215,5 @@ export type {
   ComponentType,
   InputComponent,
   PrimitiveComponentType,
-  SketchComponent
+  SketchComponent,
 };
