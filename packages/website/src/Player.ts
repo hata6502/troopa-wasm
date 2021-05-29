@@ -175,54 +175,62 @@ class Player {
 
     let outputComponentIndex: number | undefined;
 
-    Object.entries(sketch.component).forEach(([id, component]) => {
-      switch (component.type) {
-        case componentType.input: {
-          this.inputValue({
-            componentID: id,
-            value: Number(component.extendedData.value),
-          });
+    const prepareInterfaces = ({ sketch }: { sketch: Sketch }) =>
+      Object.entries(sketch.component).forEach(([id, component]) => {
+        switch (component.type) {
+          case componentType.input: {
+            this.inputValue({
+              componentID: id,
+              value: Number(component.extendedData.value),
+            });
 
-          break;
+            break;
+          }
+
+          case componentType.speaker: {
+            outputComponentIndex = this.componentIndexMap.get(id);
+
+            break;
+          }
+
+          case componentType.amplifier:
+          case componentType.buffer:
+          case componentType.differentiator:
+          case componentType.distributor:
+          case componentType.divider:
+          case componentType.integrator:
+          case componentType.lowerSaturator:
+          case componentType.mixer:
+          case componentType.noise:
+          case componentType.saw:
+          case componentType.sine:
+          case componentType.square:
+          case componentType.subtractor:
+          case componentType.triangle:
+          case componentType.upperSaturator:
+          case componentType.keyboardFrequency:
+          case componentType.keyboardSwitch:
+          case componentType.meter:
+          case componentType.scope: {
+            break;
+          }
+
+          case componentType.sketch: {
+            prepareInterfaces({ sketch: component.extendedData.sketch });
+
+            break;
+          }
+
+          default: {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const exhaustiveCheck: never = component;
+
+            throw new Error();
+          }
         }
+      });
 
-        case componentType.speaker: {
-          outputComponentIndex = this.componentIndexMap.get(id);
-
-          break;
-        }
-
-        case componentType.amplifier:
-        case componentType.buffer:
-        case componentType.differentiator:
-        case componentType.distributor:
-        case componentType.divider:
-        case componentType.integrator:
-        case componentType.lowerSaturator:
-        case componentType.mixer:
-        case componentType.noise:
-        case componentType.saw:
-        case componentType.sine:
-        case componentType.square:
-        case componentType.subtractor:
-        case componentType.triangle:
-        case componentType.upperSaturator:
-        case componentType.keyboardFrequency:
-        case componentType.keyboardSwitch:
-        case componentType.meter:
-        case componentType.scope:
-        case componentType.sketch: {
-          break;
-        }
-
-        default: {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const exhaustiveCheck: never = component;
-
-          throw new Error();
-        }
-      }
-    });
+    prepareInterfaces({ sketch });
 
     const scriptNode = this.audioContext.createScriptProcessor(undefined, 0, 1);
 
