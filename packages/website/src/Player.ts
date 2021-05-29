@@ -7,6 +7,8 @@ type CoreInfiniteLoopDetectedEventHandler = (event: {
   componentID: string;
 }) => void;
 
+type History = { sketch: Sketch; sketchComponent?: SketchComponent }[];
+
 const core = await import("core-wasm/core_wasm");
 
 class Player {
@@ -67,7 +69,7 @@ class Player {
     history,
   }: {
     destination: Destination;
-    history: { sketch: Sketch; sketchComponent?: SketchComponent }[];
+    history: History;
   }): ComponentDestination[] {
     const currentHistory = history[history.length - 1];
 
@@ -167,77 +169,9 @@ class Player {
 
   constructor({ sketch }: { sketch: Sketch }) {
     this.audioContext = new AudioContext();
-
     core.init(this.audioContext.sampleRate);
-
     this.componentIndexMap = new Map(Player.createCoreComponents({ sketch }));
-
-    Object.entries(sketch.component).forEach(([id, component]) =>
-      component.outputDestinations.forEach((outputDestination) => {
-        switch (component.type) {
-          case componentType.amplifier:
-          case componentType.buffer:
-          case componentType.differentiator:
-          case componentType.distributor:
-          case componentType.divider:
-          case componentType.integrator:
-          case componentType.lowerSaturator:
-          case componentType.mixer:
-          case componentType.noise:
-          case componentType.saw:
-          case componentType.sine:
-          case componentType.square:
-          case componentType.subtractor:
-          case componentType.triangle:
-          case componentType.upperSaturator:
-          case componentType.input:
-          case componentType.keyboardFrequency:
-          case componentType.keyboardSwitch:
-          case componentType.speaker:
-          case componentType.meter:
-          case componentType.scope: {
-            const resolvedDestinations = Player.resolveDestination({
-              destination: outputDestination,
-              history: [{ sketch }],
-            });
-
-            resolvedDestinations.forEach((resolvedDestination) => {
-              const inputComponentIndex = this.componentIndexMap.get(
-                resolvedDestination.id
-              );
-
-              const outputComponentIndex = this.componentIndexMap.get(id);
-
-              if (
-                inputComponentIndex === undefined ||
-                outputComponentIndex === undefined
-              ) {
-                throw new Error();
-              }
-
-              core.connect(
-                inputComponentIndex,
-                resolvedDestination.inputIndex,
-                outputComponentIndex
-              );
-            });
-
-            break;
-          }
-
-          case componentType.sketch: {
-            break;
-          }
-
-          default: {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const exhaustiveCheck: never = component;
-
-            throw new Error();
-          }
-        }
-      })
-    );
+    this.connectCoreComponents({ history: [{ sketch }] });
 
     let outputComponentIndex: number | undefined;
 
@@ -363,6 +297,87 @@ class Player {
     }
 
     throw exception;
+  }
+
+  private connectCoreComponents({ history }: { history: History }) {
+    const currentHistory = history[history.length - 1];
+
+    Object.entries(currentHistory.sketch.component).forEach(([id, component]) =>
+      component.outputDestinations.forEach((outputDestination) => {
+        switch (component.type) {
+          case componentType.amplifier:
+          case componentType.buffer:
+          case componentType.differentiator:
+          case componentType.distributor:
+          case componentType.divider:
+          case componentType.integrator:
+          case componentType.lowerSaturator:
+          case componentType.mixer:
+          case componentType.noise:
+          case componentType.saw:
+          case componentType.sine:
+          case componentType.square:
+          case componentType.subtractor:
+          case componentType.triangle:
+          case componentType.upperSaturator:
+          case componentType.input:
+          case componentType.keyboardFrequency:
+          case componentType.keyboardSwitch:
+          case componentType.speaker:
+          case componentType.meter:
+          case componentType.scope: {
+            const resolvedDestinations = Player.resolveDestination({
+              destination: outputDestination,
+              history,
+            });
+
+            resolvedDestinations.forEach((resolvedDestination) => {
+              const inputComponentIndex = this.componentIndexMap.get(
+                resolvedDestination.id
+              );
+
+              const outputComponentIndex = this.componentIndexMap.get(id);
+
+              if (
+                inputComponentIndex === undefined ||
+                outputComponentIndex === undefined
+              ) {
+                throw new Error();
+              }
+
+              core.connect(
+                inputComponentIndex,
+                resolvedDestination.inputIndex,
+                outputComponentIndex
+              );
+            });
+
+            break;
+          }
+
+          case componentType.sketch: {
+            this.connectCoreComponents({
+              history: [
+                ...history,
+                {
+                  sketch: component.extendedData.sketch,
+                  sketchComponent: component,
+                },
+              ],
+            });
+
+            break;
+          }
+
+          default: {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const exhaustiveCheck: never = component;
+
+            throw new Error();
+          }
+        }
+      })
+    );
   }
 }
 
