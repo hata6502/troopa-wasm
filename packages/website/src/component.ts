@@ -21,14 +21,14 @@ const componentType = {
   upperSaturator: 14,
 
   // Interface components
-  input: 15,
-  keyboardFrequency: 16,
-  keyboardSwitch: 17,
-  speaker: 18,
-  meter: 19,
-  scope: 20,
+  input: -1,
+  keyboardFrequency: -2,
+  keyboardSwitch: -3,
+  speaker: -4,
+  meter: -5,
+  scope: -6,
 
-  sketch: 21,
+  sketch: -7,
 } as const;
 
 type PrimitiveComponentType =
