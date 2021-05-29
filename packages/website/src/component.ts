@@ -126,6 +126,11 @@ type InputComponent = ComponentBase<
   { value: string }
 >;
 
+type SketchComponent = ComponentBase<
+  typeof componentType.sketch,
+  { sketch: Sketch }
+>;
+
 type Component =
   | ComponentBase<typeof componentType.amplifier, Record<string, never>>
   | ComponentBase<typeof componentType.buffer, Record<string, never>>
@@ -148,7 +153,7 @@ type Component =
   | ComponentBase<typeof componentType.speaker, Record<string, never>>
   | ComponentBase<typeof componentType.meter, Record<string, never>>
   | ComponentBase<typeof componentType.scope, Record<string, never>>
-  | ComponentBase<typeof componentType.sketch, { sketch: Sketch }>;
+  | SketchComponent;
 
 const componentInputMaxLength = 8;
 
@@ -210,4 +215,5 @@ export type {
   ComponentType,
   InputComponent,
   PrimitiveComponentType,
+  SketchComponent
 };

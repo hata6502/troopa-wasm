@@ -1,9 +1,11 @@
+interface ComponentDestination {
+  type: "component";
+  id: string;
+  inputIndex: number;
+};
+
 type Destination =
-  | {
-      type: "component";
-      id: string;
-      inputIndex: number;
-    }
+  | ComponentDestination
   | {
       type: "sketchOutput";
     };
@@ -71,4 +73,4 @@ const serializeDestination = ({
 };
 
 export { getDestinationsByPosition, serializeDestination };
-export type { Destination };
+export type { ComponentDestination, Destination };
