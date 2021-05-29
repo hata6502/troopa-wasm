@@ -83,7 +83,10 @@ const componentName: Record<ComponentType, string> = {
 
 const distributorComponentInInput = 1;
 
-const primitiveComponentInputNames: Record<PrimitiveComponentType, (string | undefined)[]> = {
+const primitiveComponentInputNames: Record<
+  PrimitiveComponentType,
+  (string | undefined)[]
+> = {
   [componentType.amplifier]: [undefined, "in 1", "in 2"],
   [componentType.buffer]: [undefined, "in"],
   [componentType.differentiator]: [undefined, "in"],
@@ -180,7 +183,9 @@ const getComponentInputNames = ({
     }
 
     case componentType.sketch: {
-      return component.extendedData.sketch.inputs.map((input) => input.destination && input.name);
+      return component.extendedData.sketch.inputs.map(
+        (input) => input.destination && input.name
+      );
     }
 
     default: {
