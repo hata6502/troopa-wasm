@@ -32,6 +32,7 @@ const TopBar: FunctionComponent<{
   dispatchErrorComponentIDs: Dispatch<SetStateAction<string[]>>;
   dispatchPlayer: Dispatch<SetStateAction<Player | undefined>>;
   player?: Player;
+  onDrag?: () => void;
 }> = memo(
   ({
     currentSketch,
@@ -39,6 +40,7 @@ const TopBar: FunctionComponent<{
     dispatchErrorComponentIDs,
     dispatchPlayer,
     player,
+    onDrag,
   }) => {
     const [originalSketch, setOriginalSketch] = useState(initialSketch);
 
@@ -111,13 +113,17 @@ const TopBar: FunctionComponent<{
 
             const loadedSketch = JSON.parse(result) as Sketch;
 
+            event.target.value = "";
+
             dispatchCurrentSketch(loadedSketch);
             setOriginalSketch(loadedSketch);
+
+            onDrag?.();
           });
 
           fileReader.readAsText(files[0]);
         },
-        [dispatchCurrentSketch]
+        [dispatchCurrentSketch, onDrag]
       );
 
     const handleSaveButtonClick = useCallback(() => {

@@ -84,7 +84,7 @@ interface ComponentContainerProps {
   }) => Dispatch<SetStateAction<T>>;
   isError?: boolean;
   onDistributorButtonClick?: MouseEventHandler<HTMLButtonElement>;
-  onDrag?: DraggableEventHandler;
+  onDrag?: () => void;
   onRemoveComponentRequest?: (event: {
     id: string;
     component: Component;
@@ -130,7 +130,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
           },
         }));
 
-        onDrag?.(event, data);
+        onDrag?.();
       },
       [dispatchComponent, onDrag]
     );
@@ -221,7 +221,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
           throw new Error();
         }
 
-        onDrag?.(event, data);
+        onDrag?.();
       },
       [
         component.outputDestinations,

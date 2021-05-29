@@ -22,7 +22,7 @@ const SketchInputContainer: FunctionComponent<{
   index: number;
   dispatchInput: Dispatch<SetStateAction<SketchInput>>;
   input: SketchInput;
-  onDrag?: DraggableEventHandler;
+  onDrag?: () => void;
   onRemoveConnectionsRequest?: (event: Destination[]) => void;
 }> = memo(
   ({ index, dispatchInput, input, onDrag, onRemoveConnectionsRequest }) => {
@@ -39,7 +39,7 @@ const SketchInputContainer: FunctionComponent<{
       );
 
     const handleAnchorStop: DraggableEventHandler = useCallback(
-      (event, data) => {
+      (event) => {
         if (event instanceof MouseEvent) {
           const destinations = getDestinationsByPosition({
             x: event.clientX,
@@ -58,7 +58,7 @@ const SketchInputContainer: FunctionComponent<{
           throw new Error();
         }
 
-        onDrag?.(event, data);
+        onDrag?.();
       },
       [dispatchInput, onDrag, onRemoveConnectionsRequest]
     );

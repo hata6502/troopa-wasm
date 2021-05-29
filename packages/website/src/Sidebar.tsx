@@ -287,7 +287,6 @@ const Sidebar: FunctionComponent<{
             );
           }
 
-          // TODO: implementation
           case componentType.sketch: {
             const handleInputChange: ChangeEventHandler<HTMLInputElement> = (
               event
@@ -312,6 +311,8 @@ const Sidebar: FunctionComponent<{
                 const regeneratedSketch = regenerateComponentIDsInSketch({
                   sketch: loadedSketch,
                 });
+
+                event.target.value = "";
 
                 dispatchSketch((prevSketch) => ({
                   ...prevSketch,

@@ -380,6 +380,7 @@ const App: FunctionComponent = memo(() => {
         dispatchErrorComponentIDs={dispatchErrorComponentIDs}
         dispatchPlayer={dispatchPlayer}
         player={player}
+        onDrag={handleDrag}
       />
 
       <Sidebar dispatchSketch={dispatchSketch} />
