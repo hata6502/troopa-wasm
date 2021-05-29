@@ -16,7 +16,7 @@ import type {
 } from "react";
 import { Player } from "./Player";
 import { sidebarWidth } from "./Sidebar";
-import { initialSketch } from "./sketch";
+import { initialSketch, saveSketch } from "./sketch";
 import type { Sketch } from "./sketch";
 
 const useStyles = makeStyles({
@@ -127,26 +127,7 @@ const TopBar: FunctionComponent<{
       );
 
     const handleSaveButtonClick = useCallback(() => {
-      const url = URL.createObjectURL(
-        new Blob([JSON.stringify(currentSketch)], { type: "application/json" })
-      );
-
-      try {
-        const anchorElement = document.createElement("a");
-
-        anchorElement.download = `${currentSketch.name}.json`;
-        anchorElement.href = url;
-        document.body.append(anchorElement);
-
-        try {
-          anchorElement.click();
-        } finally {
-          anchorElement.remove();
-        }
-      } finally {
-        URL.revokeObjectURL(url);
-      }
-
+      saveSketch({ sketch: currentSketch });
       setOriginalSketch(currentSketch);
     }, [currentSketch]);
 

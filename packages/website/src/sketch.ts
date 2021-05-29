@@ -71,5 +71,27 @@ const initialSketch: Sketch = {
   ],
 };
 
-export { initialSketch };
+const saveSketch = ({ sketch }: { sketch: Sketch }): void => {
+  const url = URL.createObjectURL(
+    new Blob([JSON.stringify(sketch)], { type: "application/json" })
+  );
+
+  try {
+    const anchorElement = document.createElement("a");
+
+    anchorElement.download = `${sketch.name}.json`;
+    anchorElement.href = url;
+    document.body.append(anchorElement);
+
+    try {
+      anchorElement.click();
+    } finally {
+      anchorElement.remove();
+    }
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+};
+
+export { initialSketch, saveSketch };
 export type { Sketch, SketchInput };
