@@ -26,7 +26,7 @@ import { sketchHeight, sketchOutputDestination, sketchWidth } from "./App";
 import type { AlertData } from "./App";
 import { ConnectableAnchor } from "./ConnectableAnchor";
 import { Player } from "./Player";
-import { componentInputNames, diffTimeInput } from "./component";
+import { getComponentInputNames } from "./component";
 import type { Component } from "./component";
 import { getDestinationsByPosition, serializeDestination } from "./destination";
 import type { Destination } from "./destination";
@@ -235,65 +235,67 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
 
     const classes = useStyles();
 
-    const inputElements = useMemo(() => {
-      const inputLength = componentInputNames[component.implementation].length;
+    const inputElements = useMemo(
+      () =>
+        getComponentInputNames({ component }).flatMap(
+          (inputName, inputIndex) => {
+            if (inputName === undefined) {
+              return [];
+            }
 
-      return [...Array(inputLength).keys()].flatMap((inputIndex) => {
-        if ([diffTimeInput].includes(inputIndex)) {
-          return [];
-        }
+            const componentDestination: Destination = {
+              type: "component",
+              id,
+              inputIndex,
+            };
 
-        const componentDestination: Destination = {
-          type: "component",
-          id,
-          inputIndex,
-        };
+            const handleInputClick = () =>
+              onRemoveConnectionsRequest?.([componentDestination]);
 
-        const handleInputClick = () =>
-          onRemoveConnectionsRequest?.([componentDestination]);
+            const isConnected =
+              Object.values(sketch.component).some((otherComponent) =>
+                otherComponent.outputDestinations.some((outputDestination) =>
+                  equal(outputDestination, componentDestination)
+                )
+              ) ||
+              sketch.inputs.some((input) =>
+                equal(input.destination, componentDestination)
+              );
 
-        const isConnected =
-          Object.values(sketch.component).some((otherComponent) =>
-            otherComponent.outputDestinations.some((outputDestination) =>
-              equal(outputDestination, componentDestination)
-            )
-          ) ||
-          sketch.inputs.some((input) =>
-            equal(input.destination, componentDestination)
-          );
+            return [
+              <div key={inputIndex} className={classes.inputContainer}>
+                <Typography variant="body2" gutterBottom>
+                  {inputName}
+                </Typography>
 
-        return [
-          <div key={inputIndex} className={classes.inputContainer}>
-            <Typography variant="body2" gutterBottom>
-              {componentInputNames[component.implementation][inputIndex]}
-            </Typography>
-
-            <ArcherElement
-              id={serializeDestination({
-                destination: componentDestination,
-              })}
-            >
-              <Radio
-                data-component-id={id}
-                data-input-index={inputIndex}
-                checked={isConnected}
-                className={classes.input}
-                size="small"
-                onClick={handleInputClick}
-              />
-            </ArcherElement>
-          </div>,
-        ];
-      });
-    }, [
-      classes.input,
-      classes.inputContainer,
-      component.implementation,
-      id,
-      onRemoveConnectionsRequest,
-      sketch.component,
-      sketch.inputs,
-    ]);
+                <ArcherElement
+                  id={serializeDestination({
+                    destination: componentDestination,
+                  })}
+                >
+                  <Radio
+                    data-component-id={id}
+                    data-input-index={inputIndex}
+                    checked={isConnected}
+                    className={classes.input}
+                    size="small"
+                    onClick={handleInputClick}
+                  />
+                </ArcherElement>
+              </div>,
+            ];
+          }
+        ),
+      [
+        classes.input,
+        classes.inputContainer,
+        component,
+        id,
+        onRemoveConnectionsRequest,
+        sketch.component,
+        sketch.inputs,
+      ]
+    );
 
     const outputRelations = useMemo(
       () =>

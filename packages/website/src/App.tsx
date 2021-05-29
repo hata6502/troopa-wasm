@@ -13,6 +13,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Dispatch, FunctionComponent, SetStateAction } from "react";
 import { ArcherContainer, ArcherElement } from "react-archer";
 import type { ArcherContainerProps } from "react-archer";
+import { v4 as uuidv4 } from "uuid";
 import { ComponentActions } from "./ComponentActions";
 import { ComponentContainer } from "./ComponentContainer";
 import type { ComponentContainerProps } from "./ComponentContainer";
@@ -21,9 +22,9 @@ import { Sidebar } from "./Sidebar";
 import { SketchInputContainer } from "./SketchInputContainer";
 import { TopBar } from "./TopBar";
 import {
-  componentInputNames,
+  componentInputMaxLength,
+  componentName,
   componentType,
-  createComponent,
 } from "./component";
 import type { Component } from "./component";
 import { serializeDestination } from "./destination";
@@ -112,13 +113,17 @@ const App: FunctionComponent = memo(() => {
         isOpen: false,
       }));
 
-      const newComponentEntry = createComponent({ type: componentType.buffer });
-
       dispatchSketch((prevSketch) => ({
         ...prevSketch,
         component: {
           ...prevSketch.component,
-          [newComponentEntry.id]: newComponentEntry.component,
+          [uuidv4()]: {
+            name: componentName[componentType.buffer],
+            type: componentType.buffer,
+            outputDestinations: [],
+            position: { x: 0, y: 0 },
+            extendedData: {},
+          },
         },
       }));
     };
@@ -152,19 +157,23 @@ const App: FunctionComponent = memo(() => {
     return () => player.setCoreInfiniteLoopDetectedHandler(undefined);
   }, [player]);
 
-  const handleDistributorButtonClick = useCallback(() => {
-    const newComponentEntry = createComponent({
-      type: componentType.distributor,
-    });
-
-    dispatchSketch((prevSketch) => ({
-      ...prevSketch,
-      component: {
-        ...prevSketch.component,
-        [newComponentEntry.id]: newComponentEntry.component,
-      },
-    }));
-  }, []);
+  const handleDistributorButtonClick = useCallback(
+    () =>
+      dispatchSketch((prevSketch) => ({
+        ...prevSketch,
+        component: {
+          ...prevSketch.component,
+          [uuidv4()]: {
+            name: componentName[componentType.distributor],
+            type: componentType.distributor,
+            outputDestinations: [],
+            position: { x: 0, y: 0 },
+            extendedData: {},
+          },
+        },
+      })),
+    []
+  );
 
   const handleDrag = useCallback(() => {
     if (!archerContainerElement.current) {
@@ -218,11 +227,8 @@ const App: FunctionComponent = memo(() => {
     ComponentContainerProps["onRemoveComponentRequest"]
   > = useCallback(
     (event) => {
-      const inputLength =
-        componentInputNames[event.component.implementation].length;
-
       removeConnections(
-        [...Array(inputLength).keys()].map((index) => ({
+        [...Array(componentInputMaxLength).keys()].map((index) => ({
           type: "component",
           id: event.id,
           inputIndex: index,
@@ -270,7 +276,7 @@ const App: FunctionComponent = memo(() => {
           ).get(id);
 
           const isComponentT = (target: Component): target is T =>
-            target.implementation === component.implementation;
+            target.type === component.type;
 
           if (!prevComponent || !isComponentT(prevComponent)) {
             throw new Error();

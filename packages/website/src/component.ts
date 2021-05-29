@@ -1,6 +1,6 @@
 import type { ControlPosition } from "react-draggable";
-import { v4 as uuidv4 } from "uuid";
 import type { Destination } from "./destination";
+import type { Sketch } from "./sketch";
 
 const componentType = {
   // Core components
@@ -21,15 +21,17 @@ const componentType = {
   upperSaturator: 14,
 
   // Interface components
-  input: 15,
-  keyboardFrequency: 16,
-  keyboardSwitch: 17,
-  speaker: 18,
-  meter: 19,
-  scope: 20,
+  input: -1,
+  keyboardFrequency: -2,
+  keyboardSwitch: -3,
+  speaker: -4,
+  meter: -5,
+  scope: -6,
+
+  sketch: -7,
 } as const;
 
-type ComponentType =
+type PrimitiveComponentType =
   | typeof componentType.amplifier
   | typeof componentType.buffer
   | typeof componentType.differentiator
@@ -52,7 +54,9 @@ type ComponentType =
   | typeof componentType.meter
   | typeof componentType.scope;
 
-const componentNames = {
+type ComponentType = PrimitiveComponentType | typeof componentType.sketch;
+
+const componentName: Record<ComponentType, string> = {
   [componentType.amplifier]: "amplifier",
   [componentType.buffer]: "buffer",
   [componentType.differentiator]: "differentiator",
@@ -74,43 +78,44 @@ const componentNames = {
   [componentType.speaker]: "speaker",
   [componentType.meter]: "meter",
   [componentType.scope]: "scope",
+  [componentType.sketch]: "sketch",
 };
-
-const diffTimeInput = 0;
-const diffTimeInputName = "diff time";
 
 const distributorComponentInInput = 1;
 
-const componentInputNames = {
-  [componentType.amplifier]: [diffTimeInputName, "in 1", "in 2"],
-  [componentType.buffer]: [diffTimeInputName, "in"],
-  [componentType.differentiator]: [diffTimeInputName, "in"],
-  [componentType.distributor]: [diffTimeInputName, "in"],
-  [componentType.divider]: [diffTimeInputName, "in 1", "in 2"],
-  [componentType.integrator]: [diffTimeInputName, "in"],
-  [componentType.lowerSaturator]: [diffTimeInputName, "in 1", "in 2"],
-  [componentType.mixer]: [diffTimeInputName, "in 1", "in 2"],
-  [componentType.noise]: [diffTimeInputName],
-  [componentType.saw]: [diffTimeInputName, "frequency"],
-  [componentType.sine]: [diffTimeInputName, "frequency"],
-  [componentType.square]: [diffTimeInputName, "frequency"],
-  [componentType.subtractor]: [diffTimeInputName, "in 1", "in 2"],
-  [componentType.triangle]: [diffTimeInputName, "frequency"],
-  [componentType.upperSaturator]: [diffTimeInputName, "in 1", "in 2"],
-  [componentType.input]: [diffTimeInputName],
-  [componentType.keyboardFrequency]: [diffTimeInputName],
-  [componentType.keyboardSwitch]: [diffTimeInputName],
-  [componentType.speaker]: [diffTimeInputName, "sound"],
-  [componentType.meter]: [diffTimeInputName, "in"],
-  [componentType.scope]: [diffTimeInputName, "in"],
+const primitiveComponentInputNames: Record<
+  PrimitiveComponentType,
+  (string | undefined)[]
+> = {
+  [componentType.amplifier]: [undefined, "in 1", "in 2"],
+  [componentType.buffer]: [undefined, "in"],
+  [componentType.differentiator]: [undefined, "in"],
+  [componentType.distributor]: [undefined, "in"],
+  [componentType.divider]: [undefined, "in 1", "in 2"],
+  [componentType.integrator]: [undefined, "in"],
+  [componentType.lowerSaturator]: [undefined, "in 1", "in 2"],
+  [componentType.mixer]: [undefined, "in 1", "in 2"],
+  [componentType.noise]: [undefined],
+  [componentType.saw]: [undefined, "frequency"],
+  [componentType.sine]: [undefined, "frequency"],
+  [componentType.square]: [undefined, "frequency"],
+  [componentType.subtractor]: [undefined, "in 1", "in 2"],
+  [componentType.triangle]: [undefined, "frequency"],
+  [componentType.upperSaturator]: [undefined, "in 1", "in 2"],
+  [componentType.input]: [undefined],
+  [componentType.keyboardFrequency]: [undefined],
+  [componentType.keyboardSwitch]: [undefined],
+  [componentType.speaker]: [undefined, "sound"],
+  [componentType.meter]: [undefined, "in"],
+  [componentType.scope]: [undefined, "in"],
 };
 
 interface ComponentBase<
-  Implementation extends ComponentType,
+  Type extends ComponentType,
   ExtendedData extends Record<string, unknown>
 > {
   name: string;
-  implementation: Implementation;
+  type: Type;
   outputDestinations: Destination[];
   position: ControlPosition;
   extendedData: ExtendedData;
@@ -119,6 +124,11 @@ interface ComponentBase<
 type InputComponent = ComponentBase<
   typeof componentType.input,
   { value: string }
+>;
+
+type SketchComponent = ComponentBase<
+  typeof componentType.sketch,
+  { sketch: Sketch }
 >;
 
 type Component =
@@ -142,35 +152,17 @@ type Component =
   | ComponentBase<typeof componentType.keyboardSwitch, Record<string, never>>
   | ComponentBase<typeof componentType.speaker, Record<string, never>>
   | ComponentBase<typeof componentType.meter, Record<string, never>>
-  | ComponentBase<typeof componentType.scope, Record<string, never>>;
+  | ComponentBase<typeof componentType.scope, Record<string, never>>
+  | SketchComponent;
 
-const createComponent = ({
-  type,
+const componentInputMaxLength = 8;
+
+const getComponentInputNames = ({
+  component,
 }: {
-  type: ComponentType;
-}): { id: string; component: Component } => {
-  const id = uuidv4();
-
-  const componentBase = {
-    name: componentNames[type],
-    outputDestinations: [],
-    position: { x: 0, y: 0 },
-  };
-
-  switch (type) {
-    case componentType.input: {
-      return {
-        id,
-        component: {
-          ...componentBase,
-          implementation: type,
-          extendedData: {
-            value: "0",
-          },
-        },
-      };
-    }
-
+  component: Component;
+}): (string | undefined)[] => {
+  switch (component.type) {
     case componentType.amplifier:
     case componentType.buffer:
     case componentType.differentiator:
@@ -186,24 +178,24 @@ const createComponent = ({
     case componentType.subtractor:
     case componentType.triangle:
     case componentType.upperSaturator:
+    case componentType.input:
     case componentType.keyboardFrequency:
     case componentType.keyboardSwitch:
     case componentType.speaker:
     case componentType.meter:
     case componentType.scope: {
-      return {
-        id,
-        component: {
-          ...componentBase,
-          implementation: type,
-          extendedData: {},
-        },
-      };
+      return primitiveComponentInputNames[component.type];
+    }
+
+    case componentType.sketch: {
+      return component.extendedData.sketch.inputs.map(
+        (input) => input.destination && input.name
+      );
     }
 
     default: {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const exhaustiveCheck: never = type;
+      const exhaustiveCheck: never = component;
 
       throw new Error();
     }
@@ -211,12 +203,17 @@ const createComponent = ({
 };
 
 export {
-  componentInputNames,
-  componentNames,
+  componentInputMaxLength,
+  componentName,
   componentType,
-  createComponent,
-  diffTimeInput,
   distributorComponentInInput,
+  getComponentInputNames,
 };
 
-export type { Component, InputComponent };
+export type {
+  Component,
+  ComponentType,
+  InputComponent,
+  PrimitiveComponentType,
+  SketchComponent,
+};
