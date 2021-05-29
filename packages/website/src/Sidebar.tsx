@@ -42,7 +42,7 @@ const createPrimitiveComponent = ({
   const componentBase = {
     name: componentName[type],
     outputDestinations: [],
-    position: { x: 0, y: 0 },
+    position: { x: window.scrollX, y: window.scrollY },
   };
 
   switch (type) {
@@ -322,7 +322,7 @@ const Sidebar: FunctionComponent<{
                       name: regeneratedSketch.name,
                       type: type,
                       outputDestinations: [],
-                      position: { x: 0, y: 0 },
+                      position: { x: window.scrollX, y: window.scrollY },
                       extendedData: { sketch: regeneratedSketch },
                     },
                   },
