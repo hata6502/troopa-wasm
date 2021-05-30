@@ -69,12 +69,14 @@ pub fn input_value(component_index: usize, input_index: usize, value: f32) -> Re
 }
 
 #[wasm_bindgen(catch)]
-pub fn process(buffer_size: usize, output_component_index: usize) -> Result<Vec<f32>, JsValue> {
+pub fn process(buffer_size: usize, output_component_indexes: Vec<usize>) -> Result<Vec<f32>, JsValue> {
     let mut sketch = SKETCH.lock().unwrap();
     let mut buffer = Vec::<f32>::new();
 
     for _index in 0..buffer_size {
-        buffer.push(sketch.get_output_value(output_component_index));
+        for output_component_index in &output_component_indexes {
+            buffer.push(sketch.get_output_value(*output_component_index));
+        };
 
         match sketch.next_tick() {
             Ok(v) => v,

@@ -1,3 +1,4 @@
+import type { Dispatch, SetStateAction } from "react";
 import { componentType, distributorComponentInInput } from "./component";
 import type { SketchComponent } from "./component";
 import type { ComponentDestination, Destination } from "./destination";
@@ -167,13 +168,19 @@ class Player {
   private componentIndexMap: Map<string, number>;
   private onCoreInfiniteLoopDetected?: CoreInfiniteLoopDetectedEventHandler;
 
-  constructor({ sketch }: { sketch: Sketch }) {
+  constructor({
+    dispatchSketch,
+    sketch,
+  }: {
+    dispatchSketch: Dispatch<SetStateAction<Sketch>>;
+    sketch: Sketch;
+  }) {
     this.audioContext = new AudioContext();
     core.init(this.audioContext.sampleRate);
     this.componentIndexMap = new Map(Player.createCoreComponents({ sketch }));
     this.connectCoreComponents({ history: [{ sketch }] });
 
-    let outputComponentIndex: number | undefined;
+    const outputComponentIds: string[] = [];
 
     const prepareInterfaces = ({ sketch }: { sketch: Sketch }) =>
       Object.entries(sketch.component).forEach(([id, component]) => {
@@ -187,8 +194,9 @@ class Player {
             break;
           }
 
-          case componentType.speaker: {
-            outputComponentIndex = this.componentIndexMap.get(id);
+          case componentType.speaker:
+          case componentType.meter: {
+            outputComponentIds.push(id);
 
             break;
           }
@@ -210,7 +218,6 @@ class Player {
           case componentType.upperSaturator:
           case componentType.keyboardFrequency:
           case componentType.keyboardSwitch:
-          case componentType.meter:
           case componentType.scope: {
             break;
           }
@@ -232,22 +239,113 @@ class Player {
 
     prepareInterfaces({ sketch });
 
+    const outputComponentIndexes = outputComponentIds.map(
+      (outputComponentId) => {
+        const outputComponentIndex =
+          this.componentIndexMap.get(outputComponentId);
+
+        if (outputComponentIndex === undefined) {
+          throw new Error();
+        }
+
+        return outputComponentIndex;
+      }
+    );
+
     const scriptNode = this.audioContext.createScriptProcessor(undefined, 0, 1);
 
     scriptNode.addEventListener("audioprocess", (event) => {
-      if (outputComponentIndex === undefined) {
-        return;
-      }
-
       const bufferSize = event.outputBuffer.getChannelData(0).length;
 
-      try {
-        const buffer = core.process(bufferSize, outputComponentIndex);
+      let buffers: Float32Array | undefined;
 
-        event.outputBuffer.copyToChannel(buffer, 0);
+      try {
+        buffers = core.process(
+          bufferSize,
+          new Uint32Array(outputComponentIndexes)
+        );
       } catch (exception: unknown) {
         this.catchCoreException(exception);
       }
+
+      outputComponentIds.forEach((outputComponentId, index) => {
+        if (!buffers) {
+          throw new Error();
+        }
+
+        const buffer = buffers.filter(
+          (_buffer, bufferIndex) =>
+            bufferIndex % outputComponentIds.length === index
+        );
+
+        const outputComponent = new Map(Object.entries(sketch.component)).get(
+          outputComponentId
+        );
+
+        if (!outputComponent) {
+          // Components in sketch are not supported.
+          return;
+        }
+
+        switch (outputComponent.type) {
+          case componentType.speaker: {
+            event.outputBuffer.copyToChannel(buffer, 0);
+
+            break;
+          }
+
+          case componentType.meter: {
+            if (buffer.length < 1) {
+              throw new Error();
+            }
+
+            dispatchSketch((prevSketch) => ({
+              ...prevSketch,
+              component: {
+                ...prevSketch.component,
+                [outputComponentId]: {
+                  ...outputComponent,
+                  extendedData: {
+                    value: buffer[0],
+                  },
+                },
+              },
+            }));
+
+            break;
+          }
+
+          case componentType.amplifier:
+          case componentType.buffer:
+          case componentType.differentiator:
+          case componentType.distributor:
+          case componentType.divider:
+          case componentType.integrator:
+          case componentType.lowerSaturator:
+          case componentType.mixer:
+          case componentType.noise:
+          case componentType.saw:
+          case componentType.sine:
+          case componentType.square:
+          case componentType.subtractor:
+          case componentType.triangle:
+          case componentType.upperSaturator:
+          case componentType.input:
+          case componentType.keyboardFrequency:
+          case componentType.keyboardSwitch:
+          case componentType.scope:
+          case componentType.sketch: {
+            break;
+          }
+
+          default: {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const exhaustiveCheck: never = outputComponent;
+
+            throw new Error();
+          }
+        }
+      });
     });
 
     scriptNode.connect(this.audioContext.destination);

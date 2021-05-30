@@ -78,10 +78,16 @@ const TopBar: FunctionComponent<{
 
       dispatchPlayer(
         new Player({
+          dispatchSketch: dispatchCurrentSketch,
           sketch: currentSketch,
         })
       );
-    }, [currentSketch, dispatchErrorComponentIDs, dispatchPlayer]);
+    }, [
+      currentSketch,
+      dispatchCurrentSketch,
+      dispatchErrorComponentIDs,
+      dispatchPlayer,
+    ]);
 
     const handleStopButtonClick = useCallback(() => {
       if (!player) {

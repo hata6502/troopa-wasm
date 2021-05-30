@@ -151,7 +151,7 @@ type Component =
   | ComponentBase<typeof componentType.keyboardFrequency, Record<string, never>>
   | ComponentBase<typeof componentType.keyboardSwitch, Record<string, never>>
   | ComponentBase<typeof componentType.speaker, Record<string, never>>
-  | ComponentBase<typeof componentType.meter, Record<string, never>>
+  | ComponentBase<typeof componentType.meter, { value: number }>
   | ComponentBase<typeof componentType.scope, Record<string, never>>
   | SketchComponent;
 

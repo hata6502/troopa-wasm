@@ -6,6 +6,7 @@ import type { Component } from "../component";
 import { Input } from "./Input";
 import { KeyboardFrequency } from "./KeyboardFrequency";
 import { KeyboardSwitch } from "./KeyboardSwitch";
+import { Meter } from "./Meter";
 import { SketchAction } from "./SketchAction";
 
 const ComponentActions: FunctionComponent<{
@@ -42,6 +43,10 @@ const ComponentActions: FunctionComponent<{
       );
     }
 
+    case componentType.meter: {
+      return <Meter value={component.extendedData.value} />;
+    }
+
     case componentType.sketch: {
       return <SketchAction sketch={component.extendedData.sketch} />;
     }
@@ -62,7 +67,6 @@ const ComponentActions: FunctionComponent<{
     case componentType.triangle:
     case componentType.upperSaturator:
     case componentType.speaker:
-    case componentType.meter:
     case componentType.scope: {
       return null;
     }
