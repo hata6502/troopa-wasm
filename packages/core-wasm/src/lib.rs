@@ -5,18 +5,14 @@ const COMPONENT_REGISTER_LENGTH: usize = 8;
 const SKETCH_COMPONENT_LENGTH: usize = 1024;
 const SKETCH_MAX_LOOP_COUNT: i32 = 255;
 
-extern crate wasm_bindgen;
-
 use once_cell::sync::Lazy;
 use rand::Rng;
 use std::collections::VecDeque;
 use std::f32;
 use std::sync::Mutex;
-use wasm_bindgen::prelude::*;
 
 static SKETCH: Lazy<Mutex<Sketch>> = Lazy::new(|| Mutex::new(Sketch::new()));
 
-#[wasm_bindgen]
 #[derive(Clone, Copy)]
 pub enum ComponentType {
     Amplifier,
@@ -38,12 +34,10 @@ pub enum ComponentType {
 
 type Destination = (usize, usize);
 
-#[wasm_bindgen]
 pub fn init(sample_rate: f32) {
     SKETCH.lock().unwrap().init(sample_rate)
 }
 
-#[wasm_bindgen]
 pub fn connect(
     input_component_index: usize,
     input_input_index: usize,
@@ -55,21 +49,18 @@ pub fn connect(
     )
 }
 
-#[wasm_bindgen]
 pub fn create_component(component_type: ComponentType) -> usize {
     SKETCH.lock().unwrap().create_component(component_type)
 }
 
-#[wasm_bindgen(catch)]
-pub fn input_value(component_index: usize, input_index: usize, value: f32) -> Result<(), JsValue> {
+pub fn input_value(component_index: usize, input_index: usize, value: f32) -> Result<(), ()> {
     SKETCH
         .lock()
         .unwrap()
         .input_values(vec![((component_index, input_index), value)])
 }
 
-#[wasm_bindgen(catch)]
-pub fn process(buffer_size: usize, output_component_indexes: Vec<usize>) -> Result<Vec<f32>, JsValue> {
+pub fn process(buffer_size: usize, output_component_indexes: Vec<usize>) -> Result<Vec<f32>, ()> {
     let mut sketch = SKETCH.lock().unwrap();
     let mut buffer = Vec::<f32>::new();
 
@@ -133,7 +124,7 @@ impl Sketch {
         self.components[index].output_value
     }
 
-    fn input_values(&mut self, inputs: Vec<(Destination, f32)>) -> Result<(), JsValue> {
+    fn input_values(&mut self, inputs: Vec<(Destination, f32)>) -> Result<(), ()> {
         for index in 0..self.component_length {
             self.components[index].loop_count = 0;
         }
@@ -151,10 +142,11 @@ impl Sketch {
             self.components[destination.0].loop_count += 1;
 
             if self.components[destination.0].loop_count > SKETCH_MAX_LOOP_COUNT {
-                return Err(JsValue::from_str(&format!(
-                    "CoreInfiniteLoopDetected {}",
-                    destination.0
-                )));
+                //return Err(JsValue::from_str(&format!(
+                //    "CoreInfiniteLoopDetected {}",
+                //    destination.0
+                //)));
+                return Err(());
             }
 
             for output_destination_index in
@@ -175,7 +167,7 @@ impl Sketch {
         Ok(())
     }
 
-    fn next_tick(&mut self) -> Result<(), JsValue> {
+    fn next_tick(&mut self) -> Result<(), ()> {
         let diff_time = 1.0 / self.sample_rate;
         let mut inputs = Vec::new();
 

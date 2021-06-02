@@ -1,16 +1,24 @@
 import type { Dispatch, SetStateAction } from "react";
+import coreURL from "core-wasm/target/wasm32-unknown-unknown/release/core_wasm.wasm";
 import { componentType, distributorComponentInInput } from "./component";
 import type { SketchComponent } from "./component";
 import type { ComponentDestination, Destination } from "./destination";
 import type { Sketch } from "./sketch";
+
+const coreResponse = await fetch(coreURL);
+
+const core = await WebAssembly.instantiate(
+  await coreResponse.arrayBuffer(),
+  {}
+);
+
+console.log(core);
 
 type CoreInfiniteLoopDetectedEventHandler = (event: {
   componentID: string;
 }) => void;
 
 type History = { sketch: Sketch; sketchComponent?: SketchComponent }[];
-
-const core = await import("core-wasm/core_wasm");
 
 class Player {
   static coreComponentOutputLength = 8;
