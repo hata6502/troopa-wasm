@@ -1,6 +1,10 @@
+const BUFFER_SIZE: usize = 4096;
+
 const COMPONENT_INPUT_LENGTH: usize = 8;
 const COMPONENT_OUTPUT_LENGTH: usize = 8;
 const COMPONENT_REGISTER_LENGTH: usize = 8;
+
+const OUTPUT_COMPONENT_INDEXES_MAX_LENGTH: usize = 32;
 
 const SKETCH_COMPONENT_LENGTH: usize = 1024;
 const SKETCH_MAX_LOOP_COUNT: i32 = 255;
@@ -11,9 +15,18 @@ use std::collections::VecDeque;
 use std::f32;
 use std::sync::Mutex;
 
+static BUFFER: Lazy<Mutex<[f32; BUFFER_SIZE * OUTPUT_COMPONENT_INDEXES_MAX_LENGTH]>> =
+    Lazy::new(|| Mutex::new([0.0; BUFFER_SIZE * OUTPUT_COMPONENT_INDEXES_MAX_LENGTH]));
+
+static OUTPUT_COMPONENT_INDEXES: Lazy<Mutex<[usize; OUTPUT_COMPONENT_INDEXES_MAX_LENGTH]>> =
+    Lazy::new(|| Mutex::new([0; OUTPUT_COMPONENT_INDEXES_MAX_LENGTH]));
+
+static OUTPUT_COMPONENT_INDEXES_LENGTH: Lazy<Mutex<usize>> = Lazy::new(|| Mutex::new(0));
+
 static SKETCH: Lazy<Mutex<Sketch>> = Lazy::new(|| Mutex::new(Sketch::new()));
 
 #[derive(Clone, Copy)]
+#[repr(C)]
 pub enum ComponentType {
     Amplifier,
     Buffer,
@@ -34,11 +47,16 @@ pub enum ComponentType {
 
 type Destination = (usize, usize);
 
-pub fn init(sample_rate: f32) {
-    SKETCH.lock().unwrap().init(sample_rate)
+#[no_mangle]
+pub extern "C" fn init(sample_rate: f32) {
+    *OUTPUT_COMPONENT_INDEXES_LENGTH.lock().unwrap() = 0;
+    SKETCH.lock().unwrap().init(sample_rate);
 }
 
-pub fn connect(
+// TODO: append_output_component_index
+
+#[no_mangle]
+pub extern "C" fn connect(
     input_component_index: usize,
     input_input_index: usize,
     output_component_index: usize,
@@ -49,33 +67,49 @@ pub fn connect(
     )
 }
 
-pub fn create_component(component_type: ComponentType) -> usize {
+#[no_mangle]
+pub extern "C" fn create_component(component_type: ComponentType) -> usize {
     SKETCH.lock().unwrap().create_component(component_type)
 }
 
-pub fn input_value(component_index: usize, input_index: usize, value: f32) -> Result<(), ()> {
+// TODO: get_buffer_address
+// Ok(&buffer[0])
+
+#[no_mangle]
+pub extern "C" fn input_value(
+    component_index: usize,
+    input_index: usize,
+    value: f32,
+) -> Result<(), ()> {
     SKETCH
         .lock()
         .unwrap()
         .input_values(vec![((component_index, input_index), value)])
 }
 
-pub fn process(buffer_size: usize, output_component_indexes: Vec<usize>) -> Result<Vec<f32>, ()> {
-    let mut sketch = SKETCH.lock().unwrap();
-    let mut buffer = Vec::<f32>::new();
+#[no_mangle]
+pub extern "C" fn process() -> Result<(), ()>
+{
+    let output_component_indexes = OUTPUT_COMPONENT_INDEXES.lock().unwrap();
+    let output_component_indexes_length = OUTPUT_COMPONENT_INDEXES_LENGTH.lock().unwrap();
 
-    for _index in 0..buffer_size {
-        for output_component_index in &output_component_indexes {
-            buffer.push(sketch.get_output_value(*output_component_index));
-        };
+    let mut buffer = BUFFER.lock().unwrap();
+    let mut sketch = SKETCH.lock().unwrap();
+
+    for buffer_index in 0..BUFFER_SIZE {
+        for output_component_indexes_index in 0..*output_component_indexes_length {
+            buffer[buffer_index * *output_component_indexes_length
+                + output_component_indexes_index] =
+                sketch.get_output_value(output_component_indexes[output_component_indexes_index]);
+        }
 
         match sketch.next_tick() {
             Ok(v) => v,
             Err(e) => return Err(e),
         };
-    }
+    };
 
-    Ok(buffer)
+    Ok(())
 }
 
 const DIFF_TIME_INPUT: usize = 0;
