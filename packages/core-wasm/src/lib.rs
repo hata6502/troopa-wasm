@@ -6,6 +6,9 @@ const COMPONENT_REGISTER_LENGTH: usize = 8;
 
 const OUTPUT_COMPONENT_INDEXES_MAX_LENGTH: usize = 32;
 
+const RETURN_CODE_SUCCESS: i32 = 0;
+const RETURN_CODE_INFINITE_LOOP_DETECTED: i32 = 1;
+
 const SKETCH_COMPONENT_LENGTH: usize = 1024;
 const SKETCH_MAX_LOOP_COUNT: i32 = 255;
 
@@ -75,21 +78,26 @@ pub extern "C" fn create_component(component_type: ComponentType) -> usize {
 // TODO: get_buffer_address
 // Ok(&buffer[0])
 
+// TODO: error handling in JS
+
 #[no_mangle]
 pub extern "C" fn input_value(
     component_index: usize,
     input_index: usize,
     value: f32,
-) -> Result<(), ()> {
-    SKETCH
+) -> i32 {
+    match SKETCH
         .lock()
         .unwrap()
         .input_values(vec![((component_index, input_index), value)])
+    {
+        Ok(_v) => RETURN_CODE_SUCCESS,
+        Err(e) => e,
+    }
 }
 
 #[no_mangle]
-pub extern "C" fn process() -> Result<(), ()>
-{
+pub extern "C" fn process() -> i32 {
     let output_component_indexes = OUTPUT_COMPONENT_INDEXES.lock().unwrap();
     let output_component_indexes_length = OUTPUT_COMPONENT_INDEXES_LENGTH.lock().unwrap();
 
@@ -105,11 +113,11 @@ pub extern "C" fn process() -> Result<(), ()>
 
         match sketch.next_tick() {
             Ok(v) => v,
-            Err(e) => return Err(e),
+            Err(e) => return e,
         };
-    };
+    }
 
-    Ok(())
+    RETURN_CODE_SUCCESS
 }
 
 const DIFF_TIME_INPUT: usize = 0;
@@ -158,7 +166,7 @@ impl Sketch {
         self.components[index].output_value
     }
 
-    fn input_values(&mut self, inputs: Vec<(Destination, f32)>) -> Result<(), ()> {
+    fn input_values(&mut self, inputs: Vec<(Destination, f32)>) -> Result<(), i32> {
         for index in 0..self.component_length {
             self.components[index].loop_count = 0;
         }
@@ -176,11 +184,7 @@ impl Sketch {
             self.components[destination.0].loop_count += 1;
 
             if self.components[destination.0].loop_count > SKETCH_MAX_LOOP_COUNT {
-                //return Err(JsValue::from_str(&format!(
-                //    "CoreInfiniteLoopDetected {}",
-                //    destination.0
-                //)));
-                return Err(());
+                return Err(RETURN_CODE_INFINITE_LOOP_DETECTED + destination.0 as i32);
             }
 
             for output_destination_index in
@@ -201,7 +205,7 @@ impl Sketch {
         Ok(())
     }
 
-    fn next_tick(&mut self) -> Result<(), ()> {
+    fn next_tick(&mut self) -> Result<(), i32> {
         let diff_time = 1.0 / self.sample_rate;
         let mut inputs = Vec::new();
 
