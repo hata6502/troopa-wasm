@@ -4,6 +4,7 @@
     "moduleResolution": "node",
     "noPropertyAccessFromIndexSignature": true,
     "pretty": true,
+    "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true
   }

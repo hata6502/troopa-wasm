@@ -3,12 +3,18 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "_generate-supported-browsers": "browserslist --json > src/supportedBrowsers.json",
+    "_generate-supported-browsers-regexp": "echo \"const supportedBrowsersRegExp = $(browserslist-useragent-regexp --allowHigherVersions);\n\nexport { supportedBrowsersRegExp };\" > src/supportedBrowsersRegExp.ts",
     "build": "webpack --config webpack.prod.js",
+    "build-browser-check": "npm run _generate-supported-browsers && npm run _generate-supported-browsers-regexp && webpack --config webpack.browserCheck.js",
     "dev": "webpack serve --config webpack.dev.js",
     "test": "tsc --noEmit"
   },
   "browserslist": [
-    "extends browserslist-config-google"
+    "extends browserslist-config-google",
+    "not firefox > 0",
+    "not ios_saf > 0",
+    "not safari > 0"
   ],
   "devDependencies": {
     "@babel/core": "^7.14.3",
@@ -23,7 +29,9 @@
     "@types/react-dom": "^17.0.5",
     "@types/uuid": "^8.3.0",
     "babel-loader": "^8.2.2",
+    "browserslist": "^4.16.6",
     "browserslist-config-google": "^3.0.1",
+    "browserslist-useragent-regexp": "^3.0.0",
     "copy-webpack-plugin": "^9.0.0",
     "core-js": "^3.13.0",
     "fast-deep-equal": "^3.1.3",

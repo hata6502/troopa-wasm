@@ -1,2 +1,3 @@
 /packages/core-wasm/
 /packages/website/dist/
+/packages/website/resources/browserCheck.js
