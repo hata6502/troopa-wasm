@@ -4,12 +4,12 @@ const COMPONENT_INPUT_LENGTH: usize = 8;
 const COMPONENT_OUTPUT_LENGTH: usize = 8;
 const COMPONENT_REGISTER_LENGTH: usize = 8;
 
-const OUTPUT_COMPONENT_INDEXES_MAX_LENGTH: usize = 32;
+const OUTPUT_COMPONENT_INDEXES_MAX_LENGTH: usize = 64;
 
 const RETURN_CODE_SUCCESS: i32 = 0;
 const RETURN_CODE_INFINITE_LOOP_DETECTED: i32 = 1;
 
-const SKETCH_COMPONENT_LENGTH: usize = 1024;
+const SKETCH_COMPONENT_MAX_LENGTH: usize = 4096;
 const SKETCH_MAX_LOOP_COUNT: i32 = 255;
 
 use once_cell::sync::Lazy;
@@ -56,7 +56,15 @@ pub extern "C" fn init(sample_rate: f32) {
     SKETCH.lock().unwrap().init(sample_rate);
 }
 
-// TODO: append_output_component_index
+#[no_mangle]
+pub extern "C" fn append_output_component_index(output_component_index: usize) {
+    let mut output_component_indexes_length = OUTPUT_COMPONENT_INDEXES_LENGTH.lock().unwrap();
+
+    OUTPUT_COMPONENT_INDEXES.lock().unwrap()[*output_component_indexes_length] =
+        output_component_index;
+
+    *output_component_indexes_length += 1;
+}
 
 #[no_mangle]
 pub extern "C" fn connect(
@@ -75,17 +83,13 @@ pub extern "C" fn create_component(component_type: ComponentType) -> usize {
     SKETCH.lock().unwrap().create_component(component_type)
 }
 
-// TODO: get_buffer_address
-// Ok(&buffer[0])
-
-// TODO: error handling in JS
+#[no_mangle]
+pub extern "C" fn get_buffer_address() -> *const f32 {
+    &BUFFER.lock().unwrap()[0]
+}
 
 #[no_mangle]
-pub extern "C" fn input_value(
-    component_index: usize,
-    input_index: usize,
-    value: f32,
-) -> i32 {
+pub extern "C" fn input_value(component_index: usize, input_index: usize, value: f32) -> i32 {
     match SKETCH
         .lock()
         .unwrap()
@@ -106,8 +110,7 @@ pub extern "C" fn process() -> i32 {
 
     for buffer_index in 0..BUFFER_SIZE {
         for output_component_indexes_index in 0..*output_component_indexes_length {
-            buffer[buffer_index * *output_component_indexes_length
-                + output_component_indexes_index] =
+            buffer[(BUFFER_SIZE * output_component_indexes_index) + buffer_index] =
                 sketch.get_output_value(output_component_indexes[output_component_indexes_index]);
         }
 
@@ -124,7 +127,7 @@ const DIFF_TIME_INPUT: usize = 0;
 
 #[derive(Clone, Copy)]
 struct Sketch {
-    components: [Component; SKETCH_COMPONENT_LENGTH],
+    components: [Component; SKETCH_COMPONENT_MAX_LENGTH],
     component_length: usize,
     sample_rate: f32,
 }
@@ -132,7 +135,7 @@ struct Sketch {
 impl Sketch {
     const fn new() -> Self {
         Sketch {
-            components: [Component::new(ComponentType::Distributor); SKETCH_COMPONENT_LENGTH],
+            components: [Component::new(ComponentType::Distributor); SKETCH_COMPONENT_MAX_LENGTH],
             component_length: 0,
             sample_rate: 0.0,
         }

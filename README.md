@@ -1,5 +1,9 @@
 # 👀 troopa-wasm
 
+## Requirements
+
+- [ancenv](https://scrapbox.io/hata6502/ancenv)
+
 ## Disclaimer
 
 The following creations are included in this product:

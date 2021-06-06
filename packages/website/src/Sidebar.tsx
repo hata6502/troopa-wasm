@@ -56,6 +56,16 @@ const createPrimitiveComponent = ({
       };
     }
 
+    case componentType.meter: {
+      return {
+        ...componentBase,
+        type: type,
+        extendedData: {
+          value: 0,
+        },
+      };
+    }
+
     case componentType.amplifier:
     case componentType.buffer:
     case componentType.differentiator:
@@ -74,7 +84,6 @@ const createPrimitiveComponent = ({
     case componentType.keyboardFrequency:
     case componentType.keyboardSwitch:
     case componentType.speaker:
-    case componentType.meter:
     case componentType.scope: {
       return {
         ...componentBase,
