@@ -6,7 +6,6 @@ const { EnvironmentPlugin } = require("webpack");
 module.exports = {
   entry: "./src/index.tsx",
   experiments: {
-    syncWebAssembly: true,
     topLevelAwait: true,
   },
   module: {
@@ -35,7 +34,7 @@ module.exports = {
       },
       {
         test: /\.wasm$/,
-        type: "webassembly/sync",
+        type: "asset/resource",
       },
     ],
   },

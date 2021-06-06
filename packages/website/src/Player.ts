@@ -1,16 +1,24 @@
 import type { Dispatch, SetStateAction } from "react";
+import coreURL from "core-wasm/target/wasm32-unknown-unknown/release/core_wasm.wasm";
 import { componentType, distributorComponentInInput } from "./component";
 import type { SketchComponent } from "./component";
 import type { ComponentDestination, Destination } from "./destination";
+import { sketchComponentMaxLength } from "./sketch";
 import type { Sketch } from "./sketch";
+
+const bufferSize = 4096;
+
+const returnCodeSuccess = 0;
+const returnCodeInfiniteLoopDetected = 1;
+
+const coreResponse = await fetch(coreURL);
+const core = await WebAssembly.instantiate(await coreResponse.arrayBuffer());
 
 type CoreInfiniteLoopDetectedEventHandler = (event: {
   componentID: string;
 }) => void;
 
 type History = { sketch: Sketch; sketchComponent?: SketchComponent }[];
-
-const core = await import("core-wasm/core_wasm");
 
 class Player {
   static coreComponentOutputLength = 8;
@@ -37,7 +45,12 @@ class Player {
         case componentType.subtractor:
         case componentType.triangle:
         case componentType.upperSaturator: {
-          return [[id, core.create_component(component.type)]];
+          // @ts-expect-error Core type is not defined.
+          const index = core.instance.exports["create_component"](
+            component.type
+          ) as number;
+
+          return [[id, index]];
         }
 
         case componentType.input:
@@ -46,7 +59,12 @@ class Player {
         case componentType.speaker:
         case componentType.meter:
         case componentType.scope: {
-          return [[id, core.create_component(componentType.distributor)]];
+          // @ts-expect-error Core type is not defined.
+          const index = core.instance.exports["create_component"](
+            componentType.distributor
+          ) as number;
+
+          return [[id, index]];
         }
 
         case componentType.sketch: {
@@ -176,7 +194,10 @@ class Player {
     sketch: Sketch;
   }) {
     this.audioContext = new AudioContext();
-    core.init(this.audioContext.sampleRate);
+
+    // @ts-expect-error Core type is not defined.
+    core.instance.exports["init"](this.audioContext.sampleRate);
+
     this.componentIndexMap = new Map(Player.createCoreComponents({ sketch }));
     this.connectCoreComponents({ history: [{ sketch }] });
 
@@ -239,43 +260,44 @@ class Player {
 
     prepareInterfaces({ sketch });
 
-    const outputComponentIndexes = outputComponentIds.map(
-      (outputComponentId) => {
-        const outputComponentIndex =
-          this.componentIndexMap.get(outputComponentId);
+    outputComponentIds.forEach((outputComponentId) => {
+      const outputComponentIndex =
+        this.componentIndexMap.get(outputComponentId);
 
-        if (outputComponentIndex === undefined) {
-          throw new Error();
-        }
-
-        return outputComponentIndex;
+      if (outputComponentIndex === undefined) {
+        throw new Error();
       }
+
+      // @ts-expect-error Core type is not defined.
+      core.instance.exports["append_output_component_index"](
+        outputComponentIndex
+      );
+    });
+
+    const scriptNode = this.audioContext.createScriptProcessor(
+      bufferSize,
+      0,
+      1
     );
 
-    const scriptNode = this.audioContext.createScriptProcessor(undefined, 0, 1);
-
     scriptNode.addEventListener("audioprocess", (event) => {
-      const bufferSize = event.outputBuffer.getChannelData(0).length;
-
-      let buffers: Float32Array | undefined;
-
-      try {
-        buffers = core.process(
-          bufferSize,
-          new Uint32Array(outputComponentIndexes)
-        );
-      } catch (exception: unknown) {
-        this.catchCoreException(exception);
-      }
+      // @ts-expect-error Core type is not defined.
+      this.catchCoreException(core.instance.exports["process"]());
 
       outputComponentIds.forEach((outputComponentId, index) => {
-        if (!buffers) {
-          throw new Error();
-        }
+        // @ts-expect-error Core type is not defined.
+        const bufferAddress = core.instance.exports[
+          "get_buffer_address"
+        ]() as number;
 
-        const buffer = buffers.filter(
-          (_buffer, bufferIndex) =>
-            bufferIndex % outputComponentIds.length === index
+        const bufferByteOffset =
+          bufferAddress + Float32Array.BYTES_PER_ELEMENT * bufferSize * index;
+
+        const buffer = new Float32Array(
+          // @ts-expect-error Core type is not defined.
+          core.instance.exports["memory"].buffer,
+          bufferByteOffset,
+          bufferSize
         );
 
         const outputComponent = new Map(Object.entries(sketch.component)).get(
@@ -374,35 +396,41 @@ class Player {
       throw new Error();
     }
 
-    try {
-      core.input_value(componentIndex, distributorComponentInInput, value);
-    } catch (exception: unknown) {
-      this.catchCoreException(exception);
-    }
+    this.catchCoreException(
+      // @ts-expect-error Core type is not defined.
+      core.instance.exports["input_value"](
+        componentIndex,
+        distributorComponentInInput,
+        value
+      )
+    );
   }
 
-  private catchCoreException(exception: unknown): void {
-    if (typeof exception === "string") {
-      const matchArray = /^CoreInfiniteLoopDetected (\d+)$/.exec(exception);
-
-      if (matchArray) {
-        const componentIndex = Number(matchArray[1]);
-
-        const componentID = [...this.componentIndexMap.entries()].find(
-          ([, index]) => index === componentIndex
-        )?.[0];
-
-        if (componentID === undefined) {
-          throw new Error();
-        }
-
-        this.onCoreInfiniteLoopDetected?.({ componentID });
-
-        return;
-      }
+  private catchCoreException(returnCode: number): void {
+    if (returnCode === returnCodeSuccess) {
+      return;
     }
 
-    throw exception;
+    if (
+      returnCode >= returnCodeInfiniteLoopDetected &&
+      returnCode < returnCodeInfiniteLoopDetected + sketchComponentMaxLength
+    ) {
+      const componentIndex = returnCode - returnCodeInfiniteLoopDetected;
+
+      const componentID = [...this.componentIndexMap.entries()].find(
+        ([, index]) => index === componentIndex
+      )?.[0];
+
+      if (componentID === undefined) {
+        throw new Error();
+      }
+
+      this.onCoreInfiniteLoopDetected?.({ componentID });
+
+      return;
+    }
+
+    throw new Error(`Uncaught core exception: ${returnCode}`);
   }
 
   private connectCoreComponents({ history }: { history: History }) {
@@ -451,7 +479,8 @@ class Player {
                 throw new Error();
               }
 
-              core.connect(
+              // @ts-expect-error Core type is not defined.
+              core.instance.exports["connect"](
                 inputComponentIndex,
                 resolvedDestination.inputIndex,
                 outputComponentIndex

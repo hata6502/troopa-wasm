@@ -1,4 +1,5 @@
 /.env
 /node_modules/
+/packages/core-wasm/target/
 /packages/website/dist/
 /packages/website/node_modules/

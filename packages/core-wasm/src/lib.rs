@@ -1,23 +1,35 @@
+const BUFFER_SIZE: usize = 4096;
+
 const COMPONENT_INPUT_LENGTH: usize = 8;
 const COMPONENT_OUTPUT_LENGTH: usize = 8;
 const COMPONENT_REGISTER_LENGTH: usize = 8;
 
-const SKETCH_COMPONENT_LENGTH: usize = 1024;
-const SKETCH_MAX_LOOP_COUNT: i32 = 255;
+const OUTPUT_COMPONENT_INDEXES_MAX_LENGTH: usize = 64;
 
-extern crate wasm_bindgen;
+const RETURN_CODE_SUCCESS: i32 = 0;
+const RETURN_CODE_INFINITE_LOOP_DETECTED: i32 = 1;
+
+const SKETCH_COMPONENT_MAX_LENGTH: usize = 4096;
+const SKETCH_MAX_LOOP_COUNT: i32 = 255;
 
 use once_cell::sync::Lazy;
 use rand::Rng;
 use std::collections::VecDeque;
 use std::f32;
 use std::sync::Mutex;
-use wasm_bindgen::prelude::*;
+
+static BUFFER: Lazy<Mutex<[f32; BUFFER_SIZE * OUTPUT_COMPONENT_INDEXES_MAX_LENGTH]>> =
+    Lazy::new(|| Mutex::new([0.0; BUFFER_SIZE * OUTPUT_COMPONENT_INDEXES_MAX_LENGTH]));
+
+static OUTPUT_COMPONENT_INDEXES: Lazy<Mutex<[usize; OUTPUT_COMPONENT_INDEXES_MAX_LENGTH]>> =
+    Lazy::new(|| Mutex::new([0; OUTPUT_COMPONENT_INDEXES_MAX_LENGTH]));
+
+static OUTPUT_COMPONENT_INDEXES_LENGTH: Lazy<Mutex<usize>> = Lazy::new(|| Mutex::new(0));
 
 static SKETCH: Lazy<Mutex<Sketch>> = Lazy::new(|| Mutex::new(Sketch::new()));
 
-#[wasm_bindgen]
 #[derive(Clone, Copy)]
+#[repr(C)]
 pub enum ComponentType {
     Amplifier,
     Buffer,
@@ -38,13 +50,24 @@ pub enum ComponentType {
 
 type Destination = (usize, usize);
 
-#[wasm_bindgen]
-pub fn init(sample_rate: f32) {
-    SKETCH.lock().unwrap().init(sample_rate)
+#[no_mangle]
+pub extern "C" fn init(sample_rate: f32) {
+    *OUTPUT_COMPONENT_INDEXES_LENGTH.lock().unwrap() = 0;
+    SKETCH.lock().unwrap().init(sample_rate);
 }
 
-#[wasm_bindgen]
-pub fn connect(
+#[no_mangle]
+pub extern "C" fn append_output_component_index(output_component_index: usize) {
+    let mut output_component_indexes_length = OUTPUT_COMPONENT_INDEXES_LENGTH.lock().unwrap();
+
+    OUTPUT_COMPONENT_INDEXES.lock().unwrap()[*output_component_indexes_length] =
+        output_component_index;
+
+    *output_component_indexes_length += 1;
+}
+
+#[no_mangle]
+pub extern "C" fn connect(
     input_component_index: usize,
     input_input_index: usize,
     output_component_index: usize,
@@ -55,43 +78,56 @@ pub fn connect(
     )
 }
 
-#[wasm_bindgen]
-pub fn create_component(component_type: ComponentType) -> usize {
+#[no_mangle]
+pub extern "C" fn create_component(component_type: ComponentType) -> usize {
     SKETCH.lock().unwrap().create_component(component_type)
 }
 
-#[wasm_bindgen(catch)]
-pub fn input_value(component_index: usize, input_index: usize, value: f32) -> Result<(), JsValue> {
-    SKETCH
+#[no_mangle]
+pub extern "C" fn get_buffer_address() -> *const f32 {
+    &BUFFER.lock().unwrap()[0]
+}
+
+#[no_mangle]
+pub extern "C" fn input_value(component_index: usize, input_index: usize, value: f32) -> i32 {
+    match SKETCH
         .lock()
         .unwrap()
         .input_values(vec![((component_index, input_index), value)])
+    {
+        Ok(_v) => RETURN_CODE_SUCCESS,
+        Err(e) => e,
+    }
 }
 
-#[wasm_bindgen(catch)]
-pub fn process(buffer_size: usize, output_component_indexes: Vec<usize>) -> Result<Vec<f32>, JsValue> {
-    let mut sketch = SKETCH.lock().unwrap();
-    let mut buffer = Vec::<f32>::new();
+#[no_mangle]
+pub extern "C" fn process() -> i32 {
+    let output_component_indexes = OUTPUT_COMPONENT_INDEXES.lock().unwrap();
+    let output_component_indexes_length = OUTPUT_COMPONENT_INDEXES_LENGTH.lock().unwrap();
 
-    for _index in 0..buffer_size {
-        for output_component_index in &output_component_indexes {
-            buffer.push(sketch.get_output_value(*output_component_index));
-        };
+    let mut buffer = BUFFER.lock().unwrap();
+    let mut sketch = SKETCH.lock().unwrap();
+
+    for buffer_index in 0..BUFFER_SIZE {
+        for output_component_indexes_index in 0..*output_component_indexes_length {
+            buffer[(BUFFER_SIZE * output_component_indexes_index) + buffer_index] =
+                sketch.get_output_value(output_component_indexes[output_component_indexes_index]);
+        }
 
         match sketch.next_tick() {
             Ok(v) => v,
-            Err(e) => return Err(e),
+            Err(e) => return e,
         };
     }
 
-    Ok(buffer)
+    RETURN_CODE_SUCCESS
 }
 
 const DIFF_TIME_INPUT: usize = 0;
 
 #[derive(Clone, Copy)]
 struct Sketch {
-    components: [Component; SKETCH_COMPONENT_LENGTH],
+    components: [Component; SKETCH_COMPONENT_MAX_LENGTH],
     component_length: usize,
     sample_rate: f32,
 }
@@ -99,7 +135,7 @@ struct Sketch {
 impl Sketch {
     const fn new() -> Self {
         Sketch {
-            components: [Component::new(ComponentType::Distributor); SKETCH_COMPONENT_LENGTH],
+            components: [Component::new(ComponentType::Distributor); SKETCH_COMPONENT_MAX_LENGTH],
             component_length: 0,
             sample_rate: 0.0,
         }
@@ -133,7 +169,7 @@ impl Sketch {
         self.components[index].output_value
     }
 
-    fn input_values(&mut self, inputs: Vec<(Destination, f32)>) -> Result<(), JsValue> {
+    fn input_values(&mut self, inputs: Vec<(Destination, f32)>) -> Result<(), i32> {
         for index in 0..self.component_length {
             self.components[index].loop_count = 0;
         }
@@ -151,10 +187,7 @@ impl Sketch {
             self.components[destination.0].loop_count += 1;
 
             if self.components[destination.0].loop_count > SKETCH_MAX_LOOP_COUNT {
-                return Err(JsValue::from_str(&format!(
-                    "CoreInfiniteLoopDetected {}",
-                    destination.0
-                )));
+                return Err(RETURN_CODE_INFINITE_LOOP_DETECTED + destination.0 as i32);
             }
 
             for output_destination_index in
@@ -175,7 +208,7 @@ impl Sketch {
         Ok(())
     }
 
-    fn next_tick(&mut self) -> Result<(), JsValue> {
+    fn next_tick(&mut self) -> Result<(), i32> {
         let diff_time = 1.0 / self.sample_rate;
         let mut inputs = Vec::new();
 

@@ -71,6 +71,8 @@ const initialSketch: Sketch = {
   ],
 };
 
+const sketchComponentMaxLength = 4096;
+
 const saveSketch = ({ sketch }: { sketch: Sketch }): void => {
   const url = URL.createObjectURL(
     new Blob([JSON.stringify(sketch)], { type: "application/json" })
@@ -93,5 +95,5 @@ const saveSketch = ({ sketch }: { sketch: Sketch }): void => {
   }
 };
 
-export { initialSketch, saveSketch };
+export { initialSketch, saveSketch, sketchComponentMaxLength };
 export type { Sketch, SketchInput };
