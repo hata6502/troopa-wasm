@@ -328,9 +328,13 @@ impl Component {
                 self.registers[Self::PHASE_REGISTER].sin()
             }
             ComponentType::Square => {
+                const DUTY_INPUT: usize = 2;
+
                 self.update_phase();
 
-                if self.registers[Self::PHASE_REGISTER] < f32::consts::PI {
+                if self.registers[Self::PHASE_REGISTER]
+                    < 2.0 * f32::consts::PI * self.input_values[DUTY_INPUT]
+                {
                     1.0
                 } else {
                     -1.0

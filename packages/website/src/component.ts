@@ -98,7 +98,7 @@ const primitiveComponentInputNames: Record<
   [componentType.noise]: [undefined],
   [componentType.saw]: [undefined, "frequency"],
   [componentType.sine]: [undefined, "frequency"],
-  [componentType.square]: [undefined, "frequency"],
+  [componentType.square]: [undefined, "frequency", "duty"],
   [componentType.subtractor]: [undefined, "in 1", "in 2"],
   [componentType.triangle]: [undefined, "frequency"],
   [componentType.upperSaturator]: [undefined, "in 1", "in 2"],
