@@ -39,7 +39,15 @@ if (process.env["NODE_ENV"] === "production") {
 }
 
 ReactDOM.render(
-  <>
+  <Sentry.ErrorBoundary
+    fallback={
+      <>
+        Sorry, an error has occurred.
+        <br />
+        Please load again.
+      </>
+    }
+  >
     <CssBaseline />
 
     <StylesProvider injectFirst>
@@ -47,6 +55,6 @@ ReactDOM.render(
         <App />
       </ThemeProvider>
     </StylesProvider>
-  </>,
+  </Sentry.ErrorBoundary>,
   document.querySelector(".app")
 );
