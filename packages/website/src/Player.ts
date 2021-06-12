@@ -1,5 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
-import coreURL from "core-wasm/target/wasm32-unknown-unknown/release/core_wasm.wasm";
+// @ts-expect-error The type declaration is not found.
+import str2ab from "string-to-arraybuffer";
+import inlineCore from "core-wasm/target/wasm32-unknown-unknown/release/core_wasm.wasm";
 import { componentType, distributorComponentInInput } from "./component";
 import type { SketchComponent } from "./component";
 import type { ComponentDestination, Destination } from "./destination";
@@ -11,8 +13,8 @@ const bufferSize = 4096;
 const returnCodeSuccess = 0;
 const returnCodeInfiniteLoopDetected = 1;
 
-const coreResponse = await fetch(coreURL);
-const core = await WebAssembly.instantiate(await coreResponse.arrayBuffer());
+// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+const core = await WebAssembly.instantiate(str2ab(inlineCore));
 
 type CoreInfiniteLoopDetectedEventHandler = (event: {
   componentID: string;

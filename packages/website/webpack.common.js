@@ -34,7 +34,7 @@ module.exports = {
       },
       {
         test: /\.wasm$/,
-        type: "asset/resource",
+        type: "asset/inline",
       },
     ],
   },

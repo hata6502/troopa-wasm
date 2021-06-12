@@ -1,5 +1,5 @@
 declare module "*.wasm" {
-  const url: string;
+  const inline: string;
 
-  export default url;
+  export default inline;
 }
