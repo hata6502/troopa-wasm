@@ -26,6 +26,13 @@ const theme = createMuiTheme({
 if (process.env["NODE_ENV"] === "production") {
   Sentry.init({
     dsn: process.env["SENTRY_DSN"],
+    beforeSend: (event) => {
+      if (event.exception) {
+        Sentry.showReportDialog({ eventId: event.event_id });
+      }
+
+      return event;
+    },
     integrations: [new Integrations.BrowserTracing()],
     tracesSampleRate: 1.0,
   });
