@@ -13,7 +13,8 @@ const SKETCH_COMPONENT_MAX_LENGTH: usize = 4096;
 const SKETCH_MAX_LOOP_COUNT: i32 = 255;
 
 use once_cell::sync::Lazy;
-use rand::Rng;
+use rand;
+use rand::prelude::*;
 use std::collections::VecDeque;
 use std::f32;
 use std::sync::Mutex;
@@ -25,6 +26,9 @@ static OUTPUT_COMPONENT_INDEXES: Lazy<Mutex<[usize; OUTPUT_COMPONENT_INDEXES_MAX
     Lazy::new(|| Mutex::new([0; OUTPUT_COMPONENT_INDEXES_MAX_LENGTH]));
 
 static OUTPUT_COMPONENT_INDEXES_LENGTH: Lazy<Mutex<usize>> = Lazy::new(|| Mutex::new(0));
+
+static RNG: Lazy<Mutex<rand::rngs::StdRng>> =
+    Lazy::new(|| Mutex::new(rand::SeedableRng::from_seed([0; 32])));
 
 static SKETCH: Lazy<Mutex<Sketch>> = Lazy::new(|| Mutex::new(Sketch::new()));
 
@@ -316,7 +320,7 @@ impl Component {
                 if self.input_values[DIFF_TIME_INPUT] == 0.0 {
                     self.output_value
                 } else {
-                    rand::thread_rng().gen::<f32>() * 2.0 - 1.0
+                    RNG.lock().unwrap().gen::<f32>() * 2.0 - 1.0
                 }
             }
             ComponentType::Saw => {
