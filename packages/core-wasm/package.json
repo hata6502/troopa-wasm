@@ -1,5 +1,8 @@
 {
   "name": "core-wasm",
   "version": "1.0.0",
-  "private": true
+  "private": true,
+  "scripts": {
+    "build": "cargo build --release --target wasm32-unknown-unknown"
+  }
 }
