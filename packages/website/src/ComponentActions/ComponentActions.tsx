@@ -66,8 +66,7 @@ const ComponentActions: FunctionComponent<{
     case componentType.subtractor:
     case componentType.triangle:
     case componentType.upperSaturator:
-    case componentType.speaker:
-    case componentType.scope: {
+    case componentType.speaker: {
       return null;
     }
 

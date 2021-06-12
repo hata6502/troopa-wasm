@@ -26,7 +26,7 @@ const componentType = {
   keyboardSwitch: -3,
   speaker: -4,
   meter: -5,
-  scope: -6,
+  //scope: -6,
 
   sketch: -7,
 } as const;
@@ -51,8 +51,7 @@ type PrimitiveComponentType =
   | typeof componentType.keyboardFrequency
   | typeof componentType.keyboardSwitch
   | typeof componentType.speaker
-  | typeof componentType.meter
-  | typeof componentType.scope;
+  | typeof componentType.meter;
 
 type ComponentType = PrimitiveComponentType | typeof componentType.sketch;
 
@@ -77,7 +76,6 @@ const componentName: Record<ComponentType, string> = {
   [componentType.keyboardSwitch]: "keyboard switch",
   [componentType.speaker]: "speaker",
   [componentType.meter]: "meter",
-  [componentType.scope]: "scope",
   [componentType.sketch]: "sketch",
 };
 
@@ -107,7 +105,6 @@ const primitiveComponentInputNames: Record<
   [componentType.keyboardSwitch]: [undefined],
   [componentType.speaker]: [undefined, "sound"],
   [componentType.meter]: [undefined, "in"],
-  [componentType.scope]: [undefined, "in"],
 };
 
 interface ComponentBase<
@@ -152,7 +149,6 @@ type Component =
   | ComponentBase<typeof componentType.keyboardSwitch, Record<string, never>>
   | ComponentBase<typeof componentType.speaker, Record<string, never>>
   | ComponentBase<typeof componentType.meter, { value: number }>
-  | ComponentBase<typeof componentType.scope, Record<string, never>>
   | SketchComponent;
 
 const componentInputMaxLength = 8;
@@ -182,8 +178,7 @@ const getComponentInputNames = ({
     case componentType.keyboardFrequency:
     case componentType.keyboardSwitch:
     case componentType.speaker:
-    case componentType.meter:
-    case componentType.scope: {
+    case componentType.meter: {
       return primitiveComponentInputNames[component.type];
     }
 

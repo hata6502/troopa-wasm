@@ -83,8 +83,7 @@ const createPrimitiveComponent = ({
     case componentType.upperSaturator:
     case componentType.keyboardFrequency:
     case componentType.keyboardSwitch:
-    case componentType.speaker:
-    case componentType.scope: {
+    case componentType.speaker: {
       return {
         ...componentBase,
         type: type,
@@ -170,8 +169,7 @@ const replaceComponentIDsInComponent = ({
     case componentType.keyboardFrequency:
     case componentType.keyboardSwitch:
     case componentType.speaker:
-    case componentType.meter:
-    case componentType.scope: {
+    case componentType.meter: {
       return {
         ...component,
         outputDestinations: newOutputDestinations,
@@ -278,8 +276,7 @@ const Sidebar: FunctionComponent<{
           case componentType.keyboardFrequency:
           case componentType.keyboardSwitch:
           case componentType.speaker:
-          case componentType.meter:
-          case componentType.scope: {
+          case componentType.meter: {
             const handleClick = () =>
               dispatchSketch((prevSketch) => ({
                 ...prevSketch,

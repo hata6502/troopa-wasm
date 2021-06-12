@@ -59,8 +59,7 @@ class Player {
         case componentType.keyboardFrequency:
         case componentType.keyboardSwitch:
         case componentType.speaker:
-        case componentType.meter:
-        case componentType.scope: {
+        case componentType.meter: {
           // @ts-expect-error Core type is not defined.
           const index = core.instance.exports["create_component"](
             componentType.distributor
@@ -124,8 +123,7 @@ class Player {
           case componentType.keyboardFrequency:
           case componentType.keyboardSwitch:
           case componentType.speaker:
-          case componentType.meter:
-          case componentType.scope: {
+          case componentType.meter: {
             return [destination];
           }
 
@@ -240,8 +238,7 @@ class Player {
           case componentType.triangle:
           case componentType.upperSaturator:
           case componentType.keyboardFrequency:
-          case componentType.keyboardSwitch:
-          case componentType.scope: {
+          case componentType.keyboardSwitch: {
             break;
           }
 
@@ -357,7 +354,6 @@ class Player {
           case componentType.input:
           case componentType.keyboardFrequency:
           case componentType.keyboardSwitch:
-          case componentType.scope:
           case componentType.sketch: {
             break;
           }
@@ -460,8 +456,7 @@ class Player {
           case componentType.keyboardFrequency:
           case componentType.keyboardSwitch:
           case componentType.speaker:
-          case componentType.meter:
-          case componentType.scope: {
+          case componentType.meter: {
             const resolvedDestinations = Player.resolveDestination({
               destination: outputDestination,
               history,
