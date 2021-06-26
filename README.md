@@ -1,4 +1,6 @@
-# 👀 troopa-wasm
+# troopa-wasm
+
+![](https://troopa.b-hood.site/favicon.png)
 
 ## Requirements
 
