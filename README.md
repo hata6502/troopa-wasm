@@ -1,7 +1,5 @@
 # troopa-wasm
 
-![](https://troopa.b-hood.site/favicon.png)
-
 ## Requirements
 
 - [ancenv](https://scrapbox.io/hata6502/ancenv)
