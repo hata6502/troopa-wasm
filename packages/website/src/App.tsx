@@ -213,25 +213,17 @@ const App: FunctionComponent = memo(() => {
           ])
         );
 
-        const inputs: Sketch["inputs"] = [...prevSketch.inputs];
-
-        for (const index in inputs) {
-          const input = inputs[index];
-
-          inputs[index] = {
-            ...input,
-            destination: targets.some((target) =>
-              equal(input.destination, target)
-            )
-              ? undefined
-              : input.destination,
-          };
-        }
-
         return {
           ...prevSketch,
           component,
-          inputs,
+          inputs: prevSketch.inputs.map((prevInput) => ({
+            ...prevInput,
+            destination: targets.some((target) =>
+              equal(prevInput.destination, target)
+            )
+              ? undefined
+              : prevInput.destination,
+          })),
         };
       }),
     []

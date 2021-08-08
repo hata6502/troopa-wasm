@@ -9,16 +9,7 @@ interface SketchInput {
 interface Sketch {
   name: string;
   component: Record<string, Component>;
-  inputs: [
-    SketchInput,
-    SketchInput,
-    SketchInput,
-    SketchInput,
-    SketchInput,
-    SketchInput,
-    SketchInput,
-    SketchInput
-  ];
+  inputs: SketchInput[];
   outputComponentID?: string;
 }
 
@@ -59,16 +50,7 @@ const initialSketch: Sketch = {
       extendedData: { value: "440" },
     },
   },
-  inputs: [
-    { name: "" },
-    { name: "" },
-    { name: "" },
-    { name: "" },
-    { name: "" },
-    { name: "" },
-    { name: "" },
-    { name: "" },
-  ],
+  inputs: [...Array(8).keys()].map(() => ({ name: "" })),
 };
 
 const sketchComponentMaxLength = 4096;

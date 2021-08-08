@@ -137,26 +137,18 @@ const regenerateComponentIDsInSketch = ({
     })
   );
 
-  const newInputs: Sketch["inputs"] = [...sketch.inputs];
-
-  for (const index in newInputs) {
-    const newInput = newInputs[index];
-
-    newInputs[index] = {
-      ...newInput,
-      destination:
-        newInput.destination &&
-        replaceComponentIDInDestination({
-          destination: newInput.destination,
-          newComponentIDMap,
-        }),
-    };
-  }
-
   return {
     ...sketch,
     component: newComponent,
-    inputs: newInputs,
+    inputs: sketch.inputs.map((input) => ({
+      ...input,
+      destination:
+        input.destination &&
+        replaceComponentIDInDestination({
+          destination: input.destination,
+          newComponentIDMap,
+        }),
+    })),
   };
 };
 
