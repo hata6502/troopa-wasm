@@ -3,6 +3,7 @@ import type { Dispatch, FunctionComponent, SetStateAction } from "react";
 import type { Player } from "../Player";
 import { componentType } from "../component";
 import type { Component } from "../component";
+import type { Sketch } from "../sketch";
 import { Input } from "./Input";
 import { KeyboardFrequency } from "./KeyboardFrequency";
 import { KeyboardSwitch } from "./KeyboardSwitch";
@@ -12,16 +13,11 @@ import { SketchAction } from "./SketchAction";
 const ComponentActions: FunctionComponent<{
   id: string;
   component: Component;
-  getDispatchComponent: <T extends Component>(props: {
-    id: string;
-    component: T;
-  }) => Dispatch<SetStateAction<T>>;
+  dispatchComponent: Dispatch<SetStateAction<Sketch["component"]>>;
   player?: Player;
-}> = memo(({ id, component, getDispatchComponent, player }) => {
+}> = memo(({ id, component, dispatchComponent, player }) => {
   switch (component.type) {
     case componentType.input: {
-      const dispatchComponent = getDispatchComponent({ id, component });
-
       return (
         <Input
           id={id}

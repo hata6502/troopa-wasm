@@ -10,7 +10,7 @@ import type { DraggableEventHandler } from "react-draggable";
 import { ConnectableAnchor } from "./ConnectableAnchor";
 import { getDestinationsByPosition, serializeDestination } from "./destination";
 import type { Destination } from "./destination";
-import type { SketchInput } from "./sketch";
+import type { Sketch, SketchInput } from "./sketch";
 
 const useStyles = makeStyles(({ spacing }) => ({
   name: {
@@ -20,22 +20,28 @@ const useStyles = makeStyles(({ spacing }) => ({
 
 const SketchInputContainer: FunctionComponent<{
   index: number;
-  dispatchInput: Dispatch<SetStateAction<SketchInput>>;
+  dispatchInputs: Dispatch<SetStateAction<Sketch["inputs"]>>;
   input: SketchInput;
   onDrag?: () => void;
   onRemoveConnectionsRequest?: (event: Destination[]) => void;
 }> = memo(
-  ({ index, dispatchInput, input, onDrag, onRemoveConnectionsRequest }) => {
+  ({ index, dispatchInputs, input, onDrag, onRemoveConnectionsRequest }) => {
     const classes = useStyles();
 
     const handleInputNameChange: ChangeEventHandler<HTMLInputElement> =
       useCallback(
         (event) =>
-          dispatchInput((prevInput) => ({
-            ...prevInput,
-            name: event.target.value,
-          })),
-        [dispatchInput]
+          dispatchInputs((prevInputs) => {
+            const inputs: Sketch["inputs"] = [...prevInputs];
+
+            inputs[index] = {
+              ...inputs[index],
+              name: event.target.value,
+            };
+
+            return inputs;
+          }),
+        [dispatchInputs, index]
       );
 
     const handleAnchorStop: DraggableEventHandler = useCallback(
@@ -49,10 +55,16 @@ const SketchInputContainer: FunctionComponent<{
           onRemoveConnectionsRequest?.(destinations);
 
           if (destinations.length !== 0) {
-            dispatchInput((prevInput) => ({
-              ...prevInput,
-              destination: destinations[0],
-            }));
+            dispatchInputs((prevInputs) => {
+              const inputs: Sketch["inputs"] = [...prevInputs];
+
+              inputs[index] = {
+                ...inputs[index],
+                destination: destinations[0],
+              };
+
+              return inputs;
+            });
           }
         } else {
           throw new Error();
@@ -60,7 +72,7 @@ const SketchInputContainer: FunctionComponent<{
 
         onDrag?.();
       },
-      [dispatchInput, onDrag, onRemoveConnectionsRequest]
+      [dispatchInputs, index, onDrag, onRemoveConnectionsRequest]
     );
 
     const anchorRelations = useMemo(

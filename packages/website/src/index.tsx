@@ -45,5 +45,5 @@ ReactDOM.render(
       <App />
     </TroopaThemeProvider>
   </Sentry.ErrorBoundary>,
-  document.querySelector(".app")
+  document.querySelector("#app")
 );

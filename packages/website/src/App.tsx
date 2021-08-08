@@ -9,7 +9,7 @@ import type { SnackbarProps } from "@material-ui/core";
 import { Alert, AlertTitle } from "@material-ui/lab";
 import type { AlertProps, AlertTitleProps } from "@material-ui/lab";
 import equal from "fast-deep-equal";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import type { Dispatch, FunctionComponent, SetStateAction } from "react";
 import { ArcherContainer, ArcherElement } from "react-archer";
 import type { ArcherContainerProps } from "react-archer";
@@ -26,11 +26,10 @@ import {
   componentName,
   componentType,
 } from "./component";
-import type { Component } from "./component";
 import { serializeDestination } from "./destination";
 import type { Destination } from "./destination";
 import { initialSketch } from "./sketch";
-import type { Sketch, SketchInput } from "./sketch";
+import type { Sketch } from "./sketch";
 
 interface AlertData {
   isOpen?: SnackbarProps["open"];
@@ -101,6 +100,21 @@ const App: FunctionComponent = memo(() => {
 
   const classes = useStyles();
   const theme = useTheme();
+
+  const dispatchComponent: Dispatch<SetStateAction<Sketch["component"]>> = (
+    action
+  ) =>
+    dispatchSketch((prevSketch) => ({
+      ...prevSketch,
+      component:
+        typeof action === "function" ? action(prevSketch.component) : action,
+    }));
+
+  const dispatchInputs: Dispatch<SetStateAction<Sketch["inputs"]>> = (action) =>
+    dispatchSketch((prevSketch) => ({
+      ...prevSketch,
+      inputs: typeof action === "function" ? action(prevSketch.inputs) : action,
+    }));
 
   useEffect(() => {
     if (!player) {
@@ -261,107 +275,6 @@ const App: FunctionComponent = memo(() => {
     [removeConnections]
   );
 
-  const componentContainerElements = useMemo(() => {
-    const getDispatchComponent = <T extends Component>({
-      id,
-      component,
-    }: {
-      id: string;
-      component: T;
-    }) => {
-      const dispatchComponent: Dispatch<SetStateAction<T>> = (action) =>
-        dispatchSketch((prevSketch) => {
-          const prevComponent = new Map(
-            Object.entries(prevSketch.component)
-          ).get(id);
-
-          const isComponentT = (target: Component): target is T =>
-            target.type === component.type;
-
-          if (!prevComponent || !isComponentT(prevComponent)) {
-            throw new Error();
-          }
-
-          return {
-            ...prevSketch,
-            component: {
-              ...prevSketch.component,
-              [id]:
-                typeof action === "function" ? action(prevComponent) : action,
-            },
-          };
-        });
-
-      return dispatchComponent;
-    };
-
-    return Object.entries(sketch.component).map(([id, component]) => (
-      <ComponentContainer
-        id={id}
-        key={id}
-        component={component}
-        sketch={sketch}
-        dispatchAlertData={dispatchAlertData}
-        getDispatchComponent={getDispatchComponent}
-        isError={errorComponentIDs.includes(id)}
-        onDistributorButtonClick={handleDistributorButtonClick}
-        onDrag={handleDrag}
-        onRemoveComponentRequest={handleRemoveComponentRequest}
-        onRemoveConnectionsRequest={removeConnections}
-      >
-        <ComponentActions
-          id={id}
-          component={component}
-          getDispatchComponent={getDispatchComponent}
-          player={player}
-        />
-      </ComponentContainer>
-    ));
-  }, [
-    sketch,
-    errorComponentIDs,
-    handleDrag,
-    handleDistributorButtonClick,
-    handleRemoveComponentRequest,
-    player,
-    removeConnections,
-  ]);
-
-  const inputElements = useMemo(
-    () =>
-      sketch.inputs.map((input, index) => {
-        const dispatchInput: Dispatch<SetStateAction<SketchInput>> = (
-          action
-        ) => {
-          dispatchSketch((prevSketch) => {
-            const inputs: Sketch["inputs"] = [...prevSketch.inputs];
-
-            inputs[index] =
-              typeof action === "function"
-                ? action(prevSketch.inputs[index])
-                : action;
-
-            return {
-              ...prevSketch,
-              inputs,
-            };
-          });
-        };
-
-        return (
-          <SketchInputContainer
-            key={index}
-            index={index}
-            dispatchInput={dispatchInput}
-            input={input}
-            onDrag={handleDrag}
-            onRemoveConnectionsRequest={removeConnections}
-          />
-        );
-      }),
-    [handleDrag, removeConnections, sketch.inputs]
-  );
-
   const isOutputConnected =
     Object.values(sketch.component).some((otherComponent) =>
       otherComponent.outputDestinations.some((outputDestination) =>
@@ -395,8 +308,41 @@ const App: FunctionComponent = memo(() => {
             strokeColor={theme.palette.divider}
             svgContainerStyle={svgContainerStyle}
           >
-            {componentContainerElements}
-            <div className={classes.input}>{inputElements}</div>
+            {Object.entries(sketch.component).map(([id, component]) => (
+              <ComponentContainer
+                id={id}
+                key={id}
+                component={component}
+                sketch={sketch}
+                dispatchAlertData={dispatchAlertData}
+                dispatchComponent={dispatchComponent}
+                isError={errorComponentIDs.includes(id)}
+                onDistributorButtonClick={handleDistributorButtonClick}
+                onDrag={handleDrag}
+                onRemoveComponentRequest={handleRemoveComponentRequest}
+                onRemoveConnectionsRequest={removeConnections}
+              >
+                <ComponentActions
+                  id={id}
+                  component={component}
+                  dispatchComponent={dispatchComponent}
+                  player={player}
+                />
+              </ComponentContainer>
+            ))}
+
+            <div className={classes.input}>
+              {sketch.inputs.map((input, index) => (
+                <SketchInputContainer
+                  key={index}
+                  index={index}
+                  dispatchInputs={dispatchInputs}
+                  input={input}
+                  onDrag={handleDrag}
+                  onRemoveConnectionsRequest={removeConnections}
+                />
+              ))}
+            </div>
 
             <div className={classes.output}>
               <ArcherElement

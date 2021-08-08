@@ -78,10 +78,7 @@ interface ComponentContainerProps {
   component: Component;
   sketch: Sketch;
   dispatchAlertData: Dispatch<SetStateAction<AlertData>>;
-  getDispatchComponent: <T extends Component>(props: {
-    id: string;
-    component: T;
-  }) => Dispatch<SetStateAction<T>>;
+  dispatchComponent: Dispatch<SetStateAction<Sketch["component"]>>;
   isError?: boolean;
   onDistributorButtonClick?: MouseEventHandler<HTMLButtonElement>;
   onDrag?: () => void;
@@ -99,40 +96,41 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
     component,
     sketch,
     dispatchAlertData,
-    getDispatchComponent,
+    dispatchComponent,
     isError = false,
     onDistributorButtonClick,
     onDrag,
     onRemoveComponentRequest,
     onRemoveConnectionsRequest,
   }) => {
-    const dispatchComponent = useMemo(
-      () => getDispatchComponent({ id, component }),
-      [component, getDispatchComponent, id]
-    );
-
     const handleNameChange: ChangeEventHandler<HTMLInputElement> = useCallback(
       (event) =>
         dispatchComponent((prevComponent) => ({
           ...prevComponent,
-          name: event.target.value,
+          [id]: {
+            ...prevComponent[id],
+            name: event.target.value,
+          },
         })),
-      [dispatchComponent]
+      [dispatchComponent, id]
     );
 
     const handleDrag: DraggableEventHandler = useCallback(
-      (event, data) => {
+      (_event, data) => {
         dispatchComponent((prevComponent) => ({
           ...prevComponent,
-          position: {
-            x: Math.min(Math.max(data.x, 0.0), sketchWidth),
-            y: Math.min(Math.max(data.y, 0.0), sketchHeight),
+          [id]: {
+            ...prevComponent[id],
+            position: {
+              x: Math.min(Math.max(data.x, 0.0), sketchWidth),
+              y: Math.min(Math.max(data.y, 0.0), sketchHeight),
+            },
           },
         }));
 
         onDrag?.();
       },
-      [dispatchComponent, onDrag]
+      [dispatchComponent, id, onDrag]
     );
 
     const handleDeleteButtonClick = useCallback(
@@ -193,7 +191,10 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
 
             dispatchComponent((prevComponent) => ({
               ...prevComponent,
-              outputDestinations: uniqueOutputDestinations,
+              [id]: {
+                ...prevComponent[id],
+                outputDestinations: uniqueOutputDestinations,
+              },
             }));
           } else {
             dispatchAlertData({
@@ -228,6 +229,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
         dispatchAlertData,
         dispatchComponent,
         handleDistributorButtonClick,
+        id,
         onDrag,
         onRemoveConnectionsRequest,
       ]
