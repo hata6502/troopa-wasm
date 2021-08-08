@@ -1,27 +1,12 @@
 import "core-js";
 import "regenerator-runtime";
 
-import {
-  CssBaseline,
-  StylesProvider,
-  ThemeProvider,
-  createMuiTheme,
-} from "@material-ui/core";
+import { CssBaseline } from "@material-ui/core";
 import * as Sentry from "@sentry/react";
 import { Integrations } from "@sentry/tracing";
 import ReactDOM from "react-dom";
 import { App } from "./App";
-
-const theme = createMuiTheme({
-  palette: {
-    primary: {
-      main: "#ffc107",
-    },
-    secondary: {
-      main: "#f50057",
-    },
-  },
-});
+import { TroopaThemeProvider } from "./TroopaThemeProvider";
 
 if (process.env["NODE_ENV"] === "production") {
   Sentry.init({
@@ -55,13 +40,10 @@ ReactDOM.render(
       </>
     }
   >
-    <CssBaseline />
-
-    <StylesProvider injectFirst>
-      <ThemeProvider theme={theme}>
-        <App />
-      </ThemeProvider>
-    </StylesProvider>
+    <TroopaThemeProvider>
+      <CssBaseline />
+      <App />
+    </TroopaThemeProvider>
   </Sentry.ErrorBoundary>,
   document.querySelector(".app")
 );
