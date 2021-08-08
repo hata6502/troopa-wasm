@@ -10,7 +10,7 @@ import {
   Typography,
   makeStyles,
 } from "@material-ui/core";
-import { Description } from "@material-ui/icons";
+import { Description, Favorite } from "@material-ui/icons";
 import { memo } from "react";
 import type { Dispatch, FunctionComponent, SetStateAction } from "react";
 import { componentType } from "../component";
@@ -75,6 +75,22 @@ const Sidebar: FunctionComponent<{
             </ListItemIcon>
 
             <ListItemText primary="Documents" />
+          </ListItem>
+        </Link>
+
+        <Link
+          color="inherit"
+          href="https://github.com/sponsors/hata6502"
+          rel="noreferrer"
+          target="_blank"
+          underline="none"
+        >
+          <ListItem button>
+            <ListItemIcon>
+              <Favorite />
+            </ListItemIcon>
+
+            <ListItemText primary="Sponsor" />
           </ListItem>
         </Link>
       </List>
