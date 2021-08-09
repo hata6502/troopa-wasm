@@ -13,7 +13,12 @@ const SketchAction: FunctionComponent<{
   );
 
   return (
-    <Button variant="outlined" size="small" onClick={handleSaveButtonClick}>
+    <Button
+      variant="outlined"
+      className="cancel-component-container-drag"
+      size="small"
+      onClick={handleSaveButtonClick}
+    >
       save
     </Button>
   );

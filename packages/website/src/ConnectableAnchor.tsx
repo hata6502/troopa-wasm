@@ -25,11 +25,8 @@ const ConnectableAnchor: FunctionComponent<{
   const classes = useStyles();
 
   const handleDrag: DraggableEventHandler = useCallback(
-    (event, data) => {
-      event.stopPropagation();
-
+    (_event, data) => {
       setConnectionCuror(data);
-
       onDrag?.();
     },
     [onDrag]
@@ -38,7 +35,6 @@ const ConnectableAnchor: FunctionComponent<{
   const handleStop: DraggableEventHandler = useCallback(
     (event, data) => {
       setConnectionCuror(undefined);
-
       onStop?.(event, data);
     },
     [onStop]
@@ -62,7 +58,7 @@ const ConnectableAnchor: FunctionComponent<{
         onStop={handleStop}
       >
         {/* DraggableCore target. */}
-        <div>
+        <div className="cancel-component-container-drag">
           <ArcherElement
             id={`${id}-radio`}
             relations={[

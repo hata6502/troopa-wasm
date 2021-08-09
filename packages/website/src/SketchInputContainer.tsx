@@ -46,28 +46,34 @@ const SketchInputContainer: FunctionComponent<{
 
     const handleAnchorStop: DraggableEventHandler = useCallback(
       (event) => {
+        let x;
+        let y;
+
         if (event instanceof MouseEvent) {
-          const destinations = getDestinationsByPosition({
-            x: event.clientX,
-            y: event.clientY,
-          });
-
-          onRemoveConnectionsRequest?.(destinations);
-
-          if (destinations.length !== 0) {
-            dispatchInputs((prevInputs) => {
-              const inputs: Sketch["inputs"] = [...prevInputs];
-
-              inputs[index] = {
-                ...inputs[index],
-                destination: destinations[0],
-              };
-
-              return inputs;
-            });
-          }
+          x = event.clientX;
+          y = event.clientY;
+        } else if (event instanceof TouchEvent) {
+          x = event.changedTouches[0].clientX;
+          y = event.changedTouches[0].clientY;
         } else {
-          throw new Error();
+          throw new Error("Unsupported event type");
+        }
+
+        const destinations = getDestinationsByPosition({ x, y });
+
+        onRemoveConnectionsRequest?.(destinations);
+
+        if (destinations.length !== 0) {
+          dispatchInputs((prevInputs) => {
+            const inputs: Sketch["inputs"] = [...prevInputs];
+
+            inputs[index] = {
+              ...inputs[index],
+              destination: destinations[0],
+            };
+
+            return inputs;
+          });
         }
 
         onDrag?.();

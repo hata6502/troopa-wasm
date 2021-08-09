@@ -10,6 +10,7 @@ import {
   makeStyles,
 } from "@material-ui/core";
 import { Delete, Error as ErrorIcon } from "@material-ui/icons";
+import clsx from "clsx";
 import equal from "fast-deep-equal";
 import { memo, useCallback, useMemo } from "react";
 import type {
@@ -156,70 +157,74 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
       );
 
     const handleOutputStop: DraggableEventHandler = useCallback(
-      (event, data) => {
-        event.stopPropagation();
+      (event) => {
+        let x;
+        let y;
 
         if (event instanceof MouseEvent) {
-          const newOutputDestinations = getDestinationsByPosition({
-            x: event.clientX,
-            y: event.clientY,
-          });
-
-          const appendedOutputDestinations = [
-            ...component.outputDestinations,
-            ...newOutputDestinations,
-          ];
-
-          const uniqueOutputDestinations = appendedOutputDestinations.some(
-            (appendedOutputDestination) =>
-              equal(appendedOutputDestination, sketchOutputDestination)
-          )
-            ? [sketchOutputDestination]
-            : [
-                ...new Map(
-                  appendedOutputDestinations.map((outputDestination) => [
-                    serializeDestination({ destination: outputDestination }),
-                    outputDestination,
-                  ])
-                ).values(),
-              ];
-
-          if (
-            uniqueOutputDestinations.length <= Player.coreComponentOutputLength
-          ) {
-            onRemoveConnectionsRequest?.(newOutputDestinations);
-
-            dispatchComponent((prevComponent) => ({
-              ...prevComponent,
-              [id]: {
-                ...prevComponent[id],
-                outputDestinations: uniqueOutputDestinations,
-              },
-            }));
-          } else {
-            dispatchAlertData({
-              isOpen: true,
-              severity: "info",
-              title: "Please use distributor component",
-              description: (
-                <>
-                  A component can output to up to&nbsp;
-                  {Player.coreComponentOutputLength} destinations. Please
-                  use&nbsp;
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={handleDistributorButtonClick}
-                  >
-                    distributor
-                  </Button>
-                  &nbsp;component to expand it.
-                </>
-              ),
-            });
-          }
+          x = event.clientX;
+          y = event.clientY;
+        } else if (event instanceof TouchEvent) {
+          x = event.changedTouches[0].clientX;
+          y = event.changedTouches[0].clientY;
         } else {
-          throw new Error();
+          throw new Error("Unsupported event type");
+        }
+
+        const newOutputDestinations = getDestinationsByPosition({ x, y });
+
+        const appendedOutputDestinations = [
+          ...component.outputDestinations,
+          ...newOutputDestinations,
+        ];
+
+        const uniqueOutputDestinations = appendedOutputDestinations.some(
+          (appendedOutputDestination) =>
+            equal(appendedOutputDestination, sketchOutputDestination)
+        )
+          ? [sketchOutputDestination]
+          : [
+              ...new Map(
+                appendedOutputDestinations.map((outputDestination) => [
+                  serializeDestination({ destination: outputDestination }),
+                  outputDestination,
+                ])
+              ).values(),
+            ];
+
+        if (
+          uniqueOutputDestinations.length <= Player.coreComponentOutputLength
+        ) {
+          onRemoveConnectionsRequest?.(newOutputDestinations);
+
+          dispatchComponent((prevComponent) => ({
+            ...prevComponent,
+            [id]: {
+              ...prevComponent[id],
+              outputDestinations: uniqueOutputDestinations,
+            },
+          }));
+        } else {
+          dispatchAlertData({
+            isOpen: true,
+            severity: "info",
+            title: "Please use distributor component",
+            description: (
+              <>
+                A component can output to up to&nbsp;
+                {Player.coreComponentOutputLength} destinations. Please
+                use&nbsp;
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={handleDistributorButtonClick}
+                >
+                  distributor
+                </Button>
+                &nbsp;component to expand it.
+              </>
+            ),
+          });
         }
 
         onDrag?.();
@@ -279,7 +284,10 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
                     data-component-id={id}
                     data-input-index={inputIndex}
                     checked={isConnected}
-                    className={classes.input}
+                    className={clsx(
+                      classes.input,
+                      "cancel-component-container-drag"
+                    )}
                     size="small"
                     onClick={handleInputClick}
                   />
@@ -311,6 +319,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
 
     return (
       <Draggable
+        cancel=".cancel-component-container-drag"
         position={component.position}
         onStart={handleDrag}
         onDrag={handleDrag}
@@ -321,6 +330,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
             <Box pb={2} pt={2}>
               <Box mb={2} pl={2} pr={2}>
                 <TextField
+                  className="cancel-component-container-drag"
                   size="small"
                   value={component.name}
                   onChange={handleNameChange}
@@ -342,7 +352,10 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
           )}
 
           <IconButton
-            className={classes.deleteButton}
+            className={clsx(
+              classes.deleteButton,
+              "cancel-component-container-drag"
+            )}
             size="small"
             onClick={handleDeleteButtonClick}
           >

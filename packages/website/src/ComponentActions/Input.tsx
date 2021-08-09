@@ -49,6 +49,7 @@ const Input: FunctionComponent<{
     <TextField
       type="number"
       variant="outlined"
+      className="cancel-component-container-drag"
       size="small"
       value={component.extendedData.value}
       onChange={handleChange}
