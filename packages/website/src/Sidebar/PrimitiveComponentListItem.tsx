@@ -73,20 +73,21 @@ const createPrimitiveComponent = ({
 };
 
 const PrimitiveComponentListItem: FunctionComponent<{
+  dispatchIsSidebarOpen: Dispatch<SetStateAction<boolean>>;
   dispatchSketch: Dispatch<SetStateAction<Sketch>>;
   type: PrimitiveComponentType;
-}> = memo(({ dispatchSketch, type }) => {
-  const handleClick = useCallback(
-    () =>
-      dispatchSketch((prevSketch) => ({
-        ...prevSketch,
-        component: {
-          ...prevSketch.component,
-          [uuidv4()]: createPrimitiveComponent({ type }),
-        },
-      })),
-    [dispatchSketch, type]
-  );
+}> = memo(({ dispatchIsSidebarOpen, dispatchSketch, type }) => {
+  const handleClick = useCallback(() => {
+    dispatchSketch((prevSketch) => ({
+      ...prevSketch,
+      component: {
+        ...prevSketch.component,
+        [uuidv4()]: createPrimitiveComponent({ type }),
+      },
+    }));
+
+    dispatchIsSidebarOpen(false);
+  }, [dispatchIsSidebarOpen, dispatchSketch, type]);
 
   return (
     <ListItem button onClick={handleClick}>

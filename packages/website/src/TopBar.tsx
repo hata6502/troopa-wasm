@@ -2,10 +2,12 @@ import {
   AppBar,
   Button,
   Grid,
+  IconButton,
   TextField,
   Toolbar,
   makeStyles,
 } from "@material-ui/core";
+import { Menu } from "@material-ui/icons";
 import equal from "fast-deep-equal";
 import { memo, useCallback, useEffect, useState } from "react";
 import type {
@@ -19,17 +21,26 @@ import { sidebarWidth } from "./Sidebar";
 import { initialSketch, saveSketch } from "./sketch";
 import type { Sketch } from "./sketch";
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(({ breakpoints, spacing }) => ({
   appBar: {
-    width: `calc(100% - ${sidebarWidth}px)`,
-    marginLeft: sidebarWidth,
+    [breakpoints.up("md")]: {
+      width: `calc(100% - ${sidebarWidth}px)`,
+      marginLeft: sidebarWidth,
+    },
   },
-});
+  menuButton: {
+    marginRight: spacing(2),
+    [breakpoints.up("md")]: {
+      display: "none",
+    },
+  },
+}));
 
 const TopBar: FunctionComponent<{
   currentSketch: Sketch;
   dispatchCurrentSketch: Dispatch<SetStateAction<Sketch>>;
   dispatchErrorComponentIDs: Dispatch<SetStateAction<string[]>>;
+  dispatchIsSidebarOpen: Dispatch<SetStateAction<boolean>>;
   dispatchPlayer: Dispatch<SetStateAction<Player | undefined>>;
   player?: Player;
   onDrag?: () => void;
@@ -38,6 +49,7 @@ const TopBar: FunctionComponent<{
     currentSketch,
     dispatchCurrentSketch,
     dispatchErrorComponentIDs,
+    dispatchIsSidebarOpen,
     dispatchPlayer,
     player,
     onDrag,
@@ -62,6 +74,11 @@ const TopBar: FunctionComponent<{
       return () =>
         window.removeEventListener("beforeunload", handleBeforeunload);
     }, [currentSketch, originalSketch]);
+
+    const handleMenuButtonClick = useCallback(
+      () => dispatchIsSidebarOpen(true),
+      [dispatchIsSidebarOpen]
+    );
 
     const handleSketchNameChange: ChangeEventHandler<HTMLInputElement> =
       useCallback(
@@ -140,6 +157,15 @@ const TopBar: FunctionComponent<{
     return (
       <AppBar className={classes.appBar} color="inherit" position="fixed">
         <Toolbar>
+          <IconButton
+            color="inherit"
+            edge="start"
+            onClick={handleMenuButtonClick}
+            className={classes.menuButton}
+          >
+            <Menu />
+          </IconButton>
+
           <Grid container spacing={2}>
             <Grid item>
               <TextField

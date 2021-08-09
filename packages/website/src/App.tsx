@@ -93,6 +93,7 @@ const useStyles = makeStyles(({ mixins, palette, spacing }) => ({
 const App: FunctionComponent = memo(() => {
   const [alertData, dispatchAlertData] = useState<AlertData>({});
   const [errorComponentIDs, dispatchErrorComponentIDs] = useState<string[]>([]);
+  const [isSidebarOpen, dispatchIsSidebarOpen] = useState(false);
   const [player, dispatchPlayer] = useState<Player>();
   const [sketch, dispatchSketch] = useState(initialSketch);
 
@@ -283,12 +284,17 @@ const App: FunctionComponent = memo(() => {
         currentSketch={sketch}
         dispatchCurrentSketch={dispatchSketch}
         dispatchErrorComponentIDs={dispatchErrorComponentIDs}
+        dispatchIsSidebarOpen={dispatchIsSidebarOpen}
         dispatchPlayer={dispatchPlayer}
         player={player}
         onDrag={handleDrag}
       />
 
-      <Sidebar dispatchSketch={dispatchSketch} />
+      <Sidebar
+        dispatchIsSidebarOpen={dispatchIsSidebarOpen}
+        dispatchSketch={dispatchSketch}
+        isSidebarOpen={isSidebarOpen}
+      />
 
       <main className={classes.main}>
         <div className={classes.toolbar} />

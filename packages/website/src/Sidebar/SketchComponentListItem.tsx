@@ -153,8 +153,9 @@ const regenerateComponentIDsInSketch = ({
 };
 
 const SketchComponentListItem: FunctionComponent<{
+  dispatchIsSidebarOpen: Dispatch<SetStateAction<boolean>>;
   dispatchSketch: Dispatch<SetStateAction<Sketch>>;
-}> = memo(({ dispatchSketch }) => {
+}> = memo(({ dispatchIsSidebarOpen, dispatchSketch }) => {
   const handleInputChange: ChangeEventHandler<HTMLInputElement> = useCallback(
     (event) => {
       const files = event.target.files;
@@ -193,11 +194,13 @@ const SketchComponentListItem: FunctionComponent<{
             },
           },
         }));
+
+        dispatchIsSidebarOpen(false);
       });
 
       fileReader.readAsText(files[0]);
     },
-    [dispatchSketch]
+    [dispatchIsSidebarOpen, dispatchSketch]
   );
 
   return (

@@ -1,6 +1,7 @@
 import {
   Divider,
   Drawer,
+  Hidden,
   Link,
   List,
   ListItem,
@@ -11,7 +12,7 @@ import {
   makeStyles,
 } from "@material-ui/core";
 import { Description, Favorite } from "@material-ui/icons";
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import type { Dispatch, FunctionComponent, SetStateAction } from "react";
 import { componentType } from "../component";
 import type { Sketch } from "../sketch";
@@ -20,30 +21,27 @@ import { SketchComponentListItem } from "./SketchComponentListItem";
 
 const sidebarWidth = 200;
 
-const useStyles = makeStyles({
-  drawer: {
-    width: sidebarWidth,
-    flexShrink: 0,
+const useStyles = makeStyles(({ breakpoints }) => ({
+  nav: {
+    [breakpoints.up("md")]: {
+      width: sidebarWidth,
+      flexShrink: 0,
+    },
   },
-  drawerPaper: {
+  paper: {
     width: sidebarWidth,
   },
-});
+}));
 
 const Sidebar: FunctionComponent<{
+  dispatchIsSidebarOpen: Dispatch<SetStateAction<boolean>>;
   dispatchSketch: Dispatch<SetStateAction<Sketch>>;
-}> = memo(({ dispatchSketch }) => {
+  isSidebarOpen: boolean;
+}> = memo(({ dispatchIsSidebarOpen, dispatchSketch, isSidebarOpen }) => {
   const classes = useStyles();
 
-  return (
-    <Drawer
-      variant="permanent"
-      className={classes.drawer}
-      classes={{
-        paper: classes.drawerPaper,
-      }}
-      anchor="left"
-    >
+  const content = (
+    <>
       <Link
         color="inherit"
         href="https://github.com/hata6502/troopa-wasm"
@@ -123,6 +121,7 @@ const Sidebar: FunctionComponent<{
               return (
                 <PrimitiveComponentListItem
                   key={type}
+                  dispatchIsSidebarOpen={dispatchIsSidebarOpen}
                   dispatchSketch={dispatchSketch}
                   type={type}
                 />
@@ -133,6 +132,7 @@ const Sidebar: FunctionComponent<{
               return (
                 <SketchComponentListItem
                   key={type}
+                  dispatchIsSidebarOpen={dispatchIsSidebarOpen}
                   dispatchSketch={dispatchSketch}
                 />
               );
@@ -147,7 +147,42 @@ const Sidebar: FunctionComponent<{
           }
         })}
       </List>
-    </Drawer>
+    </>
+  );
+
+  const handleClose = useCallback(
+    () => dispatchIsSidebarOpen(false),
+    [dispatchIsSidebarOpen]
+  );
+
+  return (
+    <nav className={classes.nav}>
+      <Hidden mdUp>
+        <Drawer
+          variant="temporary"
+          classes={{
+            paper: classes.paper,
+          }}
+          container={document.body}
+          open={isSidebarOpen}
+          onClose={handleClose}
+        >
+          {content}
+        </Drawer>
+      </Hidden>
+
+      <Hidden smDown>
+        <Drawer
+          variant="permanent"
+          classes={{
+            paper: classes.paper,
+          }}
+          open
+        >
+          {content}
+        </Drawer>
+      </Hidden>
+    </nav>
   );
 });
 
