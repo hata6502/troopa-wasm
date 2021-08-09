@@ -1,13 +1,13 @@
 import {
   AppBar,
-  Button,
   Grid,
   IconButton,
   TextField,
   Toolbar,
+  Tooltip,
   makeStyles,
 } from "@material-ui/core";
-import { Menu } from "@material-ui/icons";
+import { FolderOpen, Menu, PlayArrow, Save, Stop } from "@material-ui/icons";
 import equal from "fast-deep-equal";
 import { memo, useCallback, useEffect, useState } from "react";
 import type {
@@ -178,42 +178,57 @@ const TopBar: FunctionComponent<{
             </Grid>
 
             <Grid item>
-              <Button
-                variant="contained"
-                color="primary"
-                disabled={Boolean(player)}
-                onClick={handlePlayButtonClick}
-              >
-                play
-              </Button>
+              <Tooltip title="Play">
+                <span>
+                  <IconButton
+                    color="primary"
+                    disabled={Boolean(player)}
+                    onClick={handlePlayButtonClick}
+                  >
+                    <PlayArrow />
+                  </IconButton>
+                </span>
+              </Tooltip>
             </Grid>
 
             <Grid item>
-              <Button
-                variant="contained"
-                disabled={!player}
-                onClick={handleStopButtonClick}
-              >
-                stop
-              </Button>
+              <Tooltip title="Stop">
+                <span>
+                  <IconButton
+                    disabled={!player}
+                    onClick={handleStopButtonClick}
+                  >
+                    <Stop />
+                  </IconButton>
+                </span>
+              </Tooltip>
             </Grid>
 
             <Grid item>
-              <Button variant="contained" component="label">
-                load
-                <input
-                  type="file"
-                  accept="application/json"
-                  hidden
-                  onChange={handleLoadInputChange}
-                />
-              </Button>
+              <Tooltip title="Open">
+                <span>
+                  <IconButton component="label">
+                    <FolderOpen />
+
+                    <input
+                      type="file"
+                      accept="application/json"
+                      hidden
+                      onChange={handleLoadInputChange}
+                    />
+                  </IconButton>
+                </span>
+              </Tooltip>
             </Grid>
 
             <Grid item>
-              <Button variant="contained" onClick={handleSaveButtonClick}>
-                save
-              </Button>
+              <Tooltip title="Save">
+                <span>
+                  <IconButton onClick={handleSaveButtonClick}>
+                    <Save />
+                  </IconButton>
+                </span>
+              </Tooltip>
             </Grid>
           </Grid>
         </Toolbar>
