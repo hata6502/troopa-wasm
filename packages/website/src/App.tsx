@@ -183,6 +183,15 @@ const App: FunctionComponent = memo(() => {
     }));
 
   useEffect(() => {
+    const intervalID = setInterval(
+      () => archerContainerElement.current?.refreshScreen(),
+      1000
+    );
+
+    return () => clearInterval(intervalID);
+  }, []);
+
+  useEffect(() => {
     if (!player) {
       return;
     }
@@ -254,14 +263,6 @@ const App: FunctionComponent = memo(() => {
       })),
     []
   );
-
-  const handleDrag = useCallback(() => {
-    if (!archerContainerElement.current) {
-      throw new Error();
-    }
-
-    archerContainerElement.current.refreshScreen();
-  }, []);
 
   const removeConnections = useCallback(
     (targets: Destination[]) =>
@@ -354,7 +355,6 @@ const App: FunctionComponent = memo(() => {
         player={player}
         sketch={sketch}
         sketchHistory={sketchHistory}
-        onDrag={handleDrag}
       />
 
       <Sidebar
@@ -383,7 +383,6 @@ const App: FunctionComponent = memo(() => {
                 dispatchComponent={dispatchComponent}
                 isError={errorComponentIDs.includes(id)}
                 onDistributorButtonClick={handleDistributorButtonClick}
-                onDrag={handleDrag}
                 onRemoveComponentRequest={handleRemoveComponentRequest}
                 onRemoveConnectionsRequest={removeConnections}
               >
@@ -403,7 +402,6 @@ const App: FunctionComponent = memo(() => {
                   index={index}
                   dispatchInputs={dispatchInputs}
                   input={input}
-                  onDrag={handleDrag}
                   onRemoveConnectionsRequest={removeConnections}
                 />
               ))}

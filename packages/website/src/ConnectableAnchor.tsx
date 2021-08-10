@@ -17,19 +17,15 @@ const useStyles = makeStyles(({ palette }) => ({
 const ConnectableAnchor: FunctionComponent<{
   id: string;
   relations?: Relation[];
-  onDrag?: () => void;
   onStop?: DraggableEventHandler;
-}> = memo(({ id, relations = [], onDrag, onStop }) => {
+}> = memo(({ id, relations = [], onStop }) => {
   const [connectionCuror, setConnectionCuror] = useState<DraggableData>();
 
   const classes = useStyles();
 
   const handleDrag: DraggableEventHandler = useCallback(
-    (_event, data) => {
-      setConnectionCuror(data);
-      onDrag?.();
-    },
-    [onDrag]
+    (_event, data) => setConnectionCuror(data),
+    []
   );
 
   const handleStop: DraggableEventHandler = useCallback(

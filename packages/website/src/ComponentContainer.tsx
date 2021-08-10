@@ -82,7 +82,6 @@ interface ComponentContainerProps {
   dispatchComponent: Dispatch<SetStateAction<Sketch["component"]>>;
   isError?: boolean;
   onDistributorButtonClick?: MouseEventHandler<HTMLButtonElement>;
-  onDrag?: () => void;
   onRemoveComponentRequest?: (event: {
     id: string;
     component: Component;
@@ -100,7 +99,6 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
     dispatchComponent,
     isError = false,
     onDistributorButtonClick,
-    onDrag,
     onRemoveComponentRequest,
     onRemoveConnectionsRequest,
   }) => {
@@ -117,7 +115,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
     );
 
     const handleDrag: DraggableEventHandler = useCallback(
-      (_event, data) => {
+      (_event, data) =>
         dispatchComponent((prevComponent) => ({
           ...prevComponent,
           [id]: {
@@ -127,11 +125,8 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
               y: Math.min(Math.max(data.y, 0.0), sketchHeight),
             },
           },
-        }));
-
-        onDrag?.();
-      },
-      [dispatchComponent, id, onDrag]
+        })),
+      [dispatchComponent, id]
     );
 
     const handleDeleteButtonClick = useCallback(
@@ -226,8 +221,6 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
             ),
           });
         }
-
-        onDrag?.();
       },
       [
         component.outputDestinations,
@@ -235,7 +228,6 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
         dispatchComponent,
         handleDistributorButtonClick,
         id,
-        onDrag,
         onRemoveConnectionsRequest,
       ]
     );
@@ -366,7 +358,6 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
             <ConnectableAnchor
               id={`component-${id}-output`}
               relations={outputRelations}
-              onDrag={onDrag}
               onStop={handleOutputStop}
             />
           </div>

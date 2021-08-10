@@ -54,7 +54,6 @@ const TopBar: FunctionComponent<{
   player?: Player;
   sketch: Sketch;
   sketchHistory: SketchHistory;
-  onDrag?: () => void;
 }> = memo(
   ({
     dispatchErrorComponentIDs,
@@ -65,7 +64,6 @@ const TopBar: FunctionComponent<{
     player,
     sketch,
     sketchHistory,
-    onDrag,
   }) => {
     const classes = useStyles();
 
@@ -86,13 +84,7 @@ const TopBar: FunctionComponent<{
 
     const handlePlayButtonClick = useCallback(() => {
       dispatchErrorComponentIDs([]);
-
-      dispatchPlayer(
-        new Player({
-          dispatchSketch: dispatchSketch,
-          sketch,
-        })
-      );
+      dispatchPlayer(new Player({ dispatchSketch, sketch }));
     }, [dispatchSketch, dispatchErrorComponentIDs, dispatchPlayer, sketch]);
 
     const handleStopButtonClick = useCallback(() => {
@@ -161,12 +153,11 @@ const TopBar: FunctionComponent<{
             event.target.value = "";
 
             dispatchSketch(loadedSketch);
-            onDrag?.();
           });
 
           fileReader.readAsText(files[0]);
         },
-        [dispatchSketch, onDrag]
+        [dispatchSketch]
       );
 
     const handleSaveButtonClick = useCallback(
