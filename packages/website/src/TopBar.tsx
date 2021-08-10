@@ -8,8 +8,7 @@ import {
   makeStyles,
 } from "@material-ui/core";
 import { FolderOpen, Menu, PlayArrow, Save, Stop } from "@material-ui/icons";
-import equal from "fast-deep-equal";
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback } from "react";
 import type {
   ChangeEventHandler,
   Dispatch,
@@ -18,7 +17,7 @@ import type {
 } from "react";
 import { Player } from "./Player";
 import { sidebarWidth } from "./Sidebar";
-import { initialSketch, saveSketch } from "./sketch";
+import { saveSketch } from "./sketch";
 import type { Sketch } from "./sketch";
 
 const useStyles = makeStyles(({ breakpoints, spacing }) => ({
@@ -37,43 +36,24 @@ const useStyles = makeStyles(({ breakpoints, spacing }) => ({
 }));
 
 const TopBar: FunctionComponent<{
-  currentSketch: Sketch;
-  dispatchCurrentSketch: Dispatch<SetStateAction<Sketch>>;
   dispatchErrorComponentIDs: Dispatch<SetStateAction<string[]>>;
   dispatchIsSidebarOpen: Dispatch<SetStateAction<boolean>>;
   dispatchPlayer: Dispatch<SetStateAction<Player | undefined>>;
+  dispatchSketch: Dispatch<SetStateAction<Sketch>>;
   player?: Player;
+  sketch: Sketch;
   onDrag?: () => void;
 }> = memo(
   ({
-    currentSketch,
-    dispatchCurrentSketch,
     dispatchErrorComponentIDs,
     dispatchIsSidebarOpen,
     dispatchPlayer,
+    dispatchSketch,
     player,
+    sketch,
     onDrag,
   }) => {
-    const [originalSketch, setOriginalSketch] = useState(initialSketch);
-
     const classes = useStyles();
-
-    useEffect(() => {
-      if (equal(currentSketch, originalSketch)) {
-        return;
-      }
-
-      const handleBeforeunload = (event: BeforeUnloadEvent) => {
-        event.preventDefault();
-        // For Chrome.
-        event.returnValue = "";
-      };
-
-      window.addEventListener("beforeunload", handleBeforeunload);
-
-      return () =>
-        window.removeEventListener("beforeunload", handleBeforeunload);
-    }, [currentSketch, originalSketch]);
 
     const handleMenuButtonClick = useCallback(
       () => dispatchIsSidebarOpen(true),
@@ -83,11 +63,11 @@ const TopBar: FunctionComponent<{
     const handleSketchNameChange: ChangeEventHandler<HTMLInputElement> =
       useCallback(
         (event) =>
-          dispatchCurrentSketch((prevCurrentSketch) => ({
-            ...prevCurrentSketch,
+          dispatchSketch((prevSketch) => ({
+            ...prevSketch,
             name: event.target.value,
           })),
-        [dispatchCurrentSketch]
+        [dispatchSketch]
       );
 
     const handlePlayButtonClick = useCallback(() => {
@@ -95,16 +75,11 @@ const TopBar: FunctionComponent<{
 
       dispatchPlayer(
         new Player({
-          dispatchSketch: dispatchCurrentSketch,
-          sketch: currentSketch,
+          dispatchSketch: dispatchSketch,
+          sketch,
         })
       );
-    }, [
-      currentSketch,
-      dispatchCurrentSketch,
-      dispatchErrorComponentIDs,
-      dispatchPlayer,
-    ]);
+    }, [dispatchSketch, dispatchErrorComponentIDs, dispatchPlayer, sketch]);
 
     const handleStopButtonClick = useCallback(() => {
       if (!player) {
@@ -138,21 +113,19 @@ const TopBar: FunctionComponent<{
 
             event.target.value = "";
 
-            dispatchCurrentSketch(loadedSketch);
-            setOriginalSketch(loadedSketch);
-
+            dispatchSketch(loadedSketch);
             onDrag?.();
           });
 
           fileReader.readAsText(files[0]);
         },
-        [dispatchCurrentSketch, onDrag]
+        [dispatchSketch, onDrag]
       );
 
-    const handleSaveButtonClick = useCallback(() => {
-      saveSketch({ sketch: currentSketch });
-      setOriginalSketch(currentSketch);
-    }, [currentSketch]);
+    const handleSaveButtonClick = useCallback(
+      () => saveSketch({ sketch }),
+      [sketch]
+    );
 
     return (
       <AppBar className={classes.appBar} color="inherit" position="fixed">
@@ -172,7 +145,7 @@ const TopBar: FunctionComponent<{
                 variant="outlined"
                 label="sketch name"
                 size="small"
-                value={currentSketch.name}
+                value={sketch.name}
                 onChange={handleSketchNameChange}
               />
             </Grid>

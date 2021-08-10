@@ -13,6 +13,7 @@ import { memo, useCallback, useEffect, useRef, useState } from "react";
 import type { Dispatch, FunctionComponent, SetStateAction } from "react";
 import { ArcherContainer, ArcherElement } from "react-archer";
 import type { ArcherContainerProps } from "react-archer";
+import * as Sentry from "@sentry/browser";
 import { v4 as uuidv4 } from "uuid";
 import { ComponentActions } from "./ComponentActions";
 import { ComponentContainer } from "./ComponentContainer";
@@ -95,7 +96,33 @@ const App: FunctionComponent = memo(() => {
   const [errorComponentIDs, dispatchErrorComponentIDs] = useState<string[]>([]);
   const [isSidebarOpen, dispatchIsSidebarOpen] = useState(false);
   const [player, dispatchPlayer] = useState<Player>();
-  const [sketch, dispatchSketch] = useState(initialSketch);
+
+  const [sketch, dispatchSketch] = useState(() => {
+    const sketchItem = localStorage.getItem("sketch");
+
+    return sketchItem ? (JSON.parse(sketchItem) as Sketch) : initialSketch;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("sketch", JSON.stringify(sketch));
+    } catch (exception: unknown) {
+      dispatchAlertData({
+        isOpen: true,
+        severity: "error",
+        title: "Failed to save the sketch to localStorage",
+        description: "Please save the sketch as a file.",
+      });
+
+      if (
+        !(exception instanceof DOMException) ||
+        exception.code !== DOMException.QUOTA_EXCEEDED_ERR
+      ) {
+        console.error(exception);
+        Sentry.captureException(exception);
+      }
+    }
+  }, [sketch]);
 
   const archerContainerElement = useRef<ArcherContainer>(null);
 
@@ -281,12 +308,12 @@ const App: FunctionComponent = memo(() => {
   return (
     <div className={classes.container}>
       <TopBar
-        currentSketch={sketch}
-        dispatchCurrentSketch={dispatchSketch}
         dispatchErrorComponentIDs={dispatchErrorComponentIDs}
         dispatchIsSidebarOpen={dispatchIsSidebarOpen}
         dispatchPlayer={dispatchPlayer}
+        dispatchSketch={dispatchSketch}
         player={player}
+        sketch={sketch}
         onDrag={handleDrag}
       />
 
