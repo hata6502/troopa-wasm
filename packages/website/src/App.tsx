@@ -32,11 +32,18 @@ import type { Destination } from "./destination";
 import { initialSketch } from "./sketch";
 import type { Sketch } from "./sketch";
 
+const historyMaxLength = 30;
+
 interface AlertData {
   isOpen?: SnackbarProps["open"];
   severity?: AlertProps["severity"];
   title?: AlertTitleProps["children"];
   description?: AlertProps["children"];
+}
+
+interface SketchHistory {
+  index: number;
+  sketches: Sketch[];
 }
 
 const sketchOutputDestination: Destination = {
@@ -103,25 +110,56 @@ const App: FunctionComponent = memo(() => {
     return sketchItem ? (JSON.parse(sketchItem) as Sketch) : initialSketch;
   });
 
-  useEffect(() => {
-    try {
-      localStorage.setItem("sketch", JSON.stringify(sketch));
-    } catch (exception: unknown) {
-      dispatchAlertData({
-        isOpen: true,
-        severity: "error",
-        title: "Failed to save the sketch to localStorage",
-        description: "Please save the sketch as a file.",
-      });
+  const [sketchHistory, dispatchSketchHistory] = useState<SketchHistory>({
+    index: 0,
+    sketches: [sketch],
+  });
 
-      if (
-        !(exception instanceof DOMException) ||
-        exception.code !== DOMException.QUOTA_EXCEEDED_ERR
-      ) {
-        console.error(exception);
-        Sentry.captureException(exception);
+  useEffect(() => {
+    const timeoutID = setTimeout(() => {
+      try {
+        localStorage.setItem("sketch", JSON.stringify(sketch));
+      } catch (exception: unknown) {
+        dispatchAlertData({
+          isOpen: true,
+          severity: "error",
+          title: "Failed to save the sketch to localStorage",
+          description: "Please save the sketch as a file.",
+        });
+
+        if (
+          !(exception instanceof DOMException) ||
+          exception.code !== DOMException.QUOTA_EXCEEDED_ERR
+        ) {
+          console.error(exception);
+          Sentry.captureException(exception);
+        }
       }
-    }
+
+      dispatchSketchHistory((prevSketchHistory) => {
+        if (
+          equal(sketch, prevSketchHistory.sketches[prevSketchHistory.index])
+        ) {
+          return prevSketchHistory;
+        }
+
+        const sketches = [
+          ...prevSketchHistory.sketches.slice(
+            Math.max(prevSketchHistory.index - historyMaxLength, 0),
+            prevSketchHistory.index + 1
+          ),
+          sketch,
+        ];
+
+        return {
+          ...prevSketchHistory,
+          index: sketches.length - 1,
+          sketches,
+        };
+      });
+    }, 1000);
+
+    return () => clearTimeout(timeoutID);
   }, [sketch]);
 
   const archerContainerElement = useRef<ArcherContainer>(null);
@@ -312,8 +350,10 @@ const App: FunctionComponent = memo(() => {
         dispatchIsSidebarOpen={dispatchIsSidebarOpen}
         dispatchPlayer={dispatchPlayer}
         dispatchSketch={dispatchSketch}
+        dispatchSketchHistory={dispatchSketchHistory}
         player={player}
         sketch={sketch}
+        sketchHistory={sketchHistory}
         onDrag={handleDrag}
       />
 
@@ -399,4 +439,4 @@ const App: FunctionComponent = memo(() => {
 });
 
 export { App, sketchHeight, sketchOutputDestination, sketchWidth };
-export type { AlertData };
+export type { AlertData, SketchHistory };

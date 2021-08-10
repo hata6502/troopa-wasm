@@ -7,7 +7,16 @@ import {
   Tooltip,
   makeStyles,
 } from "@material-ui/core";
-import { FolderOpen, Menu, PlayArrow, Save, Stop } from "@material-ui/icons";
+import {
+  FolderOpen,
+  InsertDriveFileOutlined,
+  Menu,
+  PlayArrow,
+  Redo,
+  Save,
+  Stop,
+  Undo,
+} from "@material-ui/icons";
 import { memo, useCallback } from "react";
 import type {
   ChangeEventHandler,
@@ -15,9 +24,10 @@ import type {
   FunctionComponent,
   SetStateAction,
 } from "react";
+import type { SketchHistory } from "./App";
 import { Player } from "./Player";
 import { sidebarWidth } from "./Sidebar";
-import { saveSketch } from "./sketch";
+import { initialSketch, saveSketch } from "./sketch";
 import type { Sketch } from "./sketch";
 
 const useStyles = makeStyles(({ breakpoints, spacing }) => ({
@@ -40,8 +50,10 @@ const TopBar: FunctionComponent<{
   dispatchIsSidebarOpen: Dispatch<SetStateAction<boolean>>;
   dispatchPlayer: Dispatch<SetStateAction<Player | undefined>>;
   dispatchSketch: Dispatch<SetStateAction<Sketch>>;
+  dispatchSketchHistory: Dispatch<SetStateAction<SketchHistory>>;
   player?: Player;
   sketch: Sketch;
+  sketchHistory: SketchHistory;
   onDrag?: () => void;
 }> = memo(
   ({
@@ -49,8 +61,10 @@ const TopBar: FunctionComponent<{
     dispatchIsSidebarOpen,
     dispatchPlayer,
     dispatchSketch,
+    dispatchSketchHistory,
     player,
     sketch,
+    sketchHistory,
     onDrag,
   }) => {
     const classes = useStyles();
@@ -90,6 +104,39 @@ const TopBar: FunctionComponent<{
 
       void player.close();
     }, [dispatchPlayer, player]);
+
+    const handleUndoButtonClick = useCallback(() => {
+      dispatchSketch(sketchHistory.sketches[sketchHistory.index - 1]);
+
+      dispatchSketchHistory((prevSketchHistory) => ({
+        ...prevSketchHistory,
+        index: prevSketchHistory.index - 1,
+      }));
+    }, [
+      dispatchSketch,
+      dispatchSketchHistory,
+      sketchHistory.index,
+      sketchHistory.sketches,
+    ]);
+
+    const handleRedoButtonClick = useCallback(() => {
+      dispatchSketch(sketchHistory.sketches[sketchHistory.index + 1]);
+
+      dispatchSketchHistory((prevSketchHistory) => ({
+        ...prevSketchHistory,
+        index: prevSketchHistory.index + 1,
+      }));
+    }, [
+      dispatchSketch,
+      dispatchSketchHistory,
+      sketchHistory.index,
+      sketchHistory.sketches,
+    ]);
+
+    const handleNewButtonClick = useCallback(
+      () => dispatchSketch(initialSketch),
+      [dispatchSketch]
+    );
 
     const handleLoadInputChange: ChangeEventHandler<HTMLInputElement> =
       useCallback(
@@ -139,7 +186,7 @@ const TopBar: FunctionComponent<{
             <Menu />
           </IconButton>
 
-          <Grid container spacing={2}>
+          <Grid container spacing={1}>
             <Grid item>
               <TextField
                 variant="outlined"
@@ -172,6 +219,44 @@ const TopBar: FunctionComponent<{
                     onClick={handleStopButtonClick}
                   >
                     <Stop />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            </Grid>
+
+            <Grid item>
+              <Tooltip title="Undo">
+                <span>
+                  <IconButton
+                    disabled={sketchHistory.index < 1}
+                    onClick={handleUndoButtonClick}
+                  >
+                    <Undo />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            </Grid>
+
+            <Grid item>
+              <Tooltip title="Redo">
+                <span>
+                  <IconButton
+                    disabled={
+                      sketchHistory.index >= sketchHistory.sketches.length - 1
+                    }
+                    onClick={handleRedoButtonClick}
+                  >
+                    <Redo />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            </Grid>
+
+            <Grid item>
+              <Tooltip title="New">
+                <span>
+                  <IconButton onClick={handleNewButtonClick}>
+                    <InsertDriveFileOutlined />
                   </IconButton>
                 </span>
               </Tooltip>
