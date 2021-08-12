@@ -20,7 +20,7 @@ type CoreInfiniteLoopDetectedEventHandler = (event: {
   componentID: string;
 }) => void;
 
-type History = { sketch: Sketch; sketchComponent?: SketchComponent }[];
+type Scope = { sketch: Sketch; sketchComponent?: SketchComponent };
 
 class Player {
   static coreComponentOutputLength = 8;
@@ -86,17 +86,17 @@ class Player {
 
   private static resolveDestination({
     destination,
-    history,
+    scopes,
   }: {
     destination: Destination;
-    history: History;
+    scopes: Scope[];
   }): ComponentDestination[] {
-    const currentHistory = history[history.length - 1];
+    const currentScope = scopes[scopes.length - 1];
 
     switch (destination.type) {
       case "component": {
         const inputComponent = new Map(
-          Object.entries(currentHistory.sketch.component)
+          Object.entries(currentScope.sketch.component)
         ).get(destination.id);
 
         if (!inputComponent) {
@@ -138,8 +138,8 @@ class Player {
 
             return Player.resolveDestination({
               destination: sketchInputDestination,
-              history: [
-                ...history,
+              scopes: [
+                ...scopes,
                 {
                   sketch: inputComponent.extendedData.sketch,
                   sketchComponent: inputComponent,
@@ -158,7 +158,7 @@ class Player {
       }
 
       case "sketchOutput": {
-        const currentSketchComponent = currentHistory.sketchComponent;
+        const currentSketchComponent = currentScope.sketchComponent;
 
         if (!currentSketchComponent) {
           return [];
@@ -167,8 +167,8 @@ class Player {
         return currentSketchComponent.outputDestinations.flatMap(
           (outputDestination) =>
             Player.resolveDestination({
-              history: history.slice(0, history.length - 1),
               destination: outputDestination,
+              scopes: scopes.slice(0, scopes.length - 1),
             })
         );
       }
@@ -184,6 +184,7 @@ class Player {
 
   private audioContext;
   private componentIndexMap: Map<string, number>;
+  private outputComponentIds: string[];
   private onCoreInfiniteLoopDetected?: CoreInfiniteLoopDetectedEventHandler;
 
   constructor({
@@ -199,67 +200,12 @@ class Player {
     core.instance.exports["init"](this.audioContext.sampleRate);
 
     this.componentIndexMap = new Map(Player.createCoreComponents({ sketch }));
-    this.connectCoreComponents({ history: [{ sketch }] });
+    this.connectComponents({ scopes: [{ sketch }] });
 
-    const outputComponentIds: string[] = [];
+    this.outputComponentIds = [];
+    this.prepareInterfaces({ sketch });
 
-    const prepareInterfaces = ({ sketch }: { sketch: Sketch }) =>
-      Object.entries(sketch.component).forEach(([id, component]) => {
-        switch (component.type) {
-          case componentType.input: {
-            this.inputValue({
-              componentID: id,
-              value: Number(component.extendedData.value),
-            });
-
-            break;
-          }
-
-          case componentType.speaker:
-          case componentType.meter: {
-            outputComponentIds.push(id);
-
-            break;
-          }
-
-          case componentType.amplifier:
-          case componentType.buffer:
-          case componentType.differentiator:
-          case componentType.distributor:
-          case componentType.divider:
-          case componentType.integrator:
-          case componentType.lowerSaturator:
-          case componentType.mixer:
-          case componentType.noise:
-          case componentType.saw:
-          case componentType.sine:
-          case componentType.square:
-          case componentType.subtractor:
-          case componentType.triangle:
-          case componentType.upperSaturator:
-          case componentType.keyboardFrequency:
-          case componentType.keyboardSwitch: {
-            break;
-          }
-
-          case componentType.sketch: {
-            prepareInterfaces({ sketch: component.extendedData.sketch });
-
-            break;
-          }
-
-          default: {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const exhaustiveCheck: never = component;
-
-            throw new Error();
-          }
-        }
-      });
-
-    prepareInterfaces({ sketch });
-
-    outputComponentIds.forEach((outputComponentId) => {
+    this.outputComponentIds.forEach((outputComponentId) => {
       const outputComponentIndex =
         this.componentIndexMap.get(outputComponentId);
 
@@ -283,7 +229,7 @@ class Player {
       // @ts-expect-error Core type is not defined.
       this.catchCoreException(core.instance.exports["process"]());
 
-      outputComponentIds.forEach((outputComponentId, index) => {
+      this.outputComponentIds.forEach((outputComponentId, index) => {
         // @ts-expect-error Core type is not defined.
         const bufferAddress = core.instance.exports[
           "get_buffer_address"
@@ -431,10 +377,10 @@ class Player {
     throw new Error(`Uncaught core exception: ${returnCode}`);
   }
 
-  private connectCoreComponents({ history }: { history: History }) {
-    const currentHistory = history[history.length - 1];
+  private connectComponents({ scopes }: { scopes: Scope[] }) {
+    const currentScope = scopes[scopes.length - 1];
 
-    Object.entries(currentHistory.sketch.component).forEach(([id, component]) =>
+    Object.entries(currentScope.sketch.component).forEach(([id, component]) =>
       component.outputDestinations.forEach((outputDestination) => {
         switch (component.type) {
           case componentType.amplifier:
@@ -459,7 +405,7 @@ class Player {
           case componentType.meter: {
             const resolvedDestinations = Player.resolveDestination({
               destination: outputDestination,
-              history,
+              scopes,
             });
 
             resolvedDestinations.forEach((resolvedDestination) => {
@@ -476,6 +422,11 @@ class Player {
                 throw new Error();
               }
 
+              console.log(inputComponentIndex)
+              console.log(resolvedDestination.inputIndex)
+              console.log(outputComponentIndex)
+              console.log("");
+
               // @ts-expect-error Core type is not defined.
               core.instance.exports["connect"](
                 inputComponentIndex,
@@ -488,9 +439,9 @@ class Player {
           }
 
           case componentType.sketch: {
-            this.connectCoreComponents({
-              history: [
-                ...history,
+            this.connectComponents({
+              scopes: [
+                ...scopes,
                 {
                   sketch: component.extendedData.sketch,
                   sketchComponent: component,
@@ -510,6 +461,61 @@ class Player {
         }
       })
     );
+  }
+
+  private prepareInterfaces({ sketch }: { sketch: Sketch }) {
+    Object.entries(sketch.component).forEach(([id, component]) => {
+      switch (component.type) {
+        case componentType.input: {
+          this.inputValue({
+            componentID: id,
+            value: Number(component.extendedData.value),
+          });
+  
+          break;
+        }
+  
+        case componentType.speaker:
+        case componentType.meter: {
+          this.outputComponentIds.push(id);
+  
+          break;
+        }
+  
+        case componentType.amplifier:
+        case componentType.buffer:
+        case componentType.differentiator:
+        case componentType.distributor:
+        case componentType.divider:
+        case componentType.integrator:
+        case componentType.lowerSaturator:
+        case componentType.mixer:
+        case componentType.noise:
+        case componentType.saw:
+        case componentType.sine:
+        case componentType.square:
+        case componentType.subtractor:
+        case componentType.triangle:
+        case componentType.upperSaturator:
+        case componentType.keyboardFrequency:
+        case componentType.keyboardSwitch: {
+          break;
+        }
+  
+        case componentType.sketch: {
+          this.prepareInterfaces({ sketch: component.extendedData.sketch });
+  
+          break;
+        }
+  
+        default: {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const exhaustiveCheck: never = component;
+  
+          throw new Error();
+        }
+      }
+    });  
   }
 }
 
