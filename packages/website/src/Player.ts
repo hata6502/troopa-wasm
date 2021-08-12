@@ -380,29 +380,29 @@ class Player {
   private connectComponents({ scopes }: { scopes: Scope[] }) {
     const currentScope = scopes[scopes.length - 1];
 
-    Object.entries(currentScope.sketch.component).forEach(([id, component]) =>
-      component.outputDestinations.forEach((outputDestination) => {
-        switch (component.type) {
-          case componentType.amplifier:
-          case componentType.buffer:
-          case componentType.differentiator:
-          case componentType.distributor:
-          case componentType.divider:
-          case componentType.integrator:
-          case componentType.lowerSaturator:
-          case componentType.mixer:
-          case componentType.noise:
-          case componentType.saw:
-          case componentType.sine:
-          case componentType.square:
-          case componentType.subtractor:
-          case componentType.triangle:
-          case componentType.upperSaturator:
-          case componentType.input:
-          case componentType.keyboardFrequency:
-          case componentType.keyboardSwitch:
-          case componentType.speaker:
-          case componentType.meter: {
+    Object.entries(currentScope.sketch.component).forEach(([id, component]) => {
+      switch (component.type) {
+        case componentType.amplifier:
+        case componentType.buffer:
+        case componentType.differentiator:
+        case componentType.distributor:
+        case componentType.divider:
+        case componentType.integrator:
+        case componentType.lowerSaturator:
+        case componentType.mixer:
+        case componentType.noise:
+        case componentType.saw:
+        case componentType.sine:
+        case componentType.square:
+        case componentType.subtractor:
+        case componentType.triangle:
+        case componentType.upperSaturator:
+        case componentType.input:
+        case componentType.keyboardFrequency:
+        case componentType.keyboardSwitch:
+        case componentType.speaker:
+        case componentType.meter: {
+          component.outputDestinations.forEach((outputDestination) => {
             const resolvedDestinations = Player.resolveDestination({
               destination: outputDestination,
               scopes,
@@ -422,11 +422,6 @@ class Player {
                 throw new Error();
               }
 
-              console.log(inputComponentIndex)
-              console.log(resolvedDestination.inputIndex)
-              console.log(outputComponentIndex)
-              console.log("");
-
               // @ts-expect-error Core type is not defined.
               core.instance.exports["connect"](
                 inputComponentIndex,
@@ -434,33 +429,33 @@ class Player {
                 outputComponentIndex
               );
             });
+          });
 
-            break;
-          }
-
-          case componentType.sketch: {
-            this.connectComponents({
-              scopes: [
-                ...scopes,
-                {
-                  sketch: component.extendedData.sketch,
-                  sketchComponent: component,
-                },
-              ],
-            });
-
-            break;
-          }
-
-          default: {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const exhaustiveCheck: never = component;
-
-            throw new Error();
-          }
+          break;
         }
-      })
-    );
+
+        case componentType.sketch: {
+          this.connectComponents({
+            scopes: [
+              ...scopes,
+              {
+                sketch: component.extendedData.sketch,
+                sketchComponent: component,
+              },
+            ],
+          });
+
+          break;
+        }
+
+        default: {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const exhaustiveCheck: never = component;
+
+          throw new Error();
+        }
+      }
+    });
   }
 
   private prepareInterfaces({ sketch }: { sketch: Sketch }) {
@@ -471,17 +466,17 @@ class Player {
             componentID: id,
             value: Number(component.extendedData.value),
           });
-  
+
           break;
         }
-  
+
         case componentType.speaker:
         case componentType.meter: {
           this.outputComponentIds.push(id);
-  
+
           break;
         }
-  
+
         case componentType.amplifier:
         case componentType.buffer:
         case componentType.differentiator:
@@ -501,21 +496,21 @@ class Player {
         case componentType.keyboardSwitch: {
           break;
         }
-  
+
         case componentType.sketch: {
           this.prepareInterfaces({ sketch: component.extendedData.sketch });
-  
+
           break;
         }
-  
+
         default: {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const exhaustiveCheck: never = component;
-  
+
           throw new Error();
         }
       }
-    });  
+    });
   }
 }
 

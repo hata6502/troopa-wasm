@@ -185,7 +185,7 @@ const App: FunctionComponent = memo(() => {
   useEffect(() => {
     const intervalID = setInterval(
       () => archerContainerElement.current?.refreshScreen(),
-      1000
+      200
     );
 
     return () => clearInterval(intervalID);
