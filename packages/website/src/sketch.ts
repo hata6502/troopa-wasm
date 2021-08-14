@@ -1,6 +1,8 @@
 import type { Component } from "./component";
 import type { Destination } from "./destination";
 
+const sketchComponentMaxLength = 4096;
+
 interface SketchInput {
   name: string;
   destination?: Destination;
@@ -52,8 +54,6 @@ const initialSketch: Sketch = {
   },
   inputs: [...Array(8).keys()].map(() => ({ name: "" })),
 };
-
-const sketchComponentMaxLength = 4096;
 
 const saveSketch = ({ sketch }: { sketch: Sketch }): void => {
   const url = URL.createObjectURL(

@@ -1,5 +1,7 @@
 import {
+  Box,
   Button,
+  Chip,
   Radio,
   Snackbar,
   makeStyles,
@@ -29,10 +31,60 @@ import {
 } from "./component";
 import { serializeDestination } from "./destination";
 import type { Destination } from "./destination";
-import { initialSketch } from "./sketch";
+import { initialSketch, sketchComponentMaxLength } from "./sketch";
 import type { Sketch } from "./sketch";
 
 const historyMaxLength = 30;
+
+const countPrimitiveComponents = ({ sketch }: { sketch: Sketch }) => {
+  let count = 0;
+
+  Object.values(sketch.component).forEach((component) => {
+    switch (component.type) {
+      case componentType.amplifier:
+      case componentType.buffer:
+      case componentType.differentiator:
+      case componentType.distributor:
+      case componentType.divider:
+      case componentType.integrator:
+      case componentType.lowerSaturator:
+      case componentType.mixer:
+      case componentType.noise:
+      case componentType.saw:
+      case componentType.sine:
+      case componentType.square:
+      case componentType.subtractor:
+      case componentType.triangle:
+      case componentType.upperSaturator:
+      case componentType.input:
+      case componentType.keyboardFrequency:
+      case componentType.keyboardSwitch:
+      case componentType.speaker:
+      case componentType.meter: {
+        count++;
+
+        break;
+      }
+
+      case componentType.sketch: {
+        count += countPrimitiveComponents({
+          sketch: component.extendedData.sketch,
+        });
+
+        break;
+      }
+
+      default: {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const exhaustiveCheck: never = component;
+
+        throw new Error("Unrecognized component type");
+      }
+    }
+  });
+
+  return count;
+};
 
 interface AlertData {
   isOpen?: SnackbarProps["open"];
@@ -365,6 +417,15 @@ const App: FunctionComponent = memo(() => {
 
       <main className={classes.main}>
         <div className={classes.toolbar} />
+
+        <Box mb={2}>
+          <Chip
+            label={`${
+              sketchComponentMaxLength - countPrimitiveComponents({ sketch })
+            } components free`}
+            variant="outlined"
+          />
+        </Box>
 
         <div className={classes.sketch}>
           <ArcherContainer
