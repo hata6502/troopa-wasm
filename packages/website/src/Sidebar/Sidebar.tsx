@@ -42,27 +42,19 @@ const Sidebar: FunctionComponent<{
 
   const content = (
     <>
-      <Link
-        color="inherit"
-        href="https://github.com/hata6502/troopa-wasm"
-        rel="noreferrer"
-        target="_blank"
-        underline="none"
-      >
-        <ListItem button component="div">
-          <ListItemText
-            primary={<Typography variant="h6">👀 troopa</Typography>}
-            secondary="web toy synthesizer"
-          />
-        </ListItem>
-      </Link>
+      <ListItem component="div">
+        <ListItemText
+          primary={<Typography variant="h6">troopa 👀</Typography>}
+          secondary="web toy synthesizer"
+        />
+      </ListItem>
 
       <Divider />
 
       <List>
         <Link
           color="inherit"
-          href="https://scrapbox.io/troopa/"
+          href="https://scrapbox.io/hata6502/troopa_%F0%9F%91%80"
           rel="noreferrer"
           target="_blank"
           underline="none"

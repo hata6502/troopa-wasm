@@ -48,7 +48,7 @@ const main = () => {
 
     if (unavailable) {
       ReactDOM.render(
-        <>Please enable localStorage to use troopa.</>,
+        <>Please enable localStorage to use troopa 👀.</>,
         document.querySelector("#app")
       );
 

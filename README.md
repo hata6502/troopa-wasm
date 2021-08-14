@@ -1,4 +1,4 @@
-# troopa-wasm
+# troopa-wasm 👀
 
 ## Requirements
 

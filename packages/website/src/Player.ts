@@ -203,7 +203,7 @@ class Player {
     this.connectComponents({ scopes: [{ sketch }] });
 
     this.outputComponentIds = [];
-    this.prepareInterfaces({ sketch });
+    this.prepareInterfaces({ scopes: [{ sketch }] });
 
     this.outputComponentIds.forEach((outputComponentId) => {
       const outputComponentIndex =
@@ -458,8 +458,10 @@ class Player {
     });
   }
 
-  private prepareInterfaces({ sketch }: { sketch: Sketch }) {
-    Object.entries(sketch.component).forEach(([id, component]) => {
+  private prepareInterfaces({ scopes }: { scopes: Scope[] }) {
+    const currentScope = scopes[scopes.length - 1];
+
+    Object.entries(currentScope.sketch.component).forEach(([id, component]) => {
       switch (component.type) {
         case componentType.input: {
           this.inputValue({
@@ -472,6 +474,10 @@ class Player {
 
         case componentType.speaker:
         case componentType.meter: {
+          if (currentScope.sketchComponent) {
+            break;
+          }
+
           this.outputComponentIds.push(id);
 
           break;
@@ -498,7 +504,15 @@ class Player {
         }
 
         case componentType.sketch: {
-          this.prepareInterfaces({ sketch: component.extendedData.sketch });
+          this.prepareInterfaces({
+            scopes: [
+              ...scopes,
+              {
+                sketch: component.extendedData.sketch,
+                sketchComponent: component,
+              },
+            ],
+          });
 
           break;
         }
