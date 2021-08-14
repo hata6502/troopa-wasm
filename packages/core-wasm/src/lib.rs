@@ -15,7 +15,6 @@ const SKETCH_MAX_LOOP_COUNT: i32 = 255;
 use once_cell::sync::Lazy;
 use rand;
 use rand::prelude::*;
-use std::collections::BTreeSet;
 use std::f32;
 use std::sync::Mutex;
 
@@ -178,11 +177,11 @@ impl Sketch {
             self.components[index].loop_count = 0;
         }
 
-        let mut component_indexes = BTreeSet::new();
+        let mut component_indexes = Vec::new();
 
         for input in inputs {
             self.components[input.0 .0].input_values[input.0 .1] = input.1;
-            component_indexes.insert(input.0 .0);
+            component_indexes.push(input.0 .0);
         }
 
         while !component_indexes.is_empty() {
