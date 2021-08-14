@@ -15,7 +15,7 @@ const SKETCH_MAX_LOOP_COUNT: i32 = 255;
 use once_cell::sync::Lazy;
 use rand;
 use rand::prelude::*;
-use std::collections::VecDeque;
+use std::collections::HashSet;
 use std::f32;
 use std::sync::Mutex;
 
@@ -178,35 +178,41 @@ impl Sketch {
             self.components[index].loop_count = 0;
         }
 
-        let mut sync_queue = VecDeque::new();
+        let mut destinations = HashSet::new();
 
         for input in inputs {
             self.components[input.0 .0].input_values[input.0 .1] = input.1;
-            sync_queue.push_back(input.0);
+            destinations.insert(input.0);
         }
 
-        while let Some(destination) = sync_queue.pop_front() {
-            let is_changed = self.components[destination.0].sync();
+        while !destinations.is_empty() {
+            let mut next_destinations = HashSet::new();
 
-            self.components[destination.0].loop_count += 1;
+            for destination in &destinations {
+                let is_changed = self.components[destination.0].sync();
 
-            if self.components[destination.0].loop_count > SKETCH_MAX_LOOP_COUNT {
-                return Err(RETURN_CODE_INFINITE_LOOP_DETECTED + destination.0 as i32);
+                self.components[destination.0].loop_count += 1;
+
+                if self.components[destination.0].loop_count > SKETCH_MAX_LOOP_COUNT {
+                    return Err(RETURN_CODE_INFINITE_LOOP_DETECTED + destination.0 as i32);
+                }
+
+                for output_destination_index in
+                    0..self.components[destination.0].output_destination_length
+                {
+                    let output_destination = self.components[destination.0].output_destinations
+                        [output_destination_index];
+
+                    self.components[output_destination.0].input_values[output_destination.1] =
+                        self.components[destination.0].output_value;
+
+                    if is_changed {
+                        next_destinations.insert(output_destination);
+                    };
+                }
             }
 
-            for output_destination_index in
-                0..self.components[destination.0].output_destination_length
-            {
-                let output_destination =
-                    self.components[destination.0].output_destinations[output_destination_index];
-
-                self.components[output_destination.0].input_values[output_destination.1] =
-                    self.components[destination.0].output_value;
-
-                if is_changed {
-                    sync_queue.push_back(output_destination);
-                };
-            }
+            destinations.extend(&next_destinations);
         }
 
         Ok(())
