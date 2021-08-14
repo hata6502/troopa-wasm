@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "cargo build --release --target wasm32-unknown-unknown",
-    "format": "cargo fmt",
+    "fix": "cargo fmt",
     "test": "cargo test"
   }
 }

@@ -186,7 +186,7 @@ impl Sketch {
         }
 
         while !component_indexes.is_empty() {
-            let mut next_component_indexes = BTreeSet::new();
+            let mut next_component_indexes = Vec::new();
 
             for &component_index in &component_indexes {
                 self.components[component_index].loop_count += 1;
@@ -208,7 +208,7 @@ impl Sketch {
                     self.components[output_destination.0].input_values[output_destination.1] =
                         self.components[component_index].output_value;
 
-                    next_component_indexes.insert(output_destination.0);
+                    next_component_indexes.push(output_destination.0);
                 }
             }
 
