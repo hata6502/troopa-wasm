@@ -212,7 +212,14 @@ impl Sketch {
             }
 
             component_indexes.clear();
-            component_indexes.extend(&next_component_indexes);
+
+            for next_component_index in next_component_indexes {
+                if component_indexes.contains(&next_component_index) {
+                    continue;
+                }
+
+                component_indexes.push(next_component_index);
+            }
         }
 
         Ok(())
