@@ -178,41 +178,42 @@ impl Sketch {
             self.components[index].loop_count = 0;
         }
 
-        let mut destinations = HashSet::new();
+        let mut component_indexes = HashSet::new();
 
         for input in inputs {
             self.components[input.0 .0].input_values[input.0 .1] = input.1;
-            destinations.insert(input.0);
+            component_indexes.insert(input.0 .0);
         }
 
-        while !destinations.is_empty() {
-            let mut next_destinations = HashSet::new();
+        while !component_indexes.is_empty() {
+            let mut next_component_indexes = HashSet::new();
 
-            for destination in &destinations {
-                let is_changed = self.components[destination.0].sync();
+            for &component_index in &component_indexes {
+                let is_changed = self.components[component_index].sync();
 
-                self.components[destination.0].loop_count += 1;
+                self.components[component_index].loop_count += 1;
 
-                if self.components[destination.0].loop_count > SKETCH_MAX_LOOP_COUNT {
-                    return Err(RETURN_CODE_INFINITE_LOOP_DETECTED + destination.0 as i32);
+                if self.components[component_index].loop_count > SKETCH_MAX_LOOP_COUNT {
+                    return Err(RETURN_CODE_INFINITE_LOOP_DETECTED + component_index as i32);
                 }
 
                 for output_destination_index in
-                    0..self.components[destination.0].output_destination_length
+                    0..self.components[component_index].output_destination_length
                 {
-                    let output_destination = self.components[destination.0].output_destinations
+                    let output_destination = self.components[component_index].output_destinations
                         [output_destination_index];
 
                     self.components[output_destination.0].input_values[output_destination.1] =
-                        self.components[destination.0].output_value;
+                        self.components[component_index].output_value;
 
                     if is_changed {
-                        next_destinations.insert(output_destination);
+                        next_component_indexes.insert(output_destination.0);
                     };
                 }
             }
 
-            destinations.extend(&next_destinations);
+            component_indexes.clear();
+            component_indexes.extend(&next_component_indexes);
         }
 
         Ok(())
