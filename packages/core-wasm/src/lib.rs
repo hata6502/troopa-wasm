@@ -15,7 +15,7 @@ const SKETCH_MAX_LOOP_COUNT: i32 = 255;
 use once_cell::sync::Lazy;
 use rand;
 use rand::prelude::*;
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 use std::f32;
 use std::sync::Mutex;
 
@@ -178,7 +178,7 @@ impl Sketch {
             self.components[index].loop_count = 0;
         }
 
-        let mut component_indexes = HashSet::new();
+        let mut component_indexes = BTreeSet::new();
 
         for input in inputs {
             self.components[input.0 .0].input_values[input.0 .1] = input.1;
@@ -186,16 +186,18 @@ impl Sketch {
         }
 
         while !component_indexes.is_empty() {
-            let mut next_component_indexes = HashSet::new();
+            let mut next_component_indexes = BTreeSet::new();
 
             for &component_index in &component_indexes {
-                let is_changed = self.components[component_index].sync();
-
                 self.components[component_index].loop_count += 1;
 
                 if self.components[component_index].loop_count > SKETCH_MAX_LOOP_COUNT {
                     return Err(RETURN_CODE_INFINITE_LOOP_DETECTED + component_index as i32);
-                }
+                };
+
+                if !self.components[component_index].sync() {
+                    continue;
+                };
 
                 for output_destination_index in
                     0..self.components[component_index].output_destination_length
@@ -206,9 +208,7 @@ impl Sketch {
                     self.components[output_destination.0].input_values[output_destination.1] =
                         self.components[component_index].output_value;
 
-                    if is_changed {
-                        next_component_indexes.insert(output_destination.0);
-                    };
+                    next_component_indexes.insert(output_destination.0);
                 }
             }
 
