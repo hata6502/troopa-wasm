@@ -77,13 +77,11 @@ const SketchInputContainer: FunctionComponent<{
     [dispatchInputs, index, onRemoveConnectionsRequest]
   );
 
-  const anchorRelations = useMemo(
+  const relations = useMemo(
     () =>
       input.destination
         ? [
             {
-              sourceAnchor: "right" as const,
-              targetAnchor: "left" as const,
               targetId: serializeDestination({
                 destination: input.destination,
               }),
@@ -109,7 +107,7 @@ const SketchInputContainer: FunctionComponent<{
       <Grid item>
         <ConnectableAnchor
           id={`sketch-input-${index}`}
-          relations={anchorRelations}
+          anchorlessRelations={relations}
           onStop={handleAnchorStop}
         />
       </Grid>

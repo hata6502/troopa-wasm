@@ -209,7 +209,7 @@ const App: FunctionComponent = memo(() => {
           sketches,
         };
       });
-    }, 1000);
+    }, 500);
 
     return () => clearTimeout(timeoutID);
   }, [sketch]);
@@ -396,6 +396,10 @@ const App: FunctionComponent = memo(() => {
       equal(input.destination, sketchOutputDestination)
     );
 
+  const sketchOutputID = serializeDestination({
+    destination: sketchOutputDestination,
+  });
+
   return (
     <div className={classes.container}>
       <TopBar
@@ -469,13 +473,10 @@ const App: FunctionComponent = memo(() => {
             </div>
 
             <div className={classes.output}>
-              <ArcherElement
-                id={serializeDestination({
-                  destination: sketchOutputDestination,
-                })}
-              >
+              <ArcherElement id={sketchOutputID}>
                 <Radio
                   data-sketch-output
+                  id={sketchOutputID}
                   checked={isOutputConnected}
                   className={classes.output}
                   size="small"

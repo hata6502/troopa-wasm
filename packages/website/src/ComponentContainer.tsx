@@ -261,20 +261,21 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
                 equal(input.destination, componentDestination)
               );
 
+            const radioID = serializeDestination({
+              destination: componentDestination,
+            });
+
             return [
               <div key={inputIndex} className={classes.inputContainer}>
                 <Typography variant="body2" gutterBottom>
                   {inputName}
                 </Typography>
 
-                <ArcherElement
-                  id={serializeDestination({
-                    destination: componentDestination,
-                  })}
-                >
+                <ArcherElement id={radioID}>
                   <Radio
                     data-component-id={id}
                     data-input-index={inputIndex}
+                    id={radioID}
                     checked={isConnected}
                     className={clsx(
                       classes.input,
@@ -302,8 +303,6 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
     const outputRelations = useMemo(
       () =>
         component.outputDestinations.map((outputDestination) => ({
-          sourceAnchor: "right" as const,
-          targetAnchor: "left" as const,
           targetId: serializeDestination({ destination: outputDestination }),
         })),
       [component.outputDestinations]
@@ -357,7 +356,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
           <div className={classes.output}>
             <ConnectableAnchor
               id={`component-${id}-output`}
-              relations={outputRelations}
+              anchorlessRelations={outputRelations}
               onStop={handleOutputStop}
             />
           </div>
