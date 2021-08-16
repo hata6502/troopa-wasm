@@ -37,11 +37,17 @@ const useStyles = makeStyles(({ breakpoints, spacing }) => ({
       marginLeft: sidebarWidth,
     },
   },
+  grid: {
+    overflow: "auto",
+  },
   menuButton: {
     marginRight: spacing(2),
     [breakpoints.up("md")]: {
       display: "none",
     },
+  },
+  sketchName: {
+    minWidth: 240,
   },
 }));
 
@@ -177,10 +183,11 @@ const TopBar: FunctionComponent<{
             <Menu />
           </IconButton>
 
-          <Grid container spacing={1}>
+          <Grid container className={classes.grid} spacing={1} wrap="nowrap">
             <Grid item>
               <TextField
                 variant="outlined"
+                className={classes.sketchName}
                 label="sketch name"
                 size="small"
                 value={sketch.name}
