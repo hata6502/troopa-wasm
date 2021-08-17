@@ -1,4 +1,4 @@
 [target.wasm32-unknown-unknown]
 rustflags = [
-  "-C", "link-arg=-zstack-size=4194304"
+  "-C", "link-arg=-zstack-size=8388608"
 ]
