@@ -288,12 +288,19 @@ impl Component {
             }
             ComponentType::Differentiator => {
                 const IN_INPUT: usize = 1;
+                const PREV_REGISTER: usize = 0;
 
                 if self.input_values[DIFF_TIME_INPUT] == 0.0 {
                     self.output_value
                 } else {
-                    (self.input_values[IN_INPUT] - self.output_value)
-                        / self.input_values[DIFF_TIME_INPUT]
+                    let in_input = self.input_values[IN_INPUT];
+
+                    let output_value = (in_input - self.registers[PREV_REGISTER])
+                        / self.input_values[DIFF_TIME_INPUT];
+
+                    self.registers[PREV_REGISTER] = in_input;
+
+                    output_value
                 }
             }
             ComponentType::Distributor => {
