@@ -236,9 +236,9 @@ class Player {
         ]() as number;
 
         const bufferByteOffset =
-          bufferAddress + Float64Array.BYTES_PER_ELEMENT * bufferSize * index;
+          bufferAddress + Float32Array.BYTES_PER_ELEMENT * bufferSize * index;
 
-        const buffer = new Float64Array(
+        const buffer = new Float32Array(
           // @ts-expect-error Core type is not defined.
           core.instance.exports["memory"].buffer,
           bufferByteOffset,
@@ -256,7 +256,7 @@ class Player {
 
         switch (outputComponent.type) {
           case componentType.speaker: {
-            event.outputBuffer.copyToChannel(Float32Array.from(buffer), 0);
+            event.outputBuffer.copyToChannel(buffer, 0);
 
             break;
           }

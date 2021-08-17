@@ -9,16 +9,16 @@ const OUTPUT_COMPONENT_INDEXES_MAX_LENGTH: usize = 64;
 const RETURN_CODE_SUCCESS: i32 = 0;
 const RETURN_CODE_INFINITE_LOOP_DETECTED: i32 = 1;
 
-const SKETCH_COMPONENT_MAX_LENGTH: usize = 8192;
+const SKETCH_COMPONENT_MAX_LENGTH: usize = 4096;
 const SKETCH_MAX_LOOP_COUNT: i32 = 255;
 
 use once_cell::sync::Lazy;
 use rand;
 use rand::prelude::*;
-use std::f64;
+use std::f32;
 use std::sync::Mutex;
 
-static BUFFER: Lazy<Mutex<[f64; BUFFER_SIZE * OUTPUT_COMPONENT_INDEXES_MAX_LENGTH]>> =
+static BUFFER: Lazy<Mutex<[f32; BUFFER_SIZE * OUTPUT_COMPONENT_INDEXES_MAX_LENGTH]>> =
     Lazy::new(|| Mutex::new([0.0; BUFFER_SIZE * OUTPUT_COMPONENT_INDEXES_MAX_LENGTH]));
 
 static OUTPUT_COMPONENT_INDEXES: Lazy<Mutex<[usize; OUTPUT_COMPONENT_INDEXES_MAX_LENGTH]>> =
@@ -54,7 +54,7 @@ pub enum ComponentType {
 type Destination = (usize, usize);
 
 #[no_mangle]
-pub extern "C" fn init(sample_rate: f64) {
+pub extern "C" fn init(sample_rate: f32) {
     *OUTPUT_COMPONENT_INDEXES_LENGTH.lock().unwrap() = 0;
     SKETCH.lock().unwrap().init(sample_rate);
 }
@@ -87,12 +87,12 @@ pub extern "C" fn create_component(component_type: ComponentType) -> usize {
 }
 
 #[no_mangle]
-pub extern "C" fn get_buffer_address() -> *const f64 {
+pub extern "C" fn get_buffer_address() -> *const f32 {
     &BUFFER.lock().unwrap()[0]
 }
 
 #[no_mangle]
-pub extern "C" fn input_value(component_index: usize, input_index: usize, value: f64) -> i32 {
+pub extern "C" fn input_value(component_index: usize, input_index: usize, value: f32) -> i32 {
     match SKETCH
         .lock()
         .unwrap()
@@ -132,7 +132,7 @@ const DIFF_TIME_INPUT: usize = 0;
 struct Sketch {
     components: [Component; SKETCH_COMPONENT_MAX_LENGTH],
     component_length: usize,
-    sample_rate: f64,
+    sample_rate: f32,
 }
 
 impl Sketch {
@@ -144,7 +144,7 @@ impl Sketch {
         }
     }
 
-    fn init(&mut self, sample_rate: f64) {
+    fn init(&mut self, sample_rate: f32) {
         self.component_length = 0;
         self.sample_rate = sample_rate;
     }
@@ -168,11 +168,11 @@ impl Sketch {
         index
     }
 
-    fn get_output_value(&self, index: usize) -> f64 {
+    fn get_output_value(&self, index: usize) -> f32 {
         self.components[index].output_value
     }
 
-    fn input_values(&mut self, inputs: Vec<(Destination, f64)>) -> Result<(), i32> {
+    fn input_values(&mut self, inputs: Vec<(Destination, f32)>) -> Result<(), i32> {
         for index in 0..self.component_length {
             self.components[index].loop_count = 0;
         }
@@ -240,12 +240,12 @@ impl Sketch {
 #[derive(Clone, Copy)]
 struct Component {
     component_type: ComponentType,
-    input_values: [f64; COMPONENT_INPUT_LENGTH],
+    input_values: [f32; COMPONENT_INPUT_LENGTH],
     loop_count: i32,
-    output_value: f64,
+    output_value: f32,
     output_destinations: [Destination; COMPONENT_OUTPUT_LENGTH],
     output_destination_length: usize,
-    registers: [f64; COMPONENT_REGISTER_LENGTH],
+    registers: [f32; COMPONENT_REGISTER_LENGTH],
 }
 
 impl Component {
@@ -275,6 +275,7 @@ impl Component {
             }
             ComponentType::Buffer => {
                 const IN_INPUT: usize = 1;
+
                 const VALUE_REGISTER: usize = 0;
 
                 self.registers[VALUE_REGISTER] = self.input_values[IN_INPUT];
@@ -287,19 +288,12 @@ impl Component {
             }
             ComponentType::Differentiator => {
                 const IN_INPUT: usize = 1;
-                const PREV_REGISTER: usize = 0;
 
                 if self.input_values[DIFF_TIME_INPUT] == 0.0 {
                     self.output_value
                 } else {
-                    let in_input = self.input_values[IN_INPUT];
-
-                    let output_value = (in_input - self.registers[PREV_REGISTER])
-                        / self.input_values[DIFF_TIME_INPUT];
-
-                    self.registers[PREV_REGISTER] = in_input;
-
-                    output_value
+                    (self.input_values[IN_INPUT] - self.output_value)
+                        / self.input_values[DIFF_TIME_INPUT]
                 }
             }
             ComponentType::Distributor => {
@@ -315,6 +309,7 @@ impl Component {
             }
             ComponentType::Integrator => {
                 const IN_INPUT: usize = 1;
+
                 const VALUE_REGISTER: usize = 0;
 
                 self.registers[VALUE_REGISTER] +=
@@ -338,12 +333,12 @@ impl Component {
                 if self.input_values[DIFF_TIME_INPUT] == 0.0 {
                     self.output_value
                 } else {
-                    RNG.lock().unwrap().gen::<f64>() * 2.0 - 1.0
+                    RNG.lock().unwrap().gen::<f32>() * 2.0 - 1.0
                 }
             }
             ComponentType::Saw => {
                 self.update_phase();
-                (self.registers[Self::PHASE_REGISTER] - f64::consts::PI) / f64::consts::PI
+                (self.registers[Self::PHASE_REGISTER] - f32::consts::PI) / f32::consts::PI
             }
             ComponentType::Sine => {
                 self.update_phase();
@@ -355,7 +350,7 @@ impl Component {
                 self.update_phase();
 
                 if self.registers[Self::PHASE_REGISTER]
-                    < 2.0 * f64::consts::PI * self.input_values[DUTY_INPUT]
+                    < 2.0 * f32::consts::PI * self.input_values[DUTY_INPUT]
                 {
                     1.0
                 } else {
@@ -371,11 +366,11 @@ impl Component {
             ComponentType::Triangle => {
                 self.update_phase();
 
-                if self.registers[Self::PHASE_REGISTER] < f64::consts::PI {
-                    self.registers[Self::PHASE_REGISTER] * 2.0 / f64::consts::PI - 1.0
+                if self.registers[Self::PHASE_REGISTER] < f32::consts::PI {
+                    self.registers[Self::PHASE_REGISTER] * 2.0 / f32::consts::PI - 1.0
                 } else {
-                    1.0 - (self.registers[Self::PHASE_REGISTER] - f64::consts::PI) * 2.0
-                        / f64::consts::PI
+                    1.0 - (self.registers[Self::PHASE_REGISTER] - f32::consts::PI) * 2.0
+                        / f32::consts::PI
                 }
             }
             ComponentType::UpperSaturator => {
@@ -386,7 +381,7 @@ impl Component {
             }
         };
 
-        let is_changed = (self.output_value - next_output_value).abs() >= f64::EPSILON;
+        let is_changed = (self.output_value - next_output_value).abs() >= f32::EPSILON;
 
         self.output_value = next_output_value;
         self.input_values[DIFF_TIME_INPUT] = 0.0;
@@ -396,10 +391,10 @@ impl Component {
 
     fn update_phase(&mut self) {
         self.registers[Self::PHASE_REGISTER] += 2.0
-            * f64::consts::PI
+            * f32::consts::PI
             * self.input_values[Self::FREQUENCY_INPUT]
             * self.input_values[DIFF_TIME_INPUT];
 
-        self.registers[0] %= 2.0 * f64::consts::PI;
+        self.registers[0] %= 2.0 * f32::consts::PI;
     }
 }

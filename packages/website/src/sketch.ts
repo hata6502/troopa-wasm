@@ -1,7 +1,7 @@
 import type { Component } from "./component";
 import type { Destination } from "./destination";
 
-const sketchComponentMaxLength = 8192;
+const sketchComponentMaxLength = 4096;
 
 interface SketchInput {
   name: string;
