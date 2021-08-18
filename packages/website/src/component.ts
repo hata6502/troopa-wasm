@@ -90,7 +90,7 @@ const primitiveComponentInputNames: Record<
   [componentType.differentiator]: [undefined, "in"],
   [componentType.distributor]: [undefined, "in"],
   [componentType.divider]: [undefined, "in 1", "in 2"],
-  [componentType.integrator]: [undefined, "in"],
+  [componentType.integrator]: [undefined, "in", "reset"],
   [componentType.lowerSaturator]: [undefined, "in 1", "in 2"],
   [componentType.mixer]: [undefined, "in 1", "in 2"],
   [componentType.noise]: [undefined],

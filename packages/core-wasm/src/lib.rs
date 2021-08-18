@@ -315,10 +315,16 @@ impl Component {
             }
             ComponentType::Integrator => {
                 const IN_INPUT: usize = 1;
+                const RESET_INPUT: usize = 2;
+
                 const VALUE_REGISTER: usize = 0;
 
-                self.registers[VALUE_REGISTER] +=
-                    self.input_values[IN_INPUT] * self.input_values[DIFF_TIME_INPUT];
+                if self.input_values[RESET_INPUT] < 0.5 {
+                    self.registers[VALUE_REGISTER] +=
+                        self.input_values[IN_INPUT] * self.input_values[DIFF_TIME_INPUT];
+                } else {
+                    self.registers[VALUE_REGISTER] = 0.0;
+                }
 
                 self.registers[VALUE_REGISTER]
             }
