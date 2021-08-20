@@ -15,11 +15,47 @@ import { Description, Favorite } from "@material-ui/icons";
 import { memo, useCallback } from "react";
 import type { Dispatch, FunctionComponent, SetStateAction } from "react";
 import { componentType } from "../component";
+import type { ComponentType } from "../component";
 import type { Sketch } from "../sketch";
 import { PrimitiveComponentListItem } from "./PrimitiveComponentListItem";
 import { SketchComponentListItem } from "./SketchComponentListItem";
 
 const sidebarWidth = 200;
+
+const coreComponentTypes = [
+  componentType.amplifier,
+  componentType.buffer,
+  componentType.differentiator,
+  componentType.distributor,
+  componentType.divider,
+  componentType.integrator,
+  componentType.lowerSaturator,
+  componentType.mixer,
+  componentType.noise,
+  componentType.saw,
+  componentType.sine,
+  componentType.square,
+  componentType.subtractor,
+  componentType.triangle,
+  componentType.upperSaturator,
+];
+
+const interfaceComponentTypes = [
+  componentType.input,
+  componentType.keyboardFrequency,
+  componentType.keyboardSwitch,
+  componentType.speaker,
+  componentType.meter,
+];
+
+const sketchComponentTypes = [componentType.sketch];
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const listedComponentTypeExhaustiveCheck: (
+  | typeof coreComponentTypes
+  | typeof interfaceComponentTypes
+  | typeof sketchComponentTypes
+)[number] = componentType.amplifier as ComponentType;
 
 const useStyles = makeStyles(({ breakpoints }) => ({
   nav: {
@@ -87,57 +123,38 @@ const Sidebar: FunctionComponent<{
 
       <Divider />
 
-      <List subheader={<ListSubheader>Components</ListSubheader>}>
-        {Object.values(componentType).map((type) => {
-          switch (type) {
-            case componentType.amplifier:
-            case componentType.buffer:
-            case componentType.differentiator:
-            case componentType.distributor:
-            case componentType.divider:
-            case componentType.integrator:
-            case componentType.lowerSaturator:
-            case componentType.mixer:
-            case componentType.noise:
-            case componentType.saw:
-            case componentType.sine:
-            case componentType.square:
-            case componentType.subtractor:
-            case componentType.triangle:
-            case componentType.upperSaturator:
-            case componentType.input:
-            case componentType.keyboardFrequency:
-            case componentType.keyboardSwitch:
-            case componentType.speaker:
-            case componentType.meter: {
-              return (
-                <PrimitiveComponentListItem
-                  key={type}
-                  dispatchIsSidebarOpen={dispatchIsSidebarOpen}
-                  dispatchSketch={dispatchSketch}
-                  type={type}
-                />
-              );
-            }
+      <List>
+        <List subheader={<ListSubheader>Core components</ListSubheader>}>
+          {coreComponentTypes.map((coreComponentType) => (
+            <PrimitiveComponentListItem
+              key={coreComponentType}
+              dispatchIsSidebarOpen={dispatchIsSidebarOpen}
+              dispatchSketch={dispatchSketch}
+              type={coreComponentType}
+            />
+          ))}
+        </List>
 
-            case componentType.sketch: {
-              return (
-                <SketchComponentListItem
-                  key={type}
-                  dispatchIsSidebarOpen={dispatchIsSidebarOpen}
-                  dispatchSketch={dispatchSketch}
-                />
-              );
-            }
+        <List subheader={<ListSubheader>Interface components</ListSubheader>}>
+          {interfaceComponentTypes.map((interfaceComponentType) => (
+            <PrimitiveComponentListItem
+              key={interfaceComponentType}
+              dispatchIsSidebarOpen={dispatchIsSidebarOpen}
+              dispatchSketch={dispatchSketch}
+              type={interfaceComponentType}
+            />
+          ))}
+        </List>
 
-            default: {
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              const exhaustiveCheck: never = type;
-
-              throw new Error();
-            }
-          }
-        })}
+        <List subheader={<ListSubheader>Sketch components</ListSubheader>}>
+          {sketchComponentTypes.map((sketchComponentType) => (
+            <SketchComponentListItem
+              key={sketchComponentType}
+              dispatchIsSidebarOpen={dispatchIsSidebarOpen}
+              dispatchSketch={dispatchSketch}
+            />
+          ))}
+        </List>
       </List>
     </>
   );
