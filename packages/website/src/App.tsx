@@ -10,7 +10,6 @@ import {
 import type { SnackbarProps } from "@material-ui/core";
 import { Alert, AlertTitle } from "@material-ui/lab";
 import type { AlertProps, AlertTitleProps } from "@material-ui/lab";
-import equal from "fast-deep-equal";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import type { Dispatch, FunctionComponent, SetStateAction } from "react";
 import { ArcherContainer, ArcherElement } from "react-archer";
@@ -29,7 +28,7 @@ import {
   componentName,
   componentType,
 } from "./component";
-import { serializeDestination } from "./destination";
+import { isSameDestination, serializeDestination } from "./destination";
 import type { Destination } from "./destination";
 import { initialSketch, sketchComponentMaxLength } from "./sketch";
 import type { Sketch } from "./sketch";
@@ -189,9 +188,7 @@ const App: FunctionComponent = memo(() => {
       }
 
       dispatchSketchHistory((prevSketchHistory) => {
-        if (
-          equal(sketch, prevSketchHistory.sketches[prevSketchHistory.index])
-        ) {
+        if (sketch === prevSketchHistory.sketches[prevSketchHistory.index]) {
           return prevSketchHistory;
         }
 
@@ -326,7 +323,10 @@ const App: FunctionComponent = memo(() => {
               ...component,
               outputDestinations: component.outputDestinations.filter(
                 (outputDestination) =>
-                  targets.every((target) => !equal(outputDestination, target))
+                  targets.every(
+                    (target) =>
+                      !isSameDestination({ a: outputDestination, b: target })
+                  )
               ),
             },
           ])
@@ -337,8 +337,10 @@ const App: FunctionComponent = memo(() => {
           component,
           inputs: prevSketch.inputs.map((prevInput) => ({
             ...prevInput,
-            destination: targets.some((target) =>
-              equal(prevInput.destination, target)
+            destination: targets.some(
+              (target) =>
+                prevInput.destination &&
+                isSameDestination({ a: prevInput.destination, b: target })
             )
               ? undefined
               : prevInput.destination,
@@ -389,11 +391,13 @@ const App: FunctionComponent = memo(() => {
   const isOutputConnected =
     Object.values(sketch.component).some((otherComponent) =>
       otherComponent.outputDestinations.some((outputDestination) =>
-        equal(outputDestination, sketchOutputDestination)
+        isSameDestination({ a: outputDestination, b: sketchOutputDestination })
       )
     ) ||
-    sketch.inputs.some((input) =>
-      equal(input.destination, sketchOutputDestination)
+    sketch.inputs.some(
+      (input) =>
+        input.destination &&
+        isSameDestination({ a: input.destination, b: sketchOutputDestination })
     );
 
   const sketchOutputID = serializeDestination({

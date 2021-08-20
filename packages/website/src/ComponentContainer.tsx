@@ -11,7 +11,6 @@ import {
 } from "@material-ui/core";
 import { Delete, Error as ErrorIcon } from "@material-ui/icons";
 import clsx from "clsx";
-import equal from "fast-deep-equal";
 import { memo, useCallback, useMemo } from "react";
 import type {
   ChangeEventHandler,
@@ -29,7 +28,11 @@ import { ConnectableAnchor } from "./ConnectableAnchor";
 import { Player } from "./Player";
 import { getComponentInputNames } from "./component";
 import type { Component } from "./component";
-import { getDestinationsByPosition, serializeDestination } from "./destination";
+import {
+  getDestinationsByPosition,
+  isSameDestination,
+  serializeDestination,
+} from "./destination";
 import type { Destination } from "./destination";
 import type { Sketch } from "./sketch";
 
@@ -175,7 +178,10 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
 
         const uniqueOutputDestinations = appendedOutputDestinations.some(
           (appendedOutputDestination) =>
-            equal(appendedOutputDestination, sketchOutputDestination)
+            isSameDestination({
+              a: appendedOutputDestination,
+              b: sketchOutputDestination,
+            })
         )
           ? [sketchOutputDestination]
           : [
@@ -254,11 +260,19 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
             const isConnected =
               Object.values(sketch.component).some((otherComponent) =>
                 otherComponent.outputDestinations.some((outputDestination) =>
-                  equal(outputDestination, componentDestination)
+                  isSameDestination({
+                    a: outputDestination,
+                    b: componentDestination,
+                  })
                 )
               ) ||
-              sketch.inputs.some((input) =>
-                equal(input.destination, componentDestination)
+              sketch.inputs.some(
+                (input) =>
+                  input.destination &&
+                  isSameDestination({
+                    a: input.destination,
+                    b: componentDestination,
+                  })
               );
 
             const radioID = serializeDestination({
