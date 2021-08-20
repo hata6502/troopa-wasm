@@ -55,6 +55,9 @@ const countPrimitiveComponents = ({ sketch }: { sketch: Sketch }) => {
       case componentType.subtractor:
       case componentType.triangle:
       case componentType.upperSaturator:
+      case componentType.and:
+      case componentType.not:
+      case componentType.or:
       case componentType.input:
       case componentType.keyboardFrequency:
       case componentType.keyboardSwitch:

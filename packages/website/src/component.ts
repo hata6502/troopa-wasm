@@ -18,6 +18,9 @@ const coreComponentType = {
   subtractor: 12,
   triangle: 13,
   upperSaturator: 14,
+  and: 15,
+  not: 16,
+  or: 17,
 } as const;
 
 const interfaceComponentType = {
@@ -26,6 +29,7 @@ const interfaceComponentType = {
   keyboardSwitch: -3,
   speaker: -4,
   meter: -5,
+  // scope: -6
 } as const;
 
 const sketchComponentType = {
@@ -66,6 +70,9 @@ const componentName: Record<ComponentType, string> = {
   [componentType.speaker]: "speaker",
   [componentType.meter]: "meter",
   [componentType.sketch]: "sketch",
+  [componentType.and]: "and",
+  [componentType.not]: "not",
+  [componentType.or]: "or",
 };
 
 const distributorComponentInInput = 1;
@@ -94,6 +101,9 @@ const primitiveComponentInputNames: Record<
   [componentType.keyboardSwitch]: [undefined],
   [componentType.speaker]: [undefined, "sound"],
   [componentType.meter]: [undefined, "in"],
+  [componentType.and]: [undefined, "in 1", "in 2"],
+  [componentType.not]: [undefined, "in"],
+  [componentType.or]: [undefined, "in 1", "in 2"],
 };
 
 interface ComponentBase<
@@ -133,6 +143,9 @@ type Component =
   | ComponentBase<typeof componentType.subtractor, Record<string, never>>
   | ComponentBase<typeof componentType.triangle, Record<string, never>>
   | ComponentBase<typeof componentType.upperSaturator, Record<string, never>>
+  | ComponentBase<typeof componentType.and, Record<string, never>>
+  | ComponentBase<typeof componentType.not, Record<string, never>>
+  | ComponentBase<typeof componentType.or, Record<string, never>>
   | InputComponent
   | ComponentBase<typeof componentType.keyboardFrequency, Record<string, never>>
   | ComponentBase<typeof componentType.keyboardSwitch, Record<string, never>>
@@ -163,6 +176,9 @@ const getComponentInputNames = ({
     case componentType.subtractor:
     case componentType.triangle:
     case componentType.upperSaturator:
+    case componentType.and:
+    case componentType.not:
+    case componentType.or:
     case componentType.input:
     case componentType.keyboardFrequency:
     case componentType.keyboardSwitch:

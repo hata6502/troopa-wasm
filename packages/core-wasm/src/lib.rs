@@ -49,6 +49,9 @@ pub enum ComponentType {
     Subtractor,
     Triangle,
     UpperSaturator,
+    And,
+    Not,
+    Or,
 }
 
 type Destination = (usize, usize);
@@ -389,6 +392,35 @@ impl Component {
                 const IN_2_INPUT: usize = 2;
 
                 self.input_values[IN_1_INPUT].min(self.input_values[IN_2_INPUT])
+            }
+            ComponentType::And => {
+                const IN_1_INPUT: usize = 1;
+                const IN_2_INPUT: usize = 2;
+
+                if self.input_values[IN_1_INPUT] >= 0.5 && self.input_values[IN_2_INPUT] >= 0.5 {
+                    1.0
+                } else {
+                    0.0
+                }
+            }
+            ComponentType::Not => {
+                const IN_INPUT: usize = 1;
+
+                if self.input_values[IN_INPUT] < 0.5 {
+                    1.0
+                } else {
+                    0.0
+                }
+            }
+            ComponentType::Or => {
+                const IN_1_INPUT: usize = 1;
+                const IN_2_INPUT: usize = 2;
+
+                if self.input_values[IN_1_INPUT] >= 0.5 || self.input_values[IN_2_INPUT] >= 0.5 {
+                    1.0
+                } else {
+                    0.0
+                }
             }
         };
 

@@ -46,7 +46,10 @@ class Player {
         case componentType.square:
         case componentType.subtractor:
         case componentType.triangle:
-        case componentType.upperSaturator: {
+        case componentType.upperSaturator:
+        case componentType.and:
+        case componentType.not:
+        case componentType.or: {
           // @ts-expect-error Core type is not defined.
           const index = core.instance.exports["create_component"](
             component.type
@@ -119,6 +122,9 @@ class Player {
           case componentType.subtractor:
           case componentType.triangle:
           case componentType.upperSaturator:
+          case componentType.and:
+          case componentType.not:
+          case componentType.or:
           case componentType.input:
           case componentType.keyboardFrequency:
           case componentType.keyboardSwitch:
@@ -297,6 +303,9 @@ class Player {
           case componentType.subtractor:
           case componentType.triangle:
           case componentType.upperSaturator:
+          case componentType.and:
+          case componentType.not:
+          case componentType.or:
           case componentType.input:
           case componentType.keyboardFrequency:
           case componentType.keyboardSwitch:
@@ -397,6 +406,9 @@ class Player {
         case componentType.subtractor:
         case componentType.triangle:
         case componentType.upperSaturator:
+        case componentType.and:
+        case componentType.not:
+        case componentType.or:
         case componentType.input:
         case componentType.keyboardFrequency:
         case componentType.keyboardSwitch:
@@ -498,6 +510,9 @@ class Player {
         case componentType.subtractor:
         case componentType.triangle:
         case componentType.upperSaturator:
+        case componentType.and:
+        case componentType.not:
+        case componentType.or:
         case componentType.keyboardFrequency:
         case componentType.keyboardSwitch: {
           break;

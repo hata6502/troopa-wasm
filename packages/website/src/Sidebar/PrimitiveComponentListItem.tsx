@@ -53,6 +53,9 @@ const createPrimitiveComponent = ({
     case componentType.subtractor:
     case componentType.triangle:
     case componentType.upperSaturator:
+    case componentType.and:
+    case componentType.not:
+    case componentType.or:
     case componentType.keyboardFrequency:
     case componentType.keyboardSwitch:
     case componentType.speaker: {

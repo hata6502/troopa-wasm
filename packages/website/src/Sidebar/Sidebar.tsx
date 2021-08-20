@@ -24,6 +24,7 @@ const sidebarWidth = 200;
 
 const coreComponentTypes = [
   componentType.amplifier,
+  componentType.and,
   componentType.buffer,
   componentType.differentiator,
   componentType.distributor,
@@ -32,6 +33,8 @@ const coreComponentTypes = [
   componentType.lowerSaturator,
   componentType.mixer,
   componentType.noise,
+  componentType.not,
+  componentType.or,
   componentType.saw,
   componentType.sine,
   componentType.square,
