@@ -2,8 +2,7 @@ import type { ControlPosition } from "react-draggable";
 import type { Destination } from "./destination";
 import type { Sketch } from "./sketch";
 
-const componentType = {
-  // Core components
+const coreComponentType = {
   amplifier: 0,
   buffer: 1,
   differentiator: 2,
@@ -19,39 +18,29 @@ const componentType = {
   subtractor: 12,
   triangle: 13,
   upperSaturator: 14,
+} as const;
 
-  // Interface components
+const interfaceComponentType = {
   input: -1,
   keyboardFrequency: -2,
   keyboardSwitch: -3,
   speaker: -4,
   meter: -5,
-  //scope: -6,
+} as const;
 
+const sketchComponentType = {
   sketch: -7,
 } as const;
 
+const componentType = {
+  ...coreComponentType,
+  ...interfaceComponentType,
+  ...sketchComponentType,
+};
+
 type PrimitiveComponentType =
-  | typeof componentType.amplifier
-  | typeof componentType.buffer
-  | typeof componentType.differentiator
-  | typeof componentType.distributor
-  | typeof componentType.divider
-  | typeof componentType.integrator
-  | typeof componentType.lowerSaturator
-  | typeof componentType.mixer
-  | typeof componentType.noise
-  | typeof componentType.saw
-  | typeof componentType.sine
-  | typeof componentType.square
-  | typeof componentType.subtractor
-  | typeof componentType.triangle
-  | typeof componentType.upperSaturator
-  | typeof componentType.input
-  | typeof componentType.keyboardFrequency
-  | typeof componentType.keyboardSwitch
-  | typeof componentType.speaker
-  | typeof componentType.meter;
+  | typeof coreComponentType[keyof typeof coreComponentType]
+  | typeof interfaceComponentType[keyof typeof interfaceComponentType];
 
 type ComponentType = PrimitiveComponentType | typeof componentType.sketch;
 
