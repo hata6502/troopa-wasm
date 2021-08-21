@@ -24,7 +24,6 @@ const sidebarWidth = 200;
 
 const coreComponentTypes = [
   componentType.amplifier,
-  componentType.and,
   componentType.buffer,
   componentType.differentiator,
   componentType.distributor,
@@ -34,7 +33,6 @@ const coreComponentTypes = [
   componentType.mixer,
   componentType.noise,
   componentType.not,
-  componentType.or,
   componentType.saw,
   componentType.sine,
   componentType.square,
@@ -58,7 +56,10 @@ const listedComponentTypeExhaustiveCheck: (
   | typeof coreComponentTypes
   | typeof interfaceComponentTypes
   | typeof sketchComponentTypes
-)[number] = componentType.amplifier as ComponentType;
+)[number] = componentType.amplifier as Exclude<
+  ComponentType,
+  typeof componentType.and | typeof componentType.or
+>;
 
 const useStyles = makeStyles(({ breakpoints }) => ({
   nav: {
