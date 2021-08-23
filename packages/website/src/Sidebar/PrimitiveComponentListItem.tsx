@@ -1,4 +1,5 @@
 import { ListItem, ListItemText } from "@material-ui/core";
+import type { ListItemProps } from "@material-ui/core";
 import { memo, useCallback } from "react";
 import type { Dispatch, FunctionComponent, SetStateAction } from "react";
 import { v4 as uuidv4 } from "uuid";
@@ -75,28 +76,47 @@ const createPrimitiveComponent = ({
   }
 };
 
-const PrimitiveComponentListItem: FunctionComponent<{
+interface PrimitiveComponentListItemProps
+  extends Omit<ListItemProps<"div">, "button"> {
   dispatchIsSidebarOpen: Dispatch<SetStateAction<boolean>>;
   dispatchSketch: Dispatch<SetStateAction<Sketch>>;
   type: PrimitiveComponentType;
-}> = memo(({ dispatchIsSidebarOpen, dispatchSketch, type }) => {
-  const handleClick = useCallback(() => {
-    dispatchSketch((prevSketch) => ({
-      ...prevSketch,
-      component: {
-        ...prevSketch.component,
-        [uuidv4()]: createPrimitiveComponent({ type }),
-      },
-    }));
+}
 
-    dispatchIsSidebarOpen(false);
-  }, [dispatchIsSidebarOpen, dispatchSketch, type]);
+const PrimitiveComponentListItem: FunctionComponent<PrimitiveComponentListItemProps> =
+  memo(
+    ({
+      dispatchIsSidebarOpen,
+      dispatchSketch,
+      type,
+      onClick,
+      ...listItemProps
+    }) => {
+      const handleClick = useCallback<
+        NonNullable<ListItemProps<"div">["onClick"]>
+      >(
+        (event) => {
+          dispatchSketch((prevSketch) => ({
+            ...prevSketch,
+            component: {
+              ...prevSketch.component,
+              [uuidv4()]: createPrimitiveComponent({ type }),
+            },
+          }));
 
-  return (
-    <ListItem button onClick={handleClick}>
-      <ListItemText primary={componentName[type]} />
-    </ListItem>
+          dispatchIsSidebarOpen(false);
+
+          onClick?.(event);
+        },
+        [dispatchIsSidebarOpen, dispatchSketch, type, onClick]
+      );
+
+      return (
+        <ListItem {...listItemProps} button onClick={handleClick}>
+          <ListItemText primary={componentName[type]} />
+        </ListItem>
+      );
+    }
   );
-});
 
 export { PrimitiveComponentListItem };

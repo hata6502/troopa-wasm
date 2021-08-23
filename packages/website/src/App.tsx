@@ -423,6 +423,7 @@ const App: FunctionComponent = memo(() => {
       <Sidebar
         dispatchIsSidebarOpen={dispatchIsSidebarOpen}
         dispatchSketch={dispatchSketch}
+        isPlaying={Boolean(player)}
         isSidebarOpen={isSidebarOpen}
       />
 

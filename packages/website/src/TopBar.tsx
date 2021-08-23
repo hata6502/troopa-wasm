@@ -188,6 +188,7 @@ const TopBar: FunctionComponent<{
               <TextField
                 variant="outlined"
                 className={classes.sketchName}
+                disabled={Boolean(player)}
                 label="sketch name"
                 size="small"
                 value={sketch.name}
@@ -226,7 +227,7 @@ const TopBar: FunctionComponent<{
               <Tooltip title="Undo">
                 <span>
                   <IconButton
-                    disabled={sketchHistory.index < 1}
+                    disabled={Boolean(player) || sketchHistory.index < 1}
                     onClick={handleUndoButtonClick}
                   >
                     <Undo />
@@ -240,6 +241,7 @@ const TopBar: FunctionComponent<{
                 <span>
                   <IconButton
                     disabled={
+                      Boolean(player) ||
                       sketchHistory.index >= sketchHistory.sketches.length - 1
                     }
                     onClick={handleRedoButtonClick}
@@ -253,7 +255,10 @@ const TopBar: FunctionComponent<{
             <Grid item>
               <Tooltip title="New">
                 <span>
-                  <IconButton onClick={handleNewButtonClick}>
+                  <IconButton
+                    disabled={Boolean(player)}
+                    onClick={handleNewButtonClick}
+                  >
                     <InsertDriveFileOutlined />
                   </IconButton>
                 </span>
@@ -263,7 +268,7 @@ const TopBar: FunctionComponent<{
             <Grid item>
               <Tooltip title="Open">
                 <span>
-                  <IconButton component="label">
+                  <IconButton component="label" disabled={Boolean(player)}>
                     <FolderOpen />
 
                     <input

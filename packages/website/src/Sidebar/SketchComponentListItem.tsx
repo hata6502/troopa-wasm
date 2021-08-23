@@ -1,4 +1,5 @@
 import { ListItem, ListItemText } from "@material-ui/core";
+import type { ListItemProps } from "@material-ui/core";
 import { memo, useCallback } from "react";
 import type {
   ChangeEventHandler,
@@ -155,69 +156,73 @@ const regenerateComponentIDsInSketch = ({
   };
 };
 
-const SketchComponentListItem: FunctionComponent<{
+interface SketchComponentListItemProps
+  extends Omit<ListItemProps<"label">, "button" | "component"> {
   dispatchIsSidebarOpen: Dispatch<SetStateAction<boolean>>;
   dispatchSketch: Dispatch<SetStateAction<Sketch>>;
-}> = memo(({ dispatchIsSidebarOpen, dispatchSketch }) => {
-  const handleInputChange: ChangeEventHandler<HTMLInputElement> = useCallback(
-    (event) => {
-      const files = event.target.files;
+}
 
-      if (!files || files.length < 1) {
-        return;
-      }
+const SketchComponentListItem: FunctionComponent<SketchComponentListItemProps> =
+  memo(({ dispatchIsSidebarOpen, dispatchSketch, ...listItemProps }) => {
+    const handleInputChange: ChangeEventHandler<HTMLInputElement> = useCallback(
+      (event) => {
+        const files = event.target.files;
 
-      const fileReader = new FileReader();
-
-      fileReader.addEventListener("load", () => {
-        const result = fileReader.result;
-
-        if (typeof result !== "string") {
-          throw new Error();
+        if (!files || files.length < 1) {
+          return;
         }
 
-        const loadedSketch = JSON.parse(result) as Sketch;
+        const fileReader = new FileReader();
 
-        const regeneratedSketch = regenerateComponentIDsInSketch({
-          sketch: loadedSketch,
+        fileReader.addEventListener("load", () => {
+          const result = fileReader.result;
+
+          if (typeof result !== "string") {
+            throw new Error();
+          }
+
+          const loadedSketch = JSON.parse(result) as Sketch;
+
+          const regeneratedSketch = regenerateComponentIDsInSketch({
+            sketch: loadedSketch,
+          });
+
+          event.target.value = "";
+
+          dispatchSketch((prevSketch) => ({
+            ...prevSketch,
+            component: {
+              ...prevSketch.component,
+              [uuidv4()]: {
+                name: regeneratedSketch.name,
+                type: componentType.sketch,
+                outputDestinations: [],
+                position: { x: window.scrollX, y: window.scrollY },
+                extendedData: { sketch: regeneratedSketch },
+              },
+            },
+          }));
+
+          dispatchIsSidebarOpen(false);
         });
 
-        event.target.value = "";
+        fileReader.readAsText(files[0]);
+      },
+      [dispatchIsSidebarOpen, dispatchSketch]
+    );
 
-        dispatchSketch((prevSketch) => ({
-          ...prevSketch,
-          component: {
-            ...prevSketch.component,
-            [uuidv4()]: {
-              name: regeneratedSketch.name,
-              type: componentType.sketch,
-              outputDestinations: [],
-              position: { x: window.scrollX, y: window.scrollY },
-              extendedData: { sketch: regeneratedSketch },
-            },
-          },
-        }));
+    return (
+      <ListItem {...listItemProps} button component="label">
+        <ListItemText primary={componentName[componentType.sketch]} />
 
-        dispatchIsSidebarOpen(false);
-      });
-
-      fileReader.readAsText(files[0]);
-    },
-    [dispatchIsSidebarOpen, dispatchSketch]
-  );
-
-  return (
-    <ListItem button component="label">
-      <ListItemText primary={componentName[componentType.sketch]} />
-
-      <input
-        type="file"
-        accept="application/json"
-        hidden
-        onChange={handleInputChange}
-      />
-    </ListItem>
-  );
-});
+        <input
+          type="file"
+          accept="application/json"
+          hidden
+          onChange={handleInputChange}
+        />
+      </ListItem>
+    );
+  });
 
 export { SketchComponentListItem };

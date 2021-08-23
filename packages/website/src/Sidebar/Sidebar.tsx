@@ -75,127 +75,133 @@ const useStyles = makeStyles(({ breakpoints }) => ({
 const Sidebar: FunctionComponent<{
   dispatchIsSidebarOpen: Dispatch<SetStateAction<boolean>>;
   dispatchSketch: Dispatch<SetStateAction<Sketch>>;
+  isPlaying?: boolean;
   isSidebarOpen: boolean;
-}> = memo(({ dispatchIsSidebarOpen, dispatchSketch, isSidebarOpen }) => {
-  const classes = useStyles();
+}> = memo(
+  ({ dispatchIsSidebarOpen, dispatchSketch, isPlaying, isSidebarOpen }) => {
+    const classes = useStyles();
 
-  const content = (
-    <>
-      <ListItem component="div">
-        <ListItemText
-          primary={<Typography variant="h6">troopa 👀</Typography>}
-          secondary="web toy synthesizer"
-        />
-      </ListItem>
+    const content = (
+      <>
+        <ListItem component="div">
+          <ListItemText
+            primary={<Typography variant="h6">troopa 👀</Typography>}
+            secondary="web toy synthesizer"
+          />
+        </ListItem>
 
-      <Divider />
+        <Divider />
 
-      <List>
-        <Link
-          color="inherit"
-          href="https://scrapbox.io/hata6502/troopa_%F0%9F%91%80"
-          rel="noreferrer"
-          target="_blank"
-          underline="none"
-        >
-          <ListItem button>
-            <ListItemIcon>
-              <Description />
-            </ListItemIcon>
+        <List>
+          <Link
+            color="inherit"
+            href="https://scrapbox.io/hata6502/troopa_%F0%9F%91%80"
+            rel="noreferrer"
+            target="_blank"
+            underline="none"
+          >
+            <ListItem button>
+              <ListItemIcon>
+                <Description />
+              </ListItemIcon>
 
-            <ListItemText primary="Documents" />
-          </ListItem>
-        </Link>
+              <ListItemText primary="Documents" />
+            </ListItem>
+          </Link>
 
-        <Link
-          color="inherit"
-          href="https://github.com/sponsors/hata6502"
-          rel="noreferrer"
-          target="_blank"
-          underline="none"
-        >
-          <ListItem button>
-            <ListItemIcon>
-              <Favorite />
-            </ListItemIcon>
+          <Link
+            color="inherit"
+            href="https://github.com/sponsors/hata6502"
+            rel="noreferrer"
+            target="_blank"
+            underline="none"
+          >
+            <ListItem button>
+              <ListItemIcon>
+                <Favorite />
+              </ListItemIcon>
 
-            <ListItemText primary="Sponsor" />
-          </ListItem>
-        </Link>
-      </List>
-
-      <Divider />
-
-      <List>
-        <List subheader={<ListSubheader>Core components</ListSubheader>}>
-          {coreComponentTypes.map((coreComponentType) => (
-            <PrimitiveComponentListItem
-              key={coreComponentType}
-              dispatchIsSidebarOpen={dispatchIsSidebarOpen}
-              dispatchSketch={dispatchSketch}
-              type={coreComponentType}
-            />
-          ))}
+              <ListItemText primary="Sponsor" />
+            </ListItem>
+          </Link>
         </List>
 
-        <List subheader={<ListSubheader>Interface components</ListSubheader>}>
-          {interfaceComponentTypes.map((interfaceComponentType) => (
-            <PrimitiveComponentListItem
-              key={interfaceComponentType}
-              dispatchIsSidebarOpen={dispatchIsSidebarOpen}
-              dispatchSketch={dispatchSketch}
-              type={interfaceComponentType}
-            />
-          ))}
+        <Divider />
+
+        <List>
+          <List subheader={<ListSubheader>Core components</ListSubheader>}>
+            {coreComponentTypes.map((coreComponentType) => (
+              <PrimitiveComponentListItem
+                key={coreComponentType}
+                disabled={isPlaying}
+                dispatchIsSidebarOpen={dispatchIsSidebarOpen}
+                dispatchSketch={dispatchSketch}
+                type={coreComponentType}
+              />
+            ))}
+          </List>
+
+          <List subheader={<ListSubheader>Interface components</ListSubheader>}>
+            {interfaceComponentTypes.map((interfaceComponentType) => (
+              <PrimitiveComponentListItem
+                key={interfaceComponentType}
+                disabled={isPlaying}
+                dispatchIsSidebarOpen={dispatchIsSidebarOpen}
+                dispatchSketch={dispatchSketch}
+                type={interfaceComponentType}
+              />
+            ))}
+          </List>
+
+          <List subheader={<ListSubheader>Sketch components</ListSubheader>}>
+            {sketchComponentTypes.map((sketchComponentType) => (
+              <SketchComponentListItem
+                key={sketchComponentType}
+                disabled={isPlaying}
+                dispatchIsSidebarOpen={dispatchIsSidebarOpen}
+                dispatchSketch={dispatchSketch}
+              />
+            ))}
+          </List>
         </List>
+      </>
+    );
 
-        <List subheader={<ListSubheader>Sketch components</ListSubheader>}>
-          {sketchComponentTypes.map((sketchComponentType) => (
-            <SketchComponentListItem
-              key={sketchComponentType}
-              dispatchIsSidebarOpen={dispatchIsSidebarOpen}
-              dispatchSketch={dispatchSketch}
-            />
-          ))}
-        </List>
-      </List>
-    </>
-  );
+    const handleClose = useCallback(
+      () => dispatchIsSidebarOpen(false),
+      [dispatchIsSidebarOpen]
+    );
 
-  const handleClose = useCallback(
-    () => dispatchIsSidebarOpen(false),
-    [dispatchIsSidebarOpen]
-  );
+    return (
+      <nav className={classes.nav}>
+        <Hidden mdUp>
+          <Drawer
+            variant="temporary"
+            classes={{
+              paper: classes.paper,
+            }}
+            container={document.body}
+            open={isSidebarOpen}
+            onClose={handleClose}
+          >
+            {content}
+          </Drawer>
+        </Hidden>
 
-  return (
-    <nav className={classes.nav}>
-      <Hidden mdUp>
-        <Drawer
-          variant="temporary"
-          classes={{
-            paper: classes.paper,
-          }}
-          container={document.body}
-          open={isSidebarOpen}
-          onClose={handleClose}
-        >
-          {content}
-        </Drawer>
-      </Hidden>
-
-      <Hidden smDown>
-        <Drawer
-          variant="permanent"
-          classes={{
-            paper: classes.paper,
-          }}
-          open
-        >
-          {content}
-        </Drawer>
-      </Hidden>
-    </nav>
-  );
-});
+        <Hidden smDown>
+          <Drawer
+            variant="permanent"
+            classes={{
+              paper: classes.paper,
+            }}
+            open
+          >
+            {content}
+          </Drawer>
+        </Hidden>
+      </nav>
+    );
+  }
+);
 
 export { Sidebar, sidebarWidth };
