@@ -190,7 +190,9 @@ class Player {
 
   private audioContext;
   private componentIndexMap: Map<string, number>;
+  private dispatchSketch;
   private outputComponentIds: string[];
+  private sketch;
   private onCoreInfiniteLoopDetected?: CoreInfiniteLoopDetectedEventHandler;
 
   constructor({
@@ -201,15 +203,19 @@ class Player {
     sketch: Sketch;
   }) {
     this.audioContext = new AudioContext();
+    this.dispatchSketch = dispatchSketch;
+    this.sketch = sketch;
 
     // @ts-expect-error Core type is not defined.
     core.instance.exports["init"](this.audioContext.sampleRate);
 
-    this.componentIndexMap = new Map(Player.createCoreComponents({ sketch }));
-    this.connectComponents({ scopes: [{ sketch }] });
+    this.componentIndexMap = new Map(
+      Player.createCoreComponents({ sketch: this.sketch })
+    );
+    this.connectComponents({ scopes: [{ sketch: this.sketch }] });
 
     this.outputComponentIds = [];
-    this.prepareInterfaces({ scopes: [{ sketch }] });
+    this.prepareInterfaces({ scopes: [{ sketch: this.sketch }] });
 
     this.outputComponentIds.forEach((outputComponentId) => {
       const outputComponentIndex =
@@ -231,97 +237,7 @@ class Player {
       1
     );
 
-    scriptNode.addEventListener("audioprocess", (event) => {
-      // @ts-expect-error Core type is not defined.
-      this.catchCoreException(core.instance.exports["process"]());
-
-      this.outputComponentIds.forEach((outputComponentId, index) => {
-        // @ts-expect-error Core type is not defined.
-        const bufferAddress = core.instance.exports[
-          "get_buffer_address"
-        ]() as number;
-
-        const bufferByteOffset =
-          bufferAddress + Float64Array.BYTES_PER_ELEMENT * bufferSize * index;
-
-        const buffer = new Float64Array(
-          // @ts-expect-error Core type is not defined.
-          core.instance.exports["memory"].buffer,
-          bufferByteOffset,
-          bufferSize
-        );
-
-        const outputComponent = new Map(Object.entries(sketch.component)).get(
-          outputComponentId
-        );
-
-        if (!outputComponent) {
-          // Components in sketch are not supported.
-          return;
-        }
-
-        switch (outputComponent.type) {
-          case componentType.speaker: {
-            event.outputBuffer.copyToChannel(Float32Array.from(buffer), 0);
-
-            break;
-          }
-
-          case componentType.meter: {
-            if (buffer.length < 1) {
-              throw new Error();
-            }
-
-            dispatchSketch((prevSketch) => ({
-              ...prevSketch,
-              component: {
-                ...prevSketch.component,
-                [outputComponentId]: {
-                  ...outputComponent,
-                  extendedData: {
-                    value: buffer[0],
-                  },
-                },
-              },
-            }));
-
-            break;
-          }
-
-          case componentType.amplifier:
-          case componentType.buffer:
-          case componentType.differentiator:
-          case componentType.distributor:
-          case componentType.divider:
-          case componentType.integrator:
-          case componentType.lowerSaturator:
-          case componentType.mixer:
-          case componentType.noise:
-          case componentType.saw:
-          case componentType.sine:
-          case componentType.square:
-          case componentType.subtractor:
-          case componentType.triangle:
-          case componentType.upperSaturator:
-          case componentType.and:
-          case componentType.not:
-          case componentType.or:
-          case componentType.input:
-          case componentType.keyboardFrequency:
-          case componentType.keyboardSwitch:
-          case componentType.sketch: {
-            break;
-          }
-
-          default: {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const exhaustiveCheck: never = outputComponent;
-
-            throw new Error();
-          }
-        }
-      });
-    });
+    scriptNode.addEventListener("audioprocess", this.handleAudioprocess);
 
     scriptNode.connect(this.audioContext.destination);
   }
@@ -541,6 +457,98 @@ class Player {
       }
     });
   }
+
+  private handleAudioprocess = (event: AudioProcessingEvent) => {
+    // @ts-expect-error Core type is not defined.
+    this.catchCoreException(core.instance.exports["process"]());
+
+    // @ts-expect-error Core type is not defined.
+    const bufferAddress = core.instance.exports[
+      "get_buffer_address"
+    ]() as number;
+
+    const componentMap = new Map(Object.entries(this.sketch.component));
+
+    this.outputComponentIds.forEach((outputComponentId, index) => {
+      const bufferByteOffset =
+        bufferAddress + Float64Array.BYTES_PER_ELEMENT * bufferSize * index;
+
+      const buffer = new Float64Array(
+        // @ts-expect-error Core type is not defined.
+        core.instance.exports["memory"].buffer,
+        bufferByteOffset,
+        bufferSize
+      );
+
+      const outputComponent = componentMap.get(outputComponentId);
+
+      if (!outputComponent) {
+        // Components in sketch are not supported.
+        return;
+      }
+
+      switch (outputComponent.type) {
+        case componentType.speaker: {
+          event.outputBuffer.copyToChannel(Float32Array.from(buffer), 0);
+
+          break;
+        }
+
+        case componentType.meter: {
+          if (buffer.length < 1) {
+            throw new Error();
+          }
+
+          this.dispatchSketch((prevSketch) => ({
+            ...prevSketch,
+            component: {
+              ...prevSketch.component,
+              [outputComponentId]: {
+                ...outputComponent,
+                extendedData: {
+                  value: buffer[0],
+                },
+              },
+            },
+          }));
+
+          break;
+        }
+
+        case componentType.amplifier:
+        case componentType.buffer:
+        case componentType.differentiator:
+        case componentType.distributor:
+        case componentType.divider:
+        case componentType.integrator:
+        case componentType.lowerSaturator:
+        case componentType.mixer:
+        case componentType.noise:
+        case componentType.saw:
+        case componentType.sine:
+        case componentType.square:
+        case componentType.subtractor:
+        case componentType.triangle:
+        case componentType.upperSaturator:
+        case componentType.and:
+        case componentType.not:
+        case componentType.or:
+        case componentType.input:
+        case componentType.keyboardFrequency:
+        case componentType.keyboardSwitch:
+        case componentType.sketch: {
+          break;
+        }
+
+        default: {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const exhaustiveCheck: never = outputComponent;
+
+          throw new Error();
+        }
+      }
+    });
+  };
 }
 
 export { Player };
