@@ -314,7 +314,11 @@ impl Component {
                 const IN_1_INPUT: usize = 1;
                 const IN_2_INPUT: usize = 2;
 
-                self.input_values[IN_1_INPUT] / self.input_values[IN_2_INPUT]
+                if self.input_values[IN_2_INPUT] == 0.0 {
+                    self.output_value
+                } else {
+                    self.input_values[IN_1_INPUT] / self.input_values[IN_2_INPUT]
+                }
             }
             ComponentType::Integrator => {
                 const IN_INPUT: usize = 1;
