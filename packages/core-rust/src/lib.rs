@@ -12,11 +12,14 @@ const RETURN_CODE_INFINITE_LOOP_DETECTED: i32 = 1;
 const SKETCH_COMPONENT_MAX_LENGTH: usize = 4096;
 const SKETCH_MAX_LOOP_COUNT: i32 = 255;
 
+extern crate wasm_bindgen;
+
 use once_cell::sync::Lazy;
 use rand;
 use rand::prelude::*;
 use std::f64;
 use std::sync::Mutex;
+use wasm_bindgen::prelude::*;
 
 static BUFFER: Lazy<Mutex<[f64; BUFFER_SIZE * OUTPUT_COMPONENT_INDEXES_MAX_LENGTH]>> =
     Lazy::new(|| Mutex::new([0.0; BUFFER_SIZE * OUTPUT_COMPONENT_INDEXES_MAX_LENGTH]));
@@ -31,9 +34,8 @@ static RNG: Lazy<Mutex<rand::rngs::StdRng>> =
 
 static SKETCH: Lazy<Mutex<Sketch>> = Lazy::new(|| Mutex::new(Sketch::new()));
 
-#[derive(Clone, Copy)]
-#[repr(C)]
-pub enum ComponentType {
+#[wasm_bindgen]
+pub enum InterfaceComponentType {
     Amplifier,
     Buffer,
     Differentiator,
@@ -56,14 +58,14 @@ pub enum ComponentType {
 
 type Destination = (usize, usize);
 
-#[no_mangle]
-pub extern "C" fn init(sample_rate: f64) {
+#[wasm_bindgen]
+pub fn initialize(sample_rate: f64) {
     *OUTPUT_COMPONENT_INDEXES_LENGTH.lock().unwrap() = 0;
     SKETCH.lock().unwrap().init(sample_rate);
 }
 
-#[no_mangle]
-pub extern "C" fn append_output_component_index(output_component_index: usize) {
+#[wasm_bindgen]
+pub fn append_output_component_index(output_component_index: usize) {
     let mut output_component_indexes_length = OUTPUT_COMPONENT_INDEXES_LENGTH.lock().unwrap();
 
     OUTPUT_COMPONENT_INDEXES.lock().unwrap()[*output_component_indexes_length] =
@@ -72,8 +74,8 @@ pub extern "C" fn append_output_component_index(output_component_index: usize) {
     *output_component_indexes_length += 1;
 }
 
-#[no_mangle]
-pub extern "C" fn connect(
+#[wasm_bindgen]
+pub fn connect(
     input_component_index: usize,
     input_input_index: usize,
     output_component_index: usize,
@@ -84,18 +86,39 @@ pub extern "C" fn connect(
     )
 }
 
-#[no_mangle]
-pub extern "C" fn create_component(component_type: ComponentType) -> usize {
+#[wasm_bindgen]
+pub fn create_component(interface_component_type: InterfaceComponentType) -> usize {
+    let component_type = match interface_component_type {
+        InterfaceComponentType::Amplifier => ComponentType::Amplifier,
+        InterfaceComponentType::Buffer => ComponentType::Buffer,
+        InterfaceComponentType::Differentiator => ComponentType::Differentiator,
+        InterfaceComponentType::Distributor => ComponentType::Distributor,
+        InterfaceComponentType::Divider => ComponentType::Divider,
+        InterfaceComponentType::Integrator => ComponentType::Integrator,
+        InterfaceComponentType::LowerSaturator => ComponentType::LowerSaturator,
+        InterfaceComponentType::Mixer => ComponentType::Mixer,
+        InterfaceComponentType::Noise => ComponentType::Noise,
+        InterfaceComponentType::Saw => ComponentType::Saw,
+        InterfaceComponentType::Sine => ComponentType::Sine,
+        InterfaceComponentType::Square => ComponentType::Square,
+        InterfaceComponentType::Subtractor => ComponentType::Subtractor,
+        InterfaceComponentType::Triangle => ComponentType::Triangle,
+        InterfaceComponentType::UpperSaturator => ComponentType::UpperSaturator,
+        InterfaceComponentType::And => ComponentType::And,
+        InterfaceComponentType::Not => ComponentType::Not,
+        InterfaceComponentType::Or => ComponentType::Or,
+    };
+
     SKETCH.lock().unwrap().create_component(component_type)
 }
 
-#[no_mangle]
-pub extern "C" fn get_buffer_address() -> *const f64 {
-    &BUFFER.lock().unwrap()[0]
+#[wasm_bindgen]
+pub fn get_buffer() -> Vec<f64> {
+    BUFFER.lock().unwrap().iter().cloned().collect()
 }
 
-#[no_mangle]
-pub extern "C" fn input_value(component_index: usize, input_index: usize, value: f64) -> i32 {
+#[wasm_bindgen]
+pub fn input_value(component_index: usize, input_index: usize, value: f64) -> i32 {
     match SKETCH
         .lock()
         .unwrap()
@@ -106,8 +129,8 @@ pub extern "C" fn input_value(component_index: usize, input_index: usize, value:
     }
 }
 
-#[no_mangle]
-pub extern "C" fn process() -> i32 {
+#[wasm_bindgen]
+pub fn process() -> i32 {
     let output_component_indexes = OUTPUT_COMPONENT_INDEXES.lock().unwrap();
     let output_component_indexes_length = OUTPUT_COMPONENT_INDEXES_LENGTH.lock().unwrap();
 
@@ -238,6 +261,28 @@ impl Sketch {
 
         self.input_values(inputs)
     }
+}
+
+#[derive(Clone, Copy)]
+enum ComponentType {
+    Amplifier,
+    Buffer,
+    Differentiator,
+    Distributor,
+    Divider,
+    Integrator,
+    LowerSaturator,
+    Mixer,
+    Noise,
+    Saw,
+    Sine,
+    Square,
+    Subtractor,
+    Triangle,
+    UpperSaturator,
+    And,
+    Not,
+    Or,
 }
 
 #[derive(Clone, Copy)]

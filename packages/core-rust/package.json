@@ -1,0 +1,13 @@
+{
+  "name": "core-rust",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "wasm-pack build --out-dir ../core-wasm --target web && cd ../core-wasm && rm .gitignore && zx ../core-rust/wasm-pack-inline.mjs && cd ../core-rust",
+    "fix": "cargo fmt",
+    "test": "cargo test"
+  },
+  "devDependencies": {
+    "zx": "^4.1.1"
+  }
+}

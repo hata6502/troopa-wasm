@@ -1,7 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
-// @ts-expect-error The type declaration is not found.
-import str2ab from "string-to-arraybuffer";
-import inlineCore from "core-wasm/target/wasm32-unknown-unknown/release/core_wasm.wasm";
+import * as core from "core-wasm";
 import { componentType, distributorComponentInInput } from "./component";
 import type { SketchComponent } from "./component";
 import type { ComponentDestination, Destination } from "./destination";
@@ -12,9 +10,6 @@ const bufferSize = 4096;
 
 const returnCodeSuccess = 0;
 const returnCodeInfiniteLoopDetected = 1;
-
-// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-const core = await WebAssembly.instantiate(str2ab(inlineCore));
 
 type CoreInfiniteLoopDetectedEventHandler = (event: {
   componentID: string;
@@ -50,12 +45,7 @@ class Player {
         case componentType.and:
         case componentType.not:
         case componentType.or: {
-          // @ts-expect-error Core type is not defined.
-          const index = core.instance.exports["create_component"](
-            component.type
-          ) as number;
-
-          return [[id, index]];
+          return [[id, core.create_component(component.type)]];
         }
 
         case componentType.input:
@@ -63,12 +53,7 @@ class Player {
         case componentType.keyboardSwitch:
         case componentType.speaker:
         case componentType.meter: {
-          // @ts-expect-error Core type is not defined.
-          const index = core.instance.exports["create_component"](
-            componentType.distributor
-          ) as number;
-
-          return [[id, index]];
+          return [[id, core.create_component(componentType.distributor)]];
         }
 
         case componentType.sketch: {
@@ -206,8 +191,7 @@ class Player {
     this.dispatchSketch = dispatchSketch;
     this.sketch = sketch;
 
-    // @ts-expect-error Core type is not defined.
-    core.instance.exports["init"](this.audioContext.sampleRate);
+    core.initialize(this.audioContext.sampleRate);
 
     this.componentIndexMap = new Map(
       Player.createCoreComponents({ sketch: this.sketch })
@@ -225,10 +209,7 @@ class Player {
         throw new Error();
       }
 
-      // @ts-expect-error Core type is not defined.
-      core.instance.exports["append_output_component_index"](
-        outputComponentIndex
-      );
+      core.append_output_component_index(outputComponentIndex);
     });
 
     const scriptNode = this.audioContext.createScriptProcessor(
@@ -266,12 +247,7 @@ class Player {
     }
 
     this.catchCoreException(
-      // @ts-expect-error Core type is not defined.
-      core.instance.exports["input_value"](
-        componentIndex,
-        distributorComponentInInput,
-        value
-      )
+      core.input_value(componentIndex, distributorComponentInInput, value)
     );
   }
 
@@ -350,8 +326,7 @@ class Player {
                 throw new Error();
               }
 
-              // @ts-expect-error Core type is not defined.
-              core.instance.exports["connect"](
+              core.connect(
                 inputComponentIndex,
                 resolvedDestination.inputIndex,
                 outputComponentIndex
@@ -459,24 +434,15 @@ class Player {
   }
 
   private handleAudioprocess = (event: AudioProcessingEvent) => {
-    // @ts-expect-error Core type is not defined.
-    this.catchCoreException(core.instance.exports["process"]());
+    this.catchCoreException(core.process());
 
-    // @ts-expect-error Core type is not defined.
-    const bufferAddress = core.instance.exports[
-      "get_buffer_address"
-    ]() as number;
-
+    const buffer = core.get_buffer();
     const componentMap = new Map(Object.entries(this.sketch.component));
 
     this.outputComponentIds.forEach((outputComponentId, index) => {
-      const bufferByteOffset =
-        bufferAddress + Float64Array.BYTES_PER_ELEMENT * bufferSize * index;
-
-      const buffer = new Float64Array(
-        // @ts-expect-error Core type is not defined.
-        core.instance.exports["memory"].buffer,
-        bufferByteOffset,
+      const outputComponentBuffer = new Float64Array(
+        buffer,
+        Float64Array.BYTES_PER_ELEMENT * bufferSize * index,
         bufferSize
       );
 
@@ -489,13 +455,16 @@ class Player {
 
       switch (outputComponent.type) {
         case componentType.speaker: {
-          event.outputBuffer.copyToChannel(Float32Array.from(buffer), 0);
+          event.outputBuffer.copyToChannel(
+            Float32Array.from(outputComponentBuffer),
+            0
+          );
 
           break;
         }
 
         case componentType.meter: {
-          if (buffer.length < 1) {
+          if (outputComponentBuffer.length < 1) {
             throw new Error();
           }
 
@@ -506,7 +475,7 @@ class Player {
               [outputComponentId]: {
                 ...outputComponent,
                 extendedData: {
-                  value: buffer[0],
+                  value: outputComponentBuffer[0],
                 },
               },
             },
