@@ -10,7 +10,7 @@ import {
 import type { SnackbarProps } from "@material-ui/core";
 import { Alert, AlertTitle } from "@material-ui/lab";
 import type { AlertProps, AlertTitleProps } from "@material-ui/lab";
-import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Dispatch, FunctionComponent, SetStateAction } from "react";
 import { ArcherContainer, ArcherElement } from "react-archer";
 import type { ArcherContainerProps } from "react-archer";
@@ -30,63 +30,14 @@ import {
 } from "./component";
 import { isSameDestination, serializeDestination } from "./destination";
 import type { Destination } from "./destination";
-import { initialSketch, sketchComponentMaxLength } from "./sketch";
+import {
+  countPrimitiveComponents,
+  initialSketch,
+  sketchComponentMaxLength,
+} from "./sketch";
 import type { Sketch } from "./sketch";
 
 const historyMaxLength = 30;
-
-const countPrimitiveComponents = ({ sketch }: { sketch: Sketch }) => {
-  let count = 0;
-
-  Object.values(sketch.component).forEach((component) => {
-    switch (component.type) {
-      case componentType.amplifier:
-      case componentType.buffer:
-      case componentType.differentiator:
-      case componentType.distributor:
-      case componentType.divider:
-      case componentType.integrator:
-      case componentType.lowerSaturator:
-      case componentType.mixer:
-      case componentType.noise:
-      case componentType.saw:
-      case componentType.sine:
-      case componentType.square:
-      case componentType.subtractor:
-      case componentType.triangle:
-      case componentType.upperSaturator:
-      case componentType.and:
-      case componentType.not:
-      case componentType.or:
-      case componentType.input:
-      case componentType.keyboardFrequency:
-      case componentType.keyboardSwitch:
-      case componentType.speaker:
-      case componentType.meter: {
-        count++;
-
-        break;
-      }
-
-      case componentType.sketch: {
-        count += countPrimitiveComponents({
-          sketch: component.extendedData.sketch,
-        });
-
-        break;
-      }
-
-      default: {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const exhaustiveCheck: never = component;
-
-        throw new Error("Unrecognized component type");
-      }
-    }
-  });
-
-  return count;
-};
 
 interface AlertData {
   isOpen?: SnackbarProps["open"];
@@ -405,6 +356,11 @@ const App: FunctionComponent = memo(() => {
 
   const isPlaying = Boolean(player);
 
+  const freeComponentLength = useMemo(
+    () => sketchComponentMaxLength - countPrimitiveComponents({ sketch }),
+    [sketch]
+  );
+
   const sketchOutputID = serializeDestination({
     destination: sketchOutputDestination,
   });
@@ -434,9 +390,7 @@ const App: FunctionComponent = memo(() => {
 
         <Box mb={2}>
           <Chip
-            label={`${
-              sketchComponentMaxLength - countPrimitiveComponents({ sketch })
-            } components free`}
+            label={`${freeComponentLength} components free`}
             variant="outlined"
           />
         </Box>

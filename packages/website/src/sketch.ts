@@ -1,3 +1,4 @@
+import { componentType } from "./component";
 import type { Component } from "./component";
 import type { Destination } from "./destination";
 
@@ -14,6 +15,59 @@ interface Sketch {
   inputs: SketchInput[];
   outputComponentID?: string;
 }
+
+const countPrimitiveComponents = ({ sketch }: { sketch: Sketch }): number => {
+  let count = 0;
+
+  Object.values(sketch.component).forEach((component) => {
+    switch (component.type) {
+      case componentType.amplifier:
+      case componentType.buffer:
+      case componentType.differentiator:
+      case componentType.distributor:
+      case componentType.divider:
+      case componentType.integrator:
+      case componentType.lowerSaturator:
+      case componentType.mixer:
+      case componentType.noise:
+      case componentType.saw:
+      case componentType.sine:
+      case componentType.square:
+      case componentType.subtractor:
+      case componentType.triangle:
+      case componentType.upperSaturator:
+      case componentType.and:
+      case componentType.not:
+      case componentType.or:
+      case componentType.input:
+      case componentType.keyboardFrequency:
+      case componentType.keyboardSwitch:
+      case componentType.speaker:
+      case componentType.meter: {
+        count++;
+
+        break;
+      }
+
+      case componentType.sketch: {
+        count += countPrimitiveComponents({
+          sketch: component.extendedData.sketch,
+        });
+
+        break;
+      }
+
+      default: {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const exhaustiveCheck: never = component;
+
+        throw new Error("Unrecognized component type");
+      }
+    }
+  });
+
+  return count;
+};
 
 const initialSketch: Sketch = {
   name: "example",
@@ -77,5 +131,10 @@ const saveSketch = ({ sketch }: { sketch: Sketch }): void => {
   }
 };
 
-export { initialSketch, saveSketch, sketchComponentMaxLength };
+export {
+  countPrimitiveComponents,
+  initialSketch,
+  saveSketch,
+  sketchComponentMaxLength,
+};
 export type { Sketch, SketchInput };
