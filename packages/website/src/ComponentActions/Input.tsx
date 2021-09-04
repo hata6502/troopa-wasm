@@ -10,8 +10,9 @@ const Input: FunctionComponent<{
   id: string;
   component: InputComponent;
   dispatchComponent: Dispatch<SetStateAction<Sketch["component"]>>;
+  isPlaying?: boolean;
   player?: Player;
-}> = memo(({ id, component, dispatchComponent, player }) => {
+}> = memo(({ id, component, dispatchComponent, isPlaying, player }) => {
   const handleChange: NonNullable<TextFieldProps["onChange"]> = useCallback(
     (event) => {
       dispatchComponent((prevComponents) => {
@@ -50,6 +51,7 @@ const Input: FunctionComponent<{
       type="number"
       variant="outlined"
       className="cancel-component-container-drag"
+      focused={isPlaying}
       size="small"
       value={component.extendedData.value}
       onChange={handleChange}

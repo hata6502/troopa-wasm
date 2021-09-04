@@ -403,6 +403,8 @@ const App: FunctionComponent = memo(() => {
         isSameDestination({ a: input.destination, b: sketchOutputDestination })
     );
 
+  const isPlaying = Boolean(player);
+
   const sketchOutputID = serializeDestination({
     destination: sketchOutputDestination,
   });
@@ -423,7 +425,7 @@ const App: FunctionComponent = memo(() => {
       <Sidebar
         dispatchIsSidebarOpen={dispatchIsSidebarOpen}
         dispatchSketch={dispatchSketch}
-        isPlaying={Boolean(player)}
+        isPlaying={isPlaying}
         isSidebarOpen={isSidebarOpen}
       />
 
@@ -452,6 +454,7 @@ const App: FunctionComponent = memo(() => {
                 key={id}
                 component={component}
                 sketch={sketch}
+                disabled={isPlaying}
                 dispatchAlertData={dispatchAlertData}
                 dispatchComponent={dispatchComponent}
                 isError={errorComponentIDs.includes(id)}
@@ -463,6 +466,7 @@ const App: FunctionComponent = memo(() => {
                   id={id}
                   component={component}
                   dispatchComponent={dispatchComponent}
+                  isPlaying={isPlaying}
                   player={player}
                 />
               </ComponentContainer>
@@ -473,6 +477,7 @@ const App: FunctionComponent = memo(() => {
                 <SketchInputContainer
                   key={index}
                   index={index}
+                  disabled={isPlaying}
                   dispatchInputs={dispatchInputs}
                   input={input}
                   onRemoveConnectionsRequest={removeConnections}
@@ -487,6 +492,7 @@ const App: FunctionComponent = memo(() => {
                   id={sketchOutputID}
                   checked={isOutputConnected}
                   className={classes.output}
+                  disabled={isPlaying}
                   size="small"
                   onClick={handleOutputClick}
                 />

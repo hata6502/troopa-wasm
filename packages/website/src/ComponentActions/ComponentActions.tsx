@@ -14,8 +14,9 @@ const ComponentActions: FunctionComponent<{
   id: string;
   component: Component;
   dispatchComponent: Dispatch<SetStateAction<Sketch["component"]>>;
+  isPlaying?: boolean;
   player?: Player;
-}> = memo(({ id, component, dispatchComponent, player }) => {
+}> = memo(({ id, component, dispatchComponent, isPlaying, player }) => {
   switch (component.type) {
     case componentType.input: {
       return (
@@ -23,6 +24,7 @@ const ComponentActions: FunctionComponent<{
           id={id}
           component={component}
           dispatchComponent={dispatchComponent}
+          isPlaying={isPlaying}
           player={player}
         />
       );

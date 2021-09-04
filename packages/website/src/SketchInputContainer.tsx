@@ -20,99 +20,104 @@ const useStyles = makeStyles(({ spacing }) => ({
 
 const SketchInputContainer: FunctionComponent<{
   index: number;
+  disabled?: boolean;
   dispatchInputs: Dispatch<SetStateAction<Sketch["inputs"]>>;
   input: SketchInput;
   onRemoveConnectionsRequest?: (event: Destination[]) => void;
-}> = memo(({ index, dispatchInputs, input, onRemoveConnectionsRequest }) => {
-  const classes = useStyles();
+}> = memo(
+  ({ index, disabled, dispatchInputs, input, onRemoveConnectionsRequest }) => {
+    const classes = useStyles();
 
-  const handleInputNameChange: ChangeEventHandler<HTMLInputElement> =
-    useCallback(
-      (event) =>
-        dispatchInputs((prevInputs) => {
-          const inputs: Sketch["inputs"] = [...prevInputs];
+    const handleInputNameChange: ChangeEventHandler<HTMLInputElement> =
+      useCallback(
+        (event) =>
+          dispatchInputs((prevInputs) => {
+            const inputs: Sketch["inputs"] = [...prevInputs];
 
-          inputs[index] = {
-            ...inputs[index],
-            name: event.target.value,
-          };
+            inputs[index] = {
+              ...inputs[index],
+              name: event.target.value,
+            };
 
-          return inputs;
-        }),
-      [dispatchInputs, index]
+            return inputs;
+          }),
+        [dispatchInputs, index]
+      );
+
+    const handleAnchorStop: DraggableEventHandler = useCallback(
+      (event) => {
+        let x;
+        let y;
+
+        if (event instanceof MouseEvent) {
+          x = event.clientX;
+          y = event.clientY;
+        } else if (event instanceof TouchEvent) {
+          x = event.changedTouches[0].clientX;
+          y = event.changedTouches[0].clientY;
+        } else {
+          throw new Error("Unsupported event type");
+        }
+
+        const destinations = getDestinationsByPosition({ x, y });
+
+        onRemoveConnectionsRequest?.(destinations);
+
+        if (destinations.length !== 0) {
+          dispatchInputs((prevInputs) => {
+            const inputs: Sketch["inputs"] = [...prevInputs];
+
+            inputs[index] = {
+              ...inputs[index],
+              destination: destinations[0],
+            };
+
+            return inputs;
+          });
+        }
+      },
+      [dispatchInputs, index, onRemoveConnectionsRequest]
     );
 
-  const handleAnchorStop: DraggableEventHandler = useCallback(
-    (event) => {
-      let x;
-      let y;
+    const relations = useMemo(
+      () =>
+        input.destination
+          ? [
+              {
+                targetId: serializeDestination({
+                  destination: input.destination,
+                }),
+              },
+            ]
+          : [],
+      [input.destination]
+    );
 
-      if (event instanceof MouseEvent) {
-        x = event.clientX;
-        y = event.clientY;
-      } else if (event instanceof TouchEvent) {
-        x = event.changedTouches[0].clientX;
-        y = event.changedTouches[0].clientY;
-      } else {
-        throw new Error("Unsupported event type");
-      }
+    return (
+      <Grid container alignItems="center" spacing={2} wrap="nowrap">
+        <Grid item>
+          <TextField
+            variant="outlined"
+            className={classes.name}
+            disabled={disabled}
+            label="input name"
+            size="small"
+            value={input.name}
+            onChange={handleInputNameChange}
+          />
+        </Grid>
 
-      const destinations = getDestinationsByPosition({ x, y });
-
-      onRemoveConnectionsRequest?.(destinations);
-
-      if (destinations.length !== 0) {
-        dispatchInputs((prevInputs) => {
-          const inputs: Sketch["inputs"] = [...prevInputs];
-
-          inputs[index] = {
-            ...inputs[index],
-            destination: destinations[0],
-          };
-
-          return inputs;
-        });
-      }
-    },
-    [dispatchInputs, index, onRemoveConnectionsRequest]
-  );
-
-  const relations = useMemo(
-    () =>
-      input.destination
-        ? [
-            {
-              targetId: serializeDestination({
-                destination: input.destination,
-              }),
-            },
-          ]
-        : [],
-    [input.destination]
-  );
-
-  return (
-    <Grid container alignItems="center" spacing={2} wrap="nowrap">
-      <Grid item>
-        <TextField
-          variant="outlined"
-          className={classes.name}
-          label="input name"
-          size="small"
-          value={input.name}
-          onChange={handleInputNameChange}
-        />
+        <Grid item>
+          <ConnectableAnchor
+            id={`sketch-input-${index}`}
+            anchorlessRelations={relations}
+            disabled={disabled}
+            onStop={handleAnchorStop}
+          />
+        </Grid>
       </Grid>
-
-      <Grid item>
-        <ConnectableAnchor
-          id={`sketch-input-${index}`}
-          anchorlessRelations={relations}
-          onStop={handleAnchorStop}
-        />
-      </Grid>
-    </Grid>
-  );
-});
+    );
+  }
+);
 
 export { SketchInputContainer };

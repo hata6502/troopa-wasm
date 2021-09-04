@@ -6,6 +6,7 @@ import {
   IconButton,
   Radio,
   TextField,
+  Tooltip,
   Typography,
   makeStyles,
 } from "@material-ui/core";
@@ -42,13 +43,15 @@ const useStyles = makeStyles(({ palette, spacing }) => ({
   },
   container: {
     position: "absolute",
-    cursor: "move",
     width: 160,
   },
   deleteButton: {
     position: "absolute",
     right: spacing(0),
     top: spacing(-4),
+  },
+  draggableContainer: {
+    cursor: "move",
   },
   errorIcon: {
     position: "absolute",
@@ -81,6 +84,7 @@ interface ComponentContainerProps {
   id: string;
   component: Component;
   sketch: Sketch;
+  disabled?: boolean;
   dispatchAlertData: Dispatch<SetStateAction<AlertData>>;
   dispatchComponent: Dispatch<SetStateAction<Sketch["component"]>>;
   isError?: boolean;
@@ -98,6 +102,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
     children,
     component,
     sketch,
+    disabled,
     dispatchAlertData,
     dispatchComponent,
     isError = false,
@@ -295,6 +300,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
                       classes.input,
                       "cancel-component-container-drag"
                     )}
+                    disabled={disabled}
                     size="small"
                     onClick={handleInputClick}
                   />
@@ -307,6 +313,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
         classes.input,
         classes.inputContainer,
         component,
+        disabled,
         id,
         onRemoveConnectionsRequest,
         sketch.component,
@@ -325,17 +332,24 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
     return (
       <Draggable
         cancel=".cancel-component-container-drag"
+        disabled={disabled}
         position={component.position}
         onStart={handleDrag}
         onDrag={handleDrag}
         onStop={handleDrag}
       >
-        <div className={classes.container}>
+        <div
+          className={clsx(
+            classes.container,
+            !disabled && classes.draggableContainer
+          )}
+        >
           <Card className={classes.card}>
             <Box pb={2} pt={2}>
               <Box mb={2} pl={2} pr={2}>
                 <TextField
                   className="cancel-component-container-drag"
+                  disabled={disabled}
                   size="small"
                   value={component.name}
                   onChange={handleNameChange}
@@ -356,21 +370,27 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
             />
           )}
 
-          <IconButton
-            className={clsx(
-              classes.deleteButton,
-              "cancel-component-container-drag"
-            )}
-            size="small"
-            onClick={handleDeleteButtonClick}
-          >
-            <Delete fontSize="small" />
-          </IconButton>
+          <Tooltip title="Delete">
+            <span>
+              <IconButton
+                className={clsx(
+                  classes.deleteButton,
+                  "cancel-component-container-drag"
+                )}
+                disabled={disabled}
+                size="small"
+                onClick={handleDeleteButtonClick}
+              >
+                <Delete fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
 
           <div className={classes.output}>
             <ConnectableAnchor
               id={`component-${id}-output`}
               anchorlessRelations={outputRelations}
+              disabled={disabled}
               onStop={handleOutputStop}
             />
           </div>

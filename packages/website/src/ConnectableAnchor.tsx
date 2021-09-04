@@ -104,8 +104,9 @@ const getRelations = ({
 const ConnectableAnchor: FunctionComponent<{
   id: string;
   anchorlessRelations?: AnchorlessRelation[];
+  disabled?: boolean;
   onStop?: DraggableEventHandler;
-}> = memo(({ id, anchorlessRelations = [], onStop }) => {
+}> = memo(({ id, anchorlessRelations = [], disabled, onStop }) => {
   const [connectionCuror, setConnectionCuror] = useState<DraggableData>();
   const [relations, setRelations] = useState<Relation[]>([]);
 
@@ -159,6 +160,7 @@ const ConnectableAnchor: FunctionComponent<{
   return (
     <>
       <DraggableCore
+        disabled={disabled}
         onStart={handleDrag}
         onDrag={handleDrag}
         onStop={handleStop}
@@ -170,6 +172,7 @@ const ConnectableAnchor: FunctionComponent<{
               id={radioID}
               checked={false}
               className={classes.radio}
+              disabled={disabled}
               size="small"
             />
           </ArcherElement>
