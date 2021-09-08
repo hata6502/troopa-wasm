@@ -48,7 +48,17 @@ const main = () => {
 
     if (unavailable) {
       ReactDOM.render(
-        <>Please enable localStorage to use troopa 👀.</>,
+        <>
+          Please enable localStorage to use troopa 👀.
+          <br />
+          <a
+            href="https://helpfeel.com/hata6502/?kinds=troopa"
+            rel="noreferrer"
+            target="_blank"
+          >
+            Help
+          </a>
+        </>,
         document.querySelector("#app")
       );
 
@@ -63,6 +73,14 @@ const main = () => {
           Sorry, an error has occurred.
           <br />
           Please load again.
+          <br />
+          <a
+            href="https://helpfeel.com/hata6502/?kinds=troopa"
+            rel="noreferrer"
+            target="_blank"
+          >
+            Help
+          </a>
         </>
       }
     >
