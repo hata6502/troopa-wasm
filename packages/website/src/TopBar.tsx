@@ -136,35 +136,45 @@ const TopBar: FunctionComponent<{
       [dispatchSketch]
     );
 
-    const handleLoadInputChange: ChangeEventHandler<HTMLInputElement> =
-      useCallback(
-        (event) => {
-          const files = event.target.files;
+    const handleLoadButtonClick = useCallback(async () => {
+      let fileHandle;
 
-          if (!files || files.length < 1) {
-            return;
-          }
+      try {
+        [fileHandle] = await showOpenFilePicker({
+          types: [
+            {
+              description: "troopa sketch",
+              accept: {
+                "application/json": [".json"],
+              },
+            },
+          ],
+        });
+      } catch (exception) {
+        if (exception instanceof Error && exception.name === "AbortError") {
+          return;
+        }
 
-          const fileReader = new FileReader();
+        throw exception;
+      }
 
-          fileReader.addEventListener("load", () => {
-            const result = fileReader.result;
+      const file = await fileHandle.getFile();
+      const fileReader = new FileReader();
 
-            if (typeof result !== "string") {
-              throw new Error();
-            }
+      fileReader.addEventListener("load", () => {
+        const result = fileReader.result;
 
-            const loadedSketch = JSON.parse(result) as Sketch;
+        if (typeof result !== "string") {
+          throw new Error();
+        }
 
-            event.target.value = "";
+        const loadedSketch = JSON.parse(result) as Sketch;
 
-            dispatchSketch(loadedSketch);
-          });
+        dispatchSketch(loadedSketch);
+      });
 
-          fileReader.readAsText(files[0]);
-        },
-        [dispatchSketch]
-      );
+      fileReader.readAsText(file);
+    }, [dispatchSketch]);
 
     const handleSaveButtonClick = useCallback(
       () => saveSketch({ sketch }),
@@ -268,15 +278,11 @@ const TopBar: FunctionComponent<{
             <Grid item>
               <Tooltip title="Open">
                 <span>
-                  <IconButton component="label" disabled={Boolean(player)}>
+                  <IconButton
+                    disabled={Boolean(player)}
+                    onClick={handleLoadButtonClick}
+                  >
                     <FolderOpen />
-
-                    <input
-                      type="file"
-                      accept="application/json"
-                      hidden
-                      onChange={handleLoadInputChange}
-                    />
                   </IconButton>
                 </span>
               </Tooltip>
