@@ -11,7 +11,7 @@ import {
   Typography,
   makeStyles,
 } from "@material-ui/core";
-import { Description, Favorite } from "@material-ui/icons";
+import { Favorite, Help } from "@material-ui/icons";
 import { memo, useCallback } from "react";
 import type { Dispatch, FunctionComponent, SetStateAction } from "react";
 import { componentType } from "../component";
@@ -95,17 +95,17 @@ const Sidebar: FunctionComponent<{
         <List>
           <Link
             color="inherit"
-            href="https://scrapbox.io/hata6502/troopa_%F0%9F%91%80"
+            href="https://helpfeel.com/hata6502/?kinds=troopa"
             rel="noreferrer"
             target="_blank"
             underline="none"
           >
             <ListItem button>
               <ListItemIcon>
-                <Description />
+                <Help />
               </ListItemIcon>
 
-              <ListItemText primary="Documents" />
+              <ListItemText primary="Help" />
             </ListItem>
           </Link>
 

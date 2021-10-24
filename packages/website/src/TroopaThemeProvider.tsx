@@ -11,10 +11,10 @@ const TroopaThemeProvider: FunctionComponent = memo(({ children }) => {
         palette: {
           type: prefersDarkMode ? "dark" : "light",
           primary: {
-            main: "#ffc107",
+            main: "#ffeb3b",
           },
           secondary: {
-            main: "#f50057",
+            main: "#3d5afe",
           },
         },
       }),
