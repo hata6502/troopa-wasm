@@ -1,21 +1,27 @@
 import { componentType } from "./component";
-import type { Component } from "./component";
+import type { ComponentV1, ComponentV2 } from "./component";
 import type { Destination } from "./destination";
 
 const sketchComponentMaxLength = 4096;
 
-interface SketchInput {
+export interface SketchInput {
   name: string;
   destination?: Destination;
 }
 
-interface Sketch {
-  component: Record<string, Component>;
+export interface SketchV1 {
+  component: Record<string, ComponentV1>;
   inputs: SketchInput[];
   outputComponentID?: string;
 }
 
-const countPrimitiveComponents = ({ sketch }: { sketch: Sketch }): number => {
+export type SketchV2 = Omit<SketchV1, 'component'> & {
+  componentEntries: [string, ComponentV2][];
+}
+
+export type Sketch = SketchV1 | SketchV2;
+
+const countPrimitiveComponents = ({ sketch }: { sketch: SketchV1 }): number => {
   let count = 0;
 
   Object.values(sketch.component).forEach((component) => {
@@ -68,7 +74,7 @@ const countPrimitiveComponents = ({ sketch }: { sketch: Sketch }): number => {
   return count;
 };
 
-const initialSketch: Sketch = {
+const initialSketch: SketchV1 = {
   component: {
     "df5bb750-e9fe-fbf3-26e0-bbd601fe98c9": {
       name: "sine",
@@ -108,4 +114,3 @@ const initialSketch: Sketch = {
 };
 
 export { countPrimitiveComponents, initialSketch, sketchComponentMaxLength };
-export type { Sketch, SketchInput };

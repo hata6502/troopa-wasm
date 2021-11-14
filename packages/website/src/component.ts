@@ -1,6 +1,6 @@
 import type { ControlPosition } from "react-draggable";
 import type { Destination } from "./destination";
-import type { Sketch } from "./sketch";
+import type { SketchV1, SketchV2 } from "./sketch";
 
 const coreComponentType = {
   amplifier: 0,
@@ -122,12 +122,18 @@ type InputComponent = ComponentBase<
   { value: string }
 >;
 
-type SketchComponent = ComponentBase<
+export type SketchComponentV1 = ComponentBase<
   typeof componentType.sketch,
-  { sketch: Sketch }
+  { sketch: SketchV1 }
 >;
 
-type Component =
+export type SketchComponentV2 = Omit<SketchComponentV1, 'extendedData'> & {
+  extendedData: Omit<SketchComponentV1['extendedData'], 'sketch'> & {
+    sketch: SketchV2
+  }
+}
+
+export type ComponentV1 =
   | ComponentBase<typeof componentType.amplifier, Record<string, never>>
   | ComponentBase<typeof componentType.buffer, Record<string, never>>
   | ComponentBase<typeof componentType.differentiator, Record<string, never>>
@@ -151,14 +157,16 @@ type Component =
   | ComponentBase<typeof componentType.keyboardSwitch, Record<string, never>>
   | ComponentBase<typeof componentType.speaker, Record<string, never>>
   | ComponentBase<typeof componentType.meter, { value: number }>
-  | SketchComponent;
+  | SketchComponentV1;
+
+export type ComponentV2 = Exclude<ComponentV1, SketchComponentV1> | SketchComponentV2;
 
 const componentInputMaxLength = 8;
 
 const getComponentInputNames = ({
   component,
 }: {
-  component: Component;
+  component: ComponentV1;
 }): (string | undefined)[] => {
   switch (component.type) {
     case componentType.amplifier:
@@ -211,9 +219,7 @@ export {
 };
 
 export type {
-  Component,
   ComponentType,
   InputComponent,
   PrimitiveComponentType,
-  SketchComponent,
 };
