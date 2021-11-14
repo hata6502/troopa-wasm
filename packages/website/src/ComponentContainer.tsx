@@ -28,14 +28,14 @@ import type { AlertData } from "./App";
 import { ConnectableAnchor } from "./ConnectableAnchor";
 import { Player } from "./Player";
 import { getComponentInputNames } from "./component";
-import type { Component } from "./component";
+import type { ComponentV2 } from "./component";
 import {
   getDestinationsByPosition,
   isSameDestination,
   serializeDestination,
 } from "./destination";
 import type { Destination } from "./destination";
-import type { Sketch } from "./sketch";
+import type { SketchV2 } from "./sketch";
 
 const useStyles = makeStyles(({ palette, spacing }) => ({
   card: {
@@ -82,16 +82,18 @@ const useStyles = makeStyles(({ palette, spacing }) => ({
 
 interface ComponentContainerProps {
   id: string;
-  component: Component;
-  sketch: Sketch;
+  component: ComponentV2;
+  sketch: SketchV2;
   disabled?: boolean;
   dispatchAlertData: Dispatch<SetStateAction<AlertData>>;
-  dispatchComponent: Dispatch<SetStateAction<Sketch["component"]>>;
+  dispatchComponentEntries: Dispatch<
+    SetStateAction<SketchV2["componentEntries"]>
+  >;
   isError?: boolean;
   onDistributorButtonClick?: MouseEventHandler<HTMLButtonElement>;
   onRemoveComponentRequest?: (event: {
     id: string;
-    component: Component;
+    component: ComponentV2;
   }) => void;
   onRemoveConnectionsRequest?: (event: Destination[]) => void;
 }
@@ -104,7 +106,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
     sketch,
     disabled,
     dispatchAlertData,
-    dispatchComponent,
+    dispatchComponentEntries,
     isError = false,
     onDistributorButtonClick,
     onRemoveComponentRequest,
@@ -112,29 +114,49 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
   }) => {
     const handleNameChange: ChangeEventHandler<HTMLInputElement> = useCallback(
       (event) =>
-        dispatchComponent((prevComponent) => ({
-          ...prevComponent,
-          [id]: {
-            ...prevComponent[id],
-            name: event.target.value,
-          },
-        })),
-      [dispatchComponent, id]
+        dispatchComponentEntries((prevComponentEntries) => {
+          const prevComponentMap = new Map(prevComponentEntries);
+          const prevComponent = prevComponentMap.get(id);
+
+          if (!prevComponent) {
+            throw new Error("Component not found");
+          }
+
+          return [
+            ...prevComponentMap
+              .set(id, {
+                ...prevComponent,
+                name: event.target.value,
+              })
+              .entries(),
+          ];
+        }),
+      [dispatchComponentEntries, id]
     );
 
     const handleDrag: DraggableEventHandler = useCallback(
       (_event, data) =>
-        dispatchComponent((prevComponent) => ({
-          ...prevComponent,
-          [id]: {
-            ...prevComponent[id],
-            position: {
-              x: Math.min(Math.max(data.x, 0.0), sketchWidth),
-              y: Math.min(Math.max(data.y, 0.0), sketchHeight),
-            },
-          },
-        })),
-      [dispatchComponent, id]
+        dispatchComponentEntries((prevComponentEntries) => {
+          const prevComponentMap = new Map(prevComponentEntries);
+          const prevComponent = prevComponentMap.get(id);
+
+          if (!prevComponent) {
+            throw new Error("Component not found");
+          }
+
+          return [
+            ...prevComponentMap
+              .set(id, {
+                ...prevComponent,
+                position: {
+                  x: Math.min(Math.max(data.x, 0.0), sketchWidth),
+                  y: Math.min(Math.max(data.y, 0.0), sketchHeight),
+                },
+              })
+              .entries(),
+          ];
+        }),
+      [dispatchComponentEntries, id]
     );
 
     const handleDeleteButtonClick = useCallback(
@@ -203,13 +225,23 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
         ) {
           onRemoveConnectionsRequest?.(newOutputDestinations);
 
-          dispatchComponent((prevComponent) => ({
-            ...prevComponent,
-            [id]: {
-              ...prevComponent[id],
-              outputDestinations: uniqueOutputDestinations,
-            },
-          }));
+          dispatchComponentEntries((prevComponentEntries) => {
+            const prevComponentMap = new Map(prevComponentEntries);
+            const prevComponent = prevComponentMap.get(id);
+
+            if (!prevComponent) {
+              throw new Error("Component not found");
+            }
+
+            return [
+              ...prevComponentMap
+                .set(id, {
+                  ...prevComponent,
+                  outputDestinations: uniqueOutputDestinations,
+                })
+                .entries(),
+            ];
+          });
         } else {
           dispatchAlertData({
             isOpen: true,
@@ -236,7 +268,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
       [
         component.outputDestinations,
         dispatchAlertData,
-        dispatchComponent,
+        dispatchComponentEntries,
         handleDistributorButtonClick,
         id,
         onRemoveConnectionsRequest,
@@ -263,7 +295,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
               onRemoveConnectionsRequest?.([componentDestination]);
 
             const isConnected =
-              Object.values(sketch.component).some((otherComponent) =>
+              sketch.componentEntries.some(([, otherComponent]) =>
                 otherComponent.outputDestinations.some((outputDestination) =>
                   isSameDestination({
                     a: outputDestination,
@@ -316,7 +348,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
         disabled,
         id,
         onRemoveConnectionsRequest,
-        sketch.component,
+        sketch.componentEntries,
         sketch.inputs,
       ]
     );

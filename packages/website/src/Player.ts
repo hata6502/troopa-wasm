@@ -1,10 +1,10 @@
 import type { Dispatch, SetStateAction } from "react";
 import * as core from "core-wasm";
 import { componentType, distributorComponentInInput } from "./component";
-import type { SketchComponent } from "./component";
+import type { SketchComponentV2 } from "./component";
 import type { ComponentDestination, Destination } from "./destination";
 import { sketchComponentMaxLength } from "./sketch";
-import type { Sketch } from "./sketch";
+import type { SketchV2 } from "./sketch";
 
 const bufferSize = 4096;
 
@@ -15,7 +15,7 @@ type CoreInfiniteLoopDetectedEventHandler = (event: {
   componentID: string;
 }) => void;
 
-type Scope = { sketch: Sketch; sketchComponent?: SketchComponent };
+type Scope = { sketch: SketchV2; sketchComponent?: SketchComponentV2 };
 
 class Player {
   static coreComponentOutputLength = 8;
@@ -23,9 +23,9 @@ class Player {
   private static createCoreComponents({
     sketch,
   }: {
-    sketch: Sketch;
+    sketch: SketchV2;
   }): [string, number][] {
-    return Object.entries(sketch.component).flatMap(([id, component]) => {
+    return sketch.componentEntries.flatMap(([id, component]) => {
       switch (component.type) {
         case componentType.amplifier:
         case componentType.buffer:
@@ -84,7 +84,7 @@ class Player {
     switch (destination.type) {
       case "component": {
         const inputComponent = new Map(
-          Object.entries(currentScope.sketch.component)
+          currentScope.sketch.componentEntries
         ).get(destination.id);
 
         if (!inputComponent) {
@@ -184,8 +184,8 @@ class Player {
     dispatchSketch,
     sketch,
   }: {
-    dispatchSketch: Dispatch<SetStateAction<Sketch>>;
-    sketch: Sketch;
+    dispatchSketch: Dispatch<SetStateAction<SketchV2>>;
+    sketch: SketchV2;
   }) {
     this.audioContext = new AudioContext();
     this.dispatchSketch = dispatchSketch;
@@ -281,7 +281,7 @@ class Player {
   private connectComponents({ scopes }: { scopes: Scope[] }) {
     const currentScope = scopes[scopes.length - 1];
 
-    Object.entries(currentScope.sketch.component).forEach(([id, component]) => {
+    currentScope.sketch.componentEntries.forEach(([id, component]) => {
       switch (component.type) {
         case componentType.amplifier:
         case componentType.buffer:
@@ -364,7 +364,7 @@ class Player {
   private prepareInterfaces({ scopes }: { scopes: Scope[] }) {
     const currentScope = scopes[scopes.length - 1];
 
-    Object.entries(currentScope.sketch.component).forEach(([id, component]) => {
+    currentScope.sketch.componentEntries.forEach(([id, component]) => {
       switch (component.type) {
         case componentType.input: {
           this.inputValue({
@@ -437,7 +437,7 @@ class Player {
     this.catchCoreException(core.process());
 
     const buffer = core.get_buffer();
-    const componentMap = new Map(Object.entries(this.sketch.component));
+    const componentMap = new Map(this.sketch.componentEntries);
 
     this.outputComponentIds.forEach((outputComponentId, index) => {
       const outputComponentBuffer = new Float64Array(
@@ -470,15 +470,16 @@ class Player {
 
           this.dispatchSketch((prevSketch) => ({
             ...prevSketch,
-            component: {
-              ...prevSketch.component,
-              [outputComponentId]: {
-                ...outputComponent,
-                extendedData: {
-                  value: outputComponentBuffer[0],
-                },
-              },
-            },
+            componentEntries: [
+              ...new Map(prevSketch.componentEntries)
+                .set(outputComponentId, {
+                  ...outputComponent,
+                  extendedData: {
+                    value: outputComponentBuffer[0],
+                  },
+                })
+                .entries(),
+            ],
           }));
 
           break;

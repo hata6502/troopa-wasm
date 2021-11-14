@@ -1,11 +1,11 @@
 import { Button } from "@material-ui/core";
 import { memo, useCallback } from "react";
 import type { FunctionComponent } from "react";
-import type { Sketch } from "../sketch";
+import type { SketchV2 } from "../sketch";
 import { filePickerOptions } from "../filePickerOptions";
 
 const SketchAction: FunctionComponent<{
-  sketch: Sketch;
+  sketch: SketchV2;
 }> = memo(({ sketch }) => {
   const handleSaveButtonClick = useCallback(async () => {
     let fileHandle;
