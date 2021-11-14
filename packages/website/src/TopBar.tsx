@@ -20,7 +20,7 @@ import type { SketchHistory } from "./App";
 import { Player } from "./Player";
 import { sidebarWidth } from "./Sidebar";
 import { filePickerOptions } from "./filePickerOptions";
-import type { Sketch } from "./sketch";
+import type { SketchV1 } from "./sketch";
 
 const useStyles = makeStyles(({ breakpoints, spacing }) => ({
   appBar: {
@@ -47,10 +47,10 @@ const TopBar: FunctionComponent<{
   >;
   dispatchIsSidebarOpen: Dispatch<SetStateAction<boolean>>;
   dispatchPlayer: Dispatch<SetStateAction<Player | undefined>>;
-  dispatchSketch: Dispatch<SetStateAction<Sketch>>;
+  dispatchSketch: Dispatch<SetStateAction<SketchV1>>;
   dispatchSketchHistory: Dispatch<SetStateAction<SketchHistory>>;
   player?: Player;
-  sketch: Sketch;
+  sketch: SketchV1;
   sketchHistory: SketchHistory;
 }> = memo(
   ({
@@ -137,7 +137,7 @@ const TopBar: FunctionComponent<{
           throw new Error();
         }
 
-        const loadedSketch = JSON.parse(result) as Sketch;
+        const loadedSketch = JSON.parse(result) as SketchV1;
 
         dispatchSketchHistory({
           index: 0,

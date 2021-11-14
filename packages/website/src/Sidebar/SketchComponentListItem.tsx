@@ -4,10 +4,10 @@ import { memo, useCallback } from "react";
 import type { Dispatch, FunctionComponent, SetStateAction } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { componentName, componentType } from "../component";
-import type { Component } from "../component";
+import type { ComponentV1 } from "../component";
 import type { Destination } from "../destination";
 import { filePickerOptions } from "../filePickerOptions";
-import type { Sketch } from "../sketch";
+import type { SketchV1 } from "../sketch";
 
 const replaceComponentIDInDestination = ({
   destination,
@@ -47,9 +47,9 @@ const replaceComponentIDsInComponent = ({
   component,
   newComponentIDMap,
 }: {
-  component: Component;
+  component: ComponentV1;
   newComponentIDMap: Map<string, string>;
-}): Component => {
+}): ComponentV1 => {
   const newOutputDestinations = component.outputDestinations.map(
     (outputDestination) =>
       replaceComponentIDInDestination({
@@ -113,8 +113,8 @@ const replaceComponentIDsInComponent = ({
 const regenerateComponentIDsInSketch = ({
   sketch,
 }: {
-  sketch: Sketch;
-}): Sketch => {
+  sketch: SketchV1;
+}): SketchV1 => {
   const newComponentIDMap = new Map(
     Object.keys(sketch.component).map((id) => [id, uuidv4()])
   );
@@ -155,7 +155,7 @@ const regenerateComponentIDsInSketch = ({
 interface SketchComponentListItemProps
   extends Omit<ListItemProps<"div">, "button"> {
   dispatchIsSidebarOpen: Dispatch<SetStateAction<boolean>>;
-  dispatchSketch: Dispatch<SetStateAction<Sketch>>;
+  dispatchSketch: Dispatch<SetStateAction<SketchV1>>;
 }
 
 const SketchComponentListItem: FunctionComponent<SketchComponentListItemProps> =
@@ -187,7 +187,7 @@ const SketchComponentListItem: FunctionComponent<SketchComponentListItemProps> =
               throw new Error();
             }
 
-            const loadedSketch = JSON.parse(result) as Sketch;
+            const loadedSketch = JSON.parse(result) as SketchV1;
 
             const regeneratedSketch = regenerateComponentIDsInSketch({
               sketch: loadedSketch,

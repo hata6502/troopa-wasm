@@ -4,14 +4,14 @@ import { memo, useCallback } from "react";
 import type { Dispatch, FunctionComponent, SetStateAction } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { componentName, componentType } from "../component";
-import type { Component, PrimitiveComponentType } from "../component";
-import type { Sketch } from "../sketch";
+import type { ComponentV1, PrimitiveComponentType } from "../component";
+import type { SketchV1 } from "../sketch";
 
 const createPrimitiveComponent = ({
   type,
 }: {
   type: PrimitiveComponentType;
-}): Component => {
+}): ComponentV1 => {
   const componentBase = {
     name: componentName[type],
     outputDestinations: [],
@@ -79,7 +79,7 @@ const createPrimitiveComponent = ({
 interface PrimitiveComponentListItemProps
   extends Omit<ListItemProps<"div">, "button"> {
   dispatchIsSidebarOpen: Dispatch<SetStateAction<boolean>>;
-  dispatchSketch: Dispatch<SetStateAction<Sketch>>;
+  dispatchSketch: Dispatch<SetStateAction<SketchV1>>;
   type: PrimitiveComponentType;
 }
 

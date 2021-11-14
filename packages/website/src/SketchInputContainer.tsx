@@ -10,7 +10,7 @@ import type { DraggableEventHandler } from "react-draggable";
 import { ConnectableAnchor } from "./ConnectableAnchor";
 import { getDestinationsByPosition, serializeDestination } from "./destination";
 import type { Destination } from "./destination";
-import type { Sketch, SketchInput } from "./sketch";
+import type { SketchV1, SketchInput } from "./sketch";
 
 const useStyles = makeStyles(({ spacing }) => ({
   name: {
@@ -21,7 +21,7 @@ const useStyles = makeStyles(({ spacing }) => ({
 const SketchInputContainer: FunctionComponent<{
   index: number;
   disabled?: boolean;
-  dispatchInputs: Dispatch<SetStateAction<Sketch["inputs"]>>;
+  dispatchInputs: Dispatch<SetStateAction<SketchV1["inputs"]>>;
   input: SketchInput;
   onRemoveConnectionsRequest?: (event: Destination[]) => void;
 }> = memo(
@@ -32,7 +32,7 @@ const SketchInputContainer: FunctionComponent<{
       useCallback(
         (event) =>
           dispatchInputs((prevInputs) => {
-            const inputs: Sketch["inputs"] = [...prevInputs];
+            const inputs: SketchV1["inputs"] = [...prevInputs];
 
             inputs[index] = {
               ...inputs[index],
@@ -65,7 +65,7 @@ const SketchInputContainer: FunctionComponent<{
 
         if (destinations.length !== 0) {
           dispatchInputs((prevInputs) => {
-            const inputs: Sketch["inputs"] = [...prevInputs];
+            const inputs: SketchV1["inputs"] = [...prevInputs];
 
             inputs[index] = {
               ...inputs[index],

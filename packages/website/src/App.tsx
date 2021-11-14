@@ -35,7 +35,7 @@ import {
   initialSketch,
   sketchComponentMaxLength,
 } from "./sketch";
-import type { Sketch } from "./sketch";
+import type { SketchV1 } from "./sketch";
 
 const historyMaxLength = 30;
 
@@ -48,7 +48,7 @@ interface AlertData {
 
 interface SketchHistory {
   index: number;
-  sketches: Sketch[];
+  sketches: SketchV1[];
 }
 
 const sketchOutputDestination: Destination = {
@@ -180,7 +180,7 @@ const App: FunctionComponent = memo(() => {
   const classes = useStyles();
   const theme = useTheme();
 
-  const dispatchComponent: Dispatch<SetStateAction<Sketch["component"]>> = (
+  const dispatchComponent: Dispatch<SetStateAction<SketchV1["component"]>> = (
     action
   ) =>
     dispatchSketch((prevSketch) => ({
@@ -189,7 +189,7 @@ const App: FunctionComponent = memo(() => {
         typeof action === "function" ? action(prevSketch.component) : action,
     }));
 
-  const dispatchInputs: Dispatch<SetStateAction<Sketch["inputs"]>> = (action) =>
+  const dispatchInputs: Dispatch<SetStateAction<SketchV1["inputs"]>> = (action) =>
     dispatchSketch((prevSketch) => ({
       ...prevSketch,
       inputs: typeof action === "function" ? action(prevSketch.inputs) : action,
@@ -280,7 +280,7 @@ const App: FunctionComponent = memo(() => {
   const removeConnections = useCallback(
     (targets: Destination[]) =>
       dispatchSketch((prevSketch) => {
-        const component: Sketch["component"] = Object.fromEntries(
+        const component: SketchV1["component"] = Object.fromEntries(
           Object.entries(prevSketch.component).map(([id, component]) => [
             id,
             {

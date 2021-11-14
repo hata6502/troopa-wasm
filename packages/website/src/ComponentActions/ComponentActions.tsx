@@ -2,8 +2,8 @@ import { memo } from "react";
 import type { Dispatch, FunctionComponent, SetStateAction } from "react";
 import type { Player } from "../Player";
 import { componentType } from "../component";
-import type { Component } from "../component";
-import type { Sketch } from "../sketch";
+import type { ComponentV1 } from "../component";
+import type { SketchV1 } from "../sketch";
 import { Input } from "./Input";
 import { KeyboardFrequency } from "./KeyboardFrequency";
 import { KeyboardSwitch } from "./KeyboardSwitch";
@@ -12,8 +12,8 @@ import { SketchAction } from "./SketchAction";
 
 const ComponentActions: FunctionComponent<{
   id: string;
-  component: Component;
-  dispatchComponent: Dispatch<SetStateAction<Sketch["component"]>>;
+  component: ComponentV1;
+  dispatchComponent: Dispatch<SetStateAction<SketchV1["component"]>>;
   isPlaying?: boolean;
   player?: Player;
 }> = memo(({ id, component, dispatchComponent, isPlaying, player }) => {

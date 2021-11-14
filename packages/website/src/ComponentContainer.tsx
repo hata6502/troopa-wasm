@@ -28,14 +28,14 @@ import type { AlertData } from "./App";
 import { ConnectableAnchor } from "./ConnectableAnchor";
 import { Player } from "./Player";
 import { getComponentInputNames } from "./component";
-import type { Component } from "./component";
+import type { ComponentV1 } from "./component";
 import {
   getDestinationsByPosition,
   isSameDestination,
   serializeDestination,
 } from "./destination";
 import type { Destination } from "./destination";
-import type { Sketch } from "./sketch";
+import type { SketchV1 } from "./sketch";
 
 const useStyles = makeStyles(({ palette, spacing }) => ({
   card: {
@@ -82,16 +82,16 @@ const useStyles = makeStyles(({ palette, spacing }) => ({
 
 interface ComponentContainerProps {
   id: string;
-  component: Component;
-  sketch: Sketch;
+  component: ComponentV1;
+  sketch: SketchV1;
   disabled?: boolean;
   dispatchAlertData: Dispatch<SetStateAction<AlertData>>;
-  dispatchComponent: Dispatch<SetStateAction<Sketch["component"]>>;
+  dispatchComponent: Dispatch<SetStateAction<SketchV1["component"]>>;
   isError?: boolean;
   onDistributorButtonClick?: MouseEventHandler<HTMLButtonElement>;
   onRemoveComponentRequest?: (event: {
     id: string;
-    component: Component;
+    component: ComponentV1;
   }) => void;
   onRemoveConnectionsRequest?: (event: Destination[]) => void;
 }

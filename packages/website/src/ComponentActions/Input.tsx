@@ -4,12 +4,12 @@ import { memo, useCallback } from "react";
 import type { Dispatch, FunctionComponent, SetStateAction } from "react";
 import type { Player } from "../Player";
 import { InputComponent, componentType } from "../component";
-import type { Sketch } from "../sketch";
+import type { SketchV1 } from "../sketch";
 
 const Input: FunctionComponent<{
   id: string;
   component: InputComponent;
-  dispatchComponent: Dispatch<SetStateAction<Sketch["component"]>>;
+  dispatchComponent: Dispatch<SetStateAction<SketchV1["component"]>>;
   isPlaying?: boolean;
   player?: Player;
 }> = memo(({ id, component, dispatchComponent, isPlaying, player }) => {

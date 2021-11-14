@@ -1,10 +1,10 @@
 import type { Dispatch, SetStateAction } from "react";
 import * as core from "core-wasm";
 import { componentType, distributorComponentInInput } from "./component";
-import type { SketchComponent } from "./component";
+import type { SketchComponentV1 } from "./component";
 import type { ComponentDestination, Destination } from "./destination";
 import { sketchComponentMaxLength } from "./sketch";
-import type { Sketch } from "./sketch";
+import type { SketchV1 } from "./sketch";
 
 const bufferSize = 4096;
 
@@ -15,7 +15,7 @@ type CoreInfiniteLoopDetectedEventHandler = (event: {
   componentID: string;
 }) => void;
 
-type Scope = { sketch: Sketch; sketchComponent?: SketchComponent };
+type Scope = { sketch: SketchV1; sketchComponent?: SketchComponentV1 };
 
 class Player {
   static coreComponentOutputLength = 8;
@@ -23,7 +23,7 @@ class Player {
   private static createCoreComponents({
     sketch,
   }: {
-    sketch: Sketch;
+    sketch: SketchV1;
   }): [string, number][] {
     return Object.entries(sketch.component).flatMap(([id, component]) => {
       switch (component.type) {
@@ -184,8 +184,8 @@ class Player {
     dispatchSketch,
     sketch,
   }: {
-    dispatchSketch: Dispatch<SetStateAction<Sketch>>;
-    sketch: Sketch;
+    dispatchSketch: Dispatch<SetStateAction<SketchV1>>;
+    sketch: SketchV1;
   }) {
     this.audioContext = new AudioContext();
     this.dispatchSketch = dispatchSketch;
