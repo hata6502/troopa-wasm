@@ -2,7 +2,6 @@ import {
   AppBar,
   Grid,
   IconButton,
-  TextField,
   Toolbar,
   Tooltip,
   makeStyles,
@@ -12,22 +11,15 @@ import {
   Menu,
   PlayArrow,
   Redo,
-  Save,
   Stop,
   Undo,
 } from "@material-ui/icons";
 import { memo, useCallback } from "react";
-import type {
-  ChangeEventHandler,
-  Dispatch,
-  FunctionComponent,
-  SetStateAction,
-} from "react";
+import type { Dispatch, FunctionComponent, SetStateAction } from "react";
 import type { SketchHistory } from "./App";
 import { Player } from "./Player";
 import { sidebarWidth } from "./Sidebar";
-import {filePickerOptions} from "./filePickerOptions";
-import { saveSketch } from "./sketch";
+import { filePickerOptions } from "./filePickerOptions";
 import type { Sketch } from "./sketch";
 
 const useStyles = makeStyles(({ breakpoints, spacing }) => ({
@@ -46,14 +38,13 @@ const useStyles = makeStyles(({ breakpoints, spacing }) => ({
       display: "none",
     },
   },
-  sketchName: {
-    minWidth: 240,
-  },
 }));
 
 const TopBar: FunctionComponent<{
   dispatchErrorComponentIDs: Dispatch<SetStateAction<string[]>>;
-  dispatchFileHandle: Dispatch<SetStateAction<FileSystemFileHandle | undefined>>;
+  dispatchFileHandle: Dispatch<
+    SetStateAction<FileSystemFileHandle | undefined>
+  >;
   dispatchIsSidebarOpen: Dispatch<SetStateAction<boolean>>;
   dispatchPlayer: Dispatch<SetStateAction<Player | undefined>>;
   dispatchSketch: Dispatch<SetStateAction<Sketch>>;
@@ -79,16 +70,6 @@ const TopBar: FunctionComponent<{
       () => dispatchIsSidebarOpen(true),
       [dispatchIsSidebarOpen]
     );
-
-    const handleSketchNameChange: ChangeEventHandler<HTMLInputElement> =
-      useCallback(
-        (event) =>
-          dispatchSketch((prevSketch) => ({
-            ...prevSketch,
-            name: event.target.value,
-          })),
-        [dispatchSketch]
-      );
 
     const handlePlayButtonClick = useCallback(() => {
       dispatchErrorComponentIDs([]);
@@ -158,17 +139,17 @@ const TopBar: FunctionComponent<{
 
         const loadedSketch = JSON.parse(result) as Sketch;
 
+        dispatchSketchHistory({
+          index: 0,
+          sketches: [loadedSketch],
+        });
+
         dispatchSketch(loadedSketch);
       });
 
       fileReader.readAsText(file);
       dispatchFileHandle(fileHandle);
-    }, [dispatchFileHandle, dispatchSketch]);
-
-    const handleSaveButtonClick = useCallback(
-      () => saveSketch({ sketch }),
-      [sketch]
-    );
+    }, [dispatchFileHandle, dispatchSketch, dispatchSketchHistory]);
 
     return (
       <AppBar className={classes.appBar} color="inherit" position="fixed">
@@ -183,18 +164,6 @@ const TopBar: FunctionComponent<{
           </IconButton>
 
           <Grid container className={classes.grid} spacing={1} wrap="nowrap">
-            <Grid item>
-              <TextField
-                variant="outlined"
-                className={classes.sketchName}
-                disabled={Boolean(player)}
-                label="sketch name"
-                size="small"
-                value={sketch.name}
-                onChange={handleSketchNameChange}
-              />
-            </Grid>
-
             <Grid item>
               <Tooltip title="Play">
                 <span>
@@ -259,16 +228,6 @@ const TopBar: FunctionComponent<{
                     onClick={handleLoadButtonClick}
                   >
                     <FolderOpen />
-                  </IconButton>
-                </span>
-              </Tooltip>
-            </Grid>
-
-            <Grid item>
-              <Tooltip title="Save">
-                <span>
-                  <IconButton onClick={handleSaveButtonClick}>
-                    <Save />
                   </IconButton>
                 </span>
               </Tooltip>

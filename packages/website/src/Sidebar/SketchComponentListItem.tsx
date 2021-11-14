@@ -172,6 +172,7 @@ const SketchComponentListItem: FunctionComponent<SketchComponentListItemProps> =
           return;
         }
 
+        const file = files[0];
         const fileReader = new FileReader();
 
         fileReader.addEventListener("load", () => {
@@ -194,7 +195,7 @@ const SketchComponentListItem: FunctionComponent<SketchComponentListItemProps> =
             component: {
               ...prevSketch.component,
               [uuidv4()]: {
-                name: regeneratedSketch.name,
+                name: file.name,
                 type: componentType.sketch,
                 outputDestinations: [],
                 position: { x: window.scrollX, y: window.scrollY },
@@ -206,7 +207,7 @@ const SketchComponentListItem: FunctionComponent<SketchComponentListItemProps> =
           dispatchIsSidebarOpen(false);
         });
 
-        fileReader.readAsText(files[0]);
+        fileReader.readAsText(file);
       },
       [dispatchIsSidebarOpen, dispatchSketch]
     );

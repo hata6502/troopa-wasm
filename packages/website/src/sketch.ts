@@ -10,7 +10,6 @@ interface SketchInput {
 }
 
 interface Sketch {
-  name: string;
   component: Record<string, Component>;
   inputs: SketchInput[];
   outputComponentID?: string;
@@ -70,7 +69,6 @@ const countPrimitiveComponents = ({ sketch }: { sketch: Sketch }): number => {
 };
 
 const initialSketch: Sketch = {
-  name: "example",
   component: {
     "df5bb750-e9fe-fbf3-26e0-bbd601fe98c9": {
       name: "sine",
@@ -109,32 +107,5 @@ const initialSketch: Sketch = {
   inputs: [...Array(8).keys()].map(() => ({ name: "" })),
 };
 
-const saveSketch = ({ sketch }: { sketch: Sketch }): void => {
-  const url = URL.createObjectURL(
-    new Blob([JSON.stringify(sketch)], { type: "application/json" })
-  );
-
-  try {
-    const anchorElement = document.createElement("a");
-
-    anchorElement.download = `${sketch.name}.json`;
-    anchorElement.href = url;
-    document.body.append(anchorElement);
-
-    try {
-      anchorElement.click();
-    } finally {
-      anchorElement.remove();
-    }
-  } finally {
-    URL.revokeObjectURL(url);
-  }
-};
-
-export {
-  countPrimitiveComponents,
-  initialSketch,
-  saveSketch,
-  sketchComponentMaxLength,
-};
+export { countPrimitiveComponents, initialSketch, sketchComponentMaxLength };
 export type { Sketch, SketchInput };

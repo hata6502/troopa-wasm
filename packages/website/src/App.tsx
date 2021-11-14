@@ -117,49 +117,63 @@ const App: FunctionComponent = memo(() => {
   });
 
   useEffect(() => {
-    const timeoutID = setTimeout(async () => {
-      dispatchSketchHistory((prevSketchHistory) => {
-        if (sketch === prevSketchHistory.sketches[prevSketchHistory.index]) {
-          return prevSketchHistory;
-        }
+    const name = fileHandle?.name;
 
-        const sketches = [
-          ...prevSketchHistory.sketches.slice(
-            Math.max(prevSketchHistory.index - historyMaxLength, 0),
-            prevSketchHistory.index + 1
-          ),
-          sketch,
-        ];
+    document.title = `${name === undefined ? "" : `${name} - `}troopa`;
+  }, [fileHandle]);
 
-        return {
-          ...prevSketchHistory,
-          index: sketches.length - 1,
-          sketches,
-        };
-      });
-
-      let resolvedFileHandle = fileHandle;
-
-      if (!resolvedFileHandle) {
-        try {
-          resolvedFileHandle = await showSaveFilePicker(filePickerOptions);
-        } catch (exception) {
-          if (exception instanceof Error && exception.name === "AbortError") {
+  useEffect(() => {
+    const timeoutID = setTimeout(
+      () =>
+        void (async () => {
+          if (sketch === sketchHistory.sketches[sketchHistory.index]) {
             return;
           }
 
-          throw exception;
-        }
-      }
+          dispatchSketchHistory((prevSketchHistory) => {
+            const sketches = [
+              ...prevSketchHistory.sketches.slice(
+                Math.max(prevSketchHistory.index - historyMaxLength, 0),
+                prevSketchHistory.index + 1
+              ),
+              sketch,
+            ];
 
-      const writable = await resolvedFileHandle.createWritable();
+            return {
+              ...prevSketchHistory,
+              index: sketches.length - 1,
+              sketches,
+            };
+          });
 
-      await writable.write(JSON.stringify(sketch));
-      await writable.close();
-    }, 500);
+          let resolvedFileHandle = fileHandle;
+
+          if (!resolvedFileHandle) {
+            try {
+              resolvedFileHandle = await showSaveFilePicker(filePickerOptions);
+              dispatchFileHandle(resolvedFileHandle);
+            } catch (exception) {
+              if (
+                exception instanceof Error &&
+                exception.name === "AbortError"
+              ) {
+                return;
+              }
+
+              throw exception;
+            }
+          }
+
+          const writable = await resolvedFileHandle.createWritable();
+
+          await writable.write(JSON.stringify(sketch));
+          await writable.close();
+        })(),
+      500
+    );
 
     return () => clearTimeout(timeoutID);
-  }, [sketch]);
+  }, [fileHandle, sketch, sketchHistory.index, sketchHistory.sketches]);
 
   const archerContainerElement = useRef<ArcherContainer>(null);
 

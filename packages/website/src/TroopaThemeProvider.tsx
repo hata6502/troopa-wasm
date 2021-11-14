@@ -14,7 +14,7 @@ const TroopaThemeProvider: FunctionComponent = memo(({ children }) => {
             main: "#ffc107",
           },
           secondary: {
-            main: "#3d5afe",
+            main: "#f50057",
           },
         },
       }),
