@@ -8,7 +8,9 @@ const common = require("./webpack.common.js");
 module.exports = merge(common, {
   mode: "development",
   devServer: {
-    contentBase: path.join(__dirname, "dist"),
+    static: {
+      directory: path.join(__dirname, "dist"),
+    },
   },
   devtool: "eval-source-map",
 });
