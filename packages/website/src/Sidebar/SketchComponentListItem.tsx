@@ -4,10 +4,11 @@ import { memo, useCallback } from "react";
 import type { Dispatch, FunctionComponent, SetStateAction } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { componentName, componentType } from "../component";
-import type { ComponentV1 } from "../component";
+import type { ComponentV2 } from "../component";
 import type { Destination } from "../destination";
 import { filePickerOptions } from "../filePickerOptions";
-import type { SketchV1 } from "../sketch";
+import { upgradeSketch } from "../sketch";
+import type { Sketch, SketchV2 } from "../sketch";
 
 const replaceComponentIDInDestination = ({
   destination,
@@ -47,9 +48,9 @@ const replaceComponentIDsInComponent = ({
   component,
   newComponentIDMap,
 }: {
-  component: ComponentV1;
+  component: ComponentV2;
   newComponentIDMap: Map<string, string>;
-}): ComponentV1 => {
+}): ComponentV2 => {
   const newOutputDestinations = component.outputDestinations.map(
     (outputDestination) =>
       replaceComponentIDInDestination({
@@ -113,14 +114,15 @@ const replaceComponentIDsInComponent = ({
 const regenerateComponentIDsInSketch = ({
   sketch,
 }: {
-  sketch: SketchV1;
-}): SketchV1 => {
+  sketch: SketchV2;
+}): SketchV2 => {
   const newComponentIDMap = new Map(
-    Object.keys(sketch.component).map((id) => [id, uuidv4()])
+    sketch.componentEntries.map(([id]) => [id, uuidv4()])
   );
 
-  const newComponent = Object.fromEntries(
-    Object.entries(sketch.component).map(([id, component]) => {
+  return {
+    ...sketch,
+    componentEntries: sketch.componentEntries.map(([id, component]) => {
       const newComponentID = newComponentIDMap.get(id);
 
       if (!newComponentID) {
@@ -134,12 +136,7 @@ const regenerateComponentIDsInSketch = ({
           newComponentIDMap,
         }),
       ];
-    })
-  );
-
-  return {
-    ...sketch,
-    component: newComponent,
+    }),
     inputs: sketch.inputs.map((input) => ({
       ...input,
       destination:
@@ -155,7 +152,7 @@ const regenerateComponentIDsInSketch = ({
 interface SketchComponentListItemProps
   extends Omit<ListItemProps<"div">, "button"> {
   dispatchIsSidebarOpen: Dispatch<SetStateAction<boolean>>;
-  dispatchSketch: Dispatch<SetStateAction<SketchV1>>;
+  dispatchSketch: Dispatch<SetStateAction<SketchV2>>;
 }
 
 const SketchComponentListItem: FunctionComponent<SketchComponentListItemProps> =
@@ -187,24 +184,28 @@ const SketchComponentListItem: FunctionComponent<SketchComponentListItemProps> =
               throw new Error();
             }
 
-            const loadedSketch = JSON.parse(result) as SketchV1;
+            const loadedSketch = JSON.parse(result) as Sketch;
+            const upgradedSketch = upgradeSketch({ sketch: loadedSketch });
 
             const regeneratedSketch = regenerateComponentIDsInSketch({
-              sketch: loadedSketch,
+              sketch: upgradedSketch,
             });
 
             dispatchSketch((prevSketch) => ({
               ...prevSketch,
-              component: {
-                ...prevSketch.component,
-                [uuidv4()]: {
-                  name: file.name,
-                  type: componentType.sketch,
-                  outputDestinations: [],
-                  position: { x: window.scrollX, y: window.scrollY },
-                  extendedData: { sketch: regeneratedSketch },
-                },
-              },
+              componentEntries: [
+                ...prevSketch.componentEntries,
+                [
+                  uuidv4(),
+                  {
+                    name: file.name,
+                    type: componentType.sketch,
+                    outputDestinations: [],
+                    position: { x: window.scrollX, y: window.scrollY },
+                    extendedData: { sketch: regeneratedSketch },
+                  },
+                ],
+              ],
             }));
 
             dispatchIsSidebarOpen(false);

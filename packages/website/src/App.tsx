@@ -35,7 +35,7 @@ import {
   initialSketch,
   sketchComponentMaxLength,
 } from "./sketch";
-import type { SketchV1 } from "./sketch";
+import type { SketchV2 } from "./sketch";
 
 const historyMaxLength = 30;
 
@@ -48,7 +48,7 @@ interface AlertData {
 
 interface SketchHistory {
   index: number;
-  sketches: SketchV1[];
+  sketches: SketchV2[];
 }
 
 const sketchOutputDestination: Destination = {
@@ -103,7 +103,7 @@ const useStyles = makeStyles(({ mixins, palette, spacing }) => ({
   toolbar: mixins.toolbar,
 }));
 
-const App: FunctionComponent = memo(() => {
+export const App: FunctionComponent = memo(() => {
   const [alertData, dispatchAlertData] = useState<AlertData>({});
   const [errorComponentIDs, dispatchErrorComponentIDs] = useState<string[]>([]);
   const [fileHandle, dispatchFileHandle] = useState<FileSystemFileHandle>();
@@ -180,16 +180,20 @@ const App: FunctionComponent = memo(() => {
   const classes = useStyles();
   const theme = useTheme();
 
-  const dispatchComponent: Dispatch<SetStateAction<SketchV1["component"]>> = (
-    action
-  ) =>
+  const dispatchComponentEntries: Dispatch<
+    SetStateAction<SketchV2["componentEntries"]>
+  > = (action) =>
     dispatchSketch((prevSketch) => ({
       ...prevSketch,
-      component:
-        typeof action === "function" ? action(prevSketch.component) : action,
+      componentEntries:
+        typeof action === "function"
+          ? action(prevSketch.componentEntries)
+          : action,
     }));
 
-  const dispatchInputs: Dispatch<SetStateAction<SketchV1["inputs"]>> = (action) =>
+  const dispatchInputs: Dispatch<SetStateAction<SketchV2["inputs"]>> = (
+    action
+  ) =>
     dispatchSketch((prevSketch) => ({
       ...prevSketch,
       inputs: typeof action === "function" ? action(prevSketch.inputs) : action,
@@ -217,16 +221,19 @@ const App: FunctionComponent = memo(() => {
 
       dispatchSketch((prevSketch) => ({
         ...prevSketch,
-        component: {
-          ...prevSketch.component,
-          [uuidv4()]: {
-            name: componentName[componentType.buffer],
-            type: componentType.buffer,
-            outputDestinations: [],
-            position: { x: window.scrollX, y: window.scrollY },
-            extendedData: {},
-          },
-        },
+        componentEntries: [
+          ...prevSketch.componentEntries,
+          [
+            uuidv4(),
+            {
+              name: componentName[componentType.buffer],
+              type: componentType.buffer,
+              outputDestinations: [],
+              position: { x: window.scrollX, y: window.scrollY },
+              extendedData: {},
+            },
+          ],
+        ],
       }));
     };
 
@@ -263,54 +270,51 @@ const App: FunctionComponent = memo(() => {
     () =>
       dispatchSketch((prevSketch) => ({
         ...prevSketch,
-        component: {
-          ...prevSketch.component,
-          [uuidv4()]: {
-            name: componentName[componentType.distributor],
-            type: componentType.distributor,
-            outputDestinations: [],
-            position: { x: window.scrollX, y: window.scrollY },
-            extendedData: {},
-          },
-        },
+        componentEntries: [
+          ...prevSketch.componentEntries,
+          [
+            uuidv4(),
+            {
+              name: componentName[componentType.distributor],
+              type: componentType.distributor,
+              outputDestinations: [],
+              position: { x: window.scrollX, y: window.scrollY },
+              extendedData: {},
+            },
+          ],
+        ],
       })),
     []
   );
 
   const removeConnections = useCallback(
     (targets: Destination[]) =>
-      dispatchSketch((prevSketch) => {
-        const component: SketchV1["component"] = Object.fromEntries(
-          Object.entries(prevSketch.component).map(([id, component]) => [
-            id,
-            {
-              ...component,
-              outputDestinations: component.outputDestinations.filter(
-                (outputDestination) =>
-                  targets.every(
-                    (target) =>
-                      !isSameDestination({ a: outputDestination, b: target })
-                  )
-              ),
-            },
-          ])
-        );
-
-        return {
-          ...prevSketch,
-          component,
-          inputs: prevSketch.inputs.map((prevInput) => ({
-            ...prevInput,
-            destination: targets.some(
-              (target) =>
-                prevInput.destination &&
-                isSameDestination({ a: prevInput.destination, b: target })
-            )
-              ? undefined
-              : prevInput.destination,
-          })),
-        };
-      }),
+      dispatchSketch((prevSketch) => ({
+        ...prevSketch,
+        componentEntries: prevSketch.componentEntries.map(([id, component]) => [
+          id,
+          {
+            ...component,
+            outputDestinations: component.outputDestinations.filter(
+              (outputDestination) =>
+                targets.every(
+                  (target) =>
+                    !isSameDestination({ a: outputDestination, b: target })
+                )
+            ),
+          },
+        ]),
+        inputs: prevSketch.inputs.map((prevInput) => ({
+          ...prevInput,
+          destination: targets.some(
+            (target) =>
+              prevInput.destination &&
+              isSameDestination({ a: prevInput.destination, b: target })
+          )
+            ? undefined
+            : prevInput.destination,
+        })),
+      })),
     []
   );
 
@@ -328,10 +332,8 @@ const App: FunctionComponent = memo(() => {
 
       dispatchSketch((prevSketch) => ({
         ...prevSketch,
-        component: Object.fromEntries(
-          Object.entries(prevSketch.component).flatMap(([id, component]) =>
-            id === event.id ? [] : [[id, component]]
-          )
+        componentEntries: prevSketch.componentEntries.filter(
+          ([id]) => id !== event.id
         ),
       }));
     },
@@ -353,7 +355,7 @@ const App: FunctionComponent = memo(() => {
   );
 
   const isOutputConnected =
-    Object.values(sketch.component).some((otherComponent) =>
+    sketch.componentEntries.some(([, otherComponent]) =>
       otherComponent.outputDestinations.some((outputDestination) =>
         isSameDestination({ a: outputDestination, b: sketchOutputDestination })
       )
@@ -413,7 +415,7 @@ const App: FunctionComponent = memo(() => {
             strokeColor={theme.palette.divider}
             svgContainerStyle={svgContainerStyle}
           >
-            {Object.entries(sketch.component).map(([id, component]) => (
+            {sketch.componentEntries.map(([id, component]) => (
               <ComponentContainer
                 id={id}
                 key={id}
@@ -421,7 +423,7 @@ const App: FunctionComponent = memo(() => {
                 sketch={sketch}
                 disabled={isPlaying}
                 dispatchAlertData={dispatchAlertData}
-                dispatchComponent={dispatchComponent}
+                dispatchComponentEntries={dispatchComponentEntries}
                 isError={errorComponentIDs.includes(id)}
                 onDistributorButtonClick={handleDistributorButtonClick}
                 onRemoveComponentRequest={handleRemoveComponentRequest}
@@ -430,7 +432,7 @@ const App: FunctionComponent = memo(() => {
                 <ComponentActions
                   id={id}
                   component={component}
-                  dispatchComponent={dispatchComponent}
+                  dispatchComponentEntries={dispatchComponentEntries}
                   isPlaying={isPlaying}
                   player={player}
                 />
@@ -477,5 +479,5 @@ const App: FunctionComponent = memo(() => {
   );
 });
 
-export { App, sketchHeight, sketchOutputDestination, sketchWidth };
+export { sketchHeight, sketchOutputDestination, sketchWidth };
 export type { AlertData, SketchHistory };

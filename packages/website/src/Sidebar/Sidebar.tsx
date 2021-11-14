@@ -16,7 +16,7 @@ import { memo, useCallback } from "react";
 import type { Dispatch, FunctionComponent, SetStateAction } from "react";
 import { componentType } from "../component";
 import type { ComponentType } from "../component";
-import type { SketchV1 } from "../sketch";
+import type { SketchV2 } from "../sketch";
 import { PrimitiveComponentListItem } from "./PrimitiveComponentListItem";
 import { SketchComponentListItem } from "./SketchComponentListItem";
 
@@ -74,7 +74,7 @@ const useStyles = makeStyles(({ breakpoints }) => ({
 
 const Sidebar: FunctionComponent<{
   dispatchIsSidebarOpen: Dispatch<SetStateAction<boolean>>;
-  dispatchSketch: Dispatch<SetStateAction<SketchV1>>;
+  dispatchSketch: Dispatch<SetStateAction<SketchV2>>;
   isPlaying?: boolean;
   isSidebarOpen: boolean;
 }> = memo(

@@ -20,7 +20,8 @@ import type { SketchHistory } from "./App";
 import { Player } from "./Player";
 import { sidebarWidth } from "./Sidebar";
 import { filePickerOptions } from "./filePickerOptions";
-import type { SketchV1 } from "./sketch";
+import { upgradeSketch } from "./sketch";
+import type { Sketch, SketchV2 } from "./sketch";
 
 const useStyles = makeStyles(({ breakpoints, spacing }) => ({
   appBar: {
@@ -47,10 +48,10 @@ const TopBar: FunctionComponent<{
   >;
   dispatchIsSidebarOpen: Dispatch<SetStateAction<boolean>>;
   dispatchPlayer: Dispatch<SetStateAction<Player | undefined>>;
-  dispatchSketch: Dispatch<SetStateAction<SketchV1>>;
+  dispatchSketch: Dispatch<SetStateAction<SketchV2>>;
   dispatchSketchHistory: Dispatch<SetStateAction<SketchHistory>>;
   player?: Player;
-  sketch: SketchV1;
+  sketch: SketchV2;
   sketchHistory: SketchHistory;
 }> = memo(
   ({
@@ -137,14 +138,15 @@ const TopBar: FunctionComponent<{
           throw new Error();
         }
 
-        const loadedSketch = JSON.parse(result) as SketchV1;
+        const loadedSketch = JSON.parse(result) as Sketch;
+        const upgradedSketch = upgradeSketch({ sketch: loadedSketch });
 
         dispatchSketchHistory({
           index: 0,
-          sketches: [loadedSketch],
+          sketches: [upgradedSketch],
         });
 
-        dispatchSketch(loadedSketch);
+        dispatchSketch(upgradedSketch);
       });
 
       fileReader.readAsText(file);

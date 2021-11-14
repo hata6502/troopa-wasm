@@ -127,11 +127,11 @@ export type SketchComponentV1 = ComponentBase<
   { sketch: SketchV1 }
 >;
 
-export type SketchComponentV2 = Omit<SketchComponentV1, 'extendedData'> & {
-  extendedData: Omit<SketchComponentV1['extendedData'], 'sketch'> & {
-    sketch: SketchV2
-  }
-}
+export type SketchComponentV2 = Omit<SketchComponentV1, "extendedData"> & {
+  extendedData: Omit<SketchComponentV1["extendedData"], "sketch"> & {
+    sketch: SketchV2;
+  };
+};
 
 export type ComponentV1 =
   | ComponentBase<typeof componentType.amplifier, Record<string, never>>
@@ -159,14 +159,16 @@ export type ComponentV1 =
   | ComponentBase<typeof componentType.meter, { value: number }>
   | SketchComponentV1;
 
-export type ComponentV2 = Exclude<ComponentV1, SketchComponentV1> | SketchComponentV2;
+export type ComponentV2 =
+  | Exclude<ComponentV1, SketchComponentV1>
+  | SketchComponentV2;
 
 const componentInputMaxLength = 8;
 
 const getComponentInputNames = ({
   component,
 }: {
-  component: ComponentV1;
+  component: ComponentV2;
 }): (string | undefined)[] => {
   switch (component.type) {
     case componentType.amplifier:
@@ -218,8 +220,4 @@ export {
   getComponentInputNames,
 };
 
-export type {
-  ComponentType,
-  InputComponent,
-  PrimitiveComponentType,
-};
+export type { ComponentType, InputComponent, PrimitiveComponentType };

@@ -4,34 +4,38 @@ import { memo, useCallback } from "react";
 import type { Dispatch, FunctionComponent, SetStateAction } from "react";
 import type { Player } from "../Player";
 import { InputComponent, componentType } from "../component";
-import type { SketchV1 } from "../sketch";
+import type { SketchV2 } from "../sketch";
 
 const Input: FunctionComponent<{
   id: string;
   component: InputComponent;
-  dispatchComponent: Dispatch<SetStateAction<SketchV1["component"]>>;
+  dispatchComponentEntries: Dispatch<
+    SetStateAction<SketchV2["componentEntries"]>
+  >;
   isPlaying?: boolean;
   player?: Player;
-}> = memo(({ id, component, dispatchComponent, isPlaying, player }) => {
+}> = memo(({ id, component, dispatchComponentEntries, isPlaying, player }) => {
   const handleChange: NonNullable<TextFieldProps["onChange"]> = useCallback(
     (event) => {
-      dispatchComponent((prevComponents) => {
-        const prevComponent = prevComponents[id];
+      dispatchComponentEntries((prevComponentEntries) => {
+        const prevComponentMap = new Map(prevComponentEntries);
+        const prevComponent = prevComponentMap.get(id);
 
-        if (prevComponent.type !== componentType.input) {
+        if (!prevComponent || prevComponent.type !== componentType.input) {
           throw new Error(`${id} is not an input`);
         }
 
-        return {
-          ...prevComponents,
-          [id]: {
-            ...prevComponent,
-            extendedData: {
-              ...prevComponent.extendedData,
-              value: event.target.value,
-            },
-          },
-        };
+        return [
+          ...prevComponentMap
+            .set(id, {
+              ...prevComponent,
+              extendedData: {
+                ...prevComponent.extendedData,
+                value: event.target.value,
+              },
+            })
+            .entries(),
+        ];
       });
 
       if (!player) {
@@ -43,7 +47,7 @@ const Input: FunctionComponent<{
         value: Number(event.target.value),
       });
     },
-    [dispatchComponent, id, player]
+    [dispatchComponentEntries, id, player]
   );
 
   return (
