@@ -14,7 +14,6 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Dispatch, FunctionComponent, SetStateAction } from "react";
 import { ArcherContainer, ArcherElement } from "react-archer";
 import type { ArcherContainerProps } from "react-archer";
-import * as Sentry from "@sentry/browser";
 import { v4 as uuidv4 } from "uuid";
 import { ComponentActions } from "./ComponentActions";
 import { ComponentContainer } from "./ComponentContainer";
@@ -30,6 +29,7 @@ import {
 } from "./component";
 import { isSameDestination, serializeDestination } from "./destination";
 import type { Destination } from "./destination";
+import { filePickerOptions } from "./filePickerOptions";
 import {
   countPrimitiveComponents,
   initialSketch,
@@ -106,14 +106,10 @@ const useStyles = makeStyles(({ mixins, palette, spacing }) => ({
 const App: FunctionComponent = memo(() => {
   const [alertData, dispatchAlertData] = useState<AlertData>({});
   const [errorComponentIDs, dispatchErrorComponentIDs] = useState<string[]>([]);
+  const [fileHandle, dispatchFileHandle] = useState<FileSystemFileHandle>();
   const [isSidebarOpen, dispatchIsSidebarOpen] = useState(false);
   const [player, dispatchPlayer] = useState<Player>();
-
-  const [sketch, dispatchSketch] = useState(() => {
-    const sketchItem = localStorage.getItem("sketch");
-
-    return sketchItem ? (JSON.parse(sketchItem) as Sketch) : initialSketch;
-  });
+  const [sketch, dispatchSketch] = useState(initialSketch);
 
   const [sketchHistory, dispatchSketchHistory] = useState<SketchHistory>({
     index: 0,
@@ -121,26 +117,7 @@ const App: FunctionComponent = memo(() => {
   });
 
   useEffect(() => {
-    const timeoutID = setTimeout(() => {
-      try {
-        localStorage.setItem("sketch", JSON.stringify(sketch));
-      } catch (exception: unknown) {
-        dispatchAlertData({
-          isOpen: true,
-          severity: "error",
-          title: "Failed to save the sketch to localStorage",
-          description: "Please save the sketch as a file.",
-        });
-
-        if (
-          !(exception instanceof DOMException) ||
-          exception.code !== DOMException.QUOTA_EXCEEDED_ERR
-        ) {
-          console.error(exception);
-          Sentry.captureException(exception);
-        }
-      }
-
+    const timeoutID = setTimeout(async () => {
       dispatchSketchHistory((prevSketchHistory) => {
         if (sketch === prevSketchHistory.sketches[prevSketchHistory.index]) {
           return prevSketchHistory;
@@ -160,6 +137,25 @@ const App: FunctionComponent = memo(() => {
           sketches,
         };
       });
+
+      let resolvedFileHandle = fileHandle;
+
+      if (!resolvedFileHandle) {
+        try {
+          resolvedFileHandle = await showSaveFilePicker(filePickerOptions);
+        } catch (exception) {
+          if (exception instanceof Error && exception.name === "AbortError") {
+            return;
+          }
+
+          throw exception;
+        }
+      }
+
+      const writable = await resolvedFileHandle.createWritable();
+
+      await writable.write(JSON.stringify(sketch));
+      await writable.close();
     }, 500);
 
     return () => clearTimeout(timeoutID);
@@ -369,6 +365,7 @@ const App: FunctionComponent = memo(() => {
     <div className={classes.container}>
       <TopBar
         dispatchErrorComponentIDs={dispatchErrorComponentIDs}
+        dispatchFileHandle={dispatchFileHandle}
         dispatchIsSidebarOpen={dispatchIsSidebarOpen}
         dispatchPlayer={dispatchPlayer}
         dispatchSketch={dispatchSketch}

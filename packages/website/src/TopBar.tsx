@@ -9,7 +9,6 @@ import {
 } from "@material-ui/core";
 import {
   FolderOpen,
-  InsertDriveFileOutlined,
   Menu,
   PlayArrow,
   Redo,
@@ -27,7 +26,8 @@ import type {
 import type { SketchHistory } from "./App";
 import { Player } from "./Player";
 import { sidebarWidth } from "./Sidebar";
-import { initialSketch, saveSketch } from "./sketch";
+import {filePickerOptions} from "./filePickerOptions";
+import { saveSketch } from "./sketch";
 import type { Sketch } from "./sketch";
 
 const useStyles = makeStyles(({ breakpoints, spacing }) => ({
@@ -53,6 +53,7 @@ const useStyles = makeStyles(({ breakpoints, spacing }) => ({
 
 const TopBar: FunctionComponent<{
   dispatchErrorComponentIDs: Dispatch<SetStateAction<string[]>>;
+  dispatchFileHandle: Dispatch<SetStateAction<FileSystemFileHandle | undefined>>;
   dispatchIsSidebarOpen: Dispatch<SetStateAction<boolean>>;
   dispatchPlayer: Dispatch<SetStateAction<Player | undefined>>;
   dispatchSketch: Dispatch<SetStateAction<Sketch>>;
@@ -63,6 +64,7 @@ const TopBar: FunctionComponent<{
 }> = memo(
   ({
     dispatchErrorComponentIDs,
+    dispatchFileHandle,
     dispatchIsSidebarOpen,
     dispatchPlayer,
     dispatchSketch,
@@ -131,25 +133,11 @@ const TopBar: FunctionComponent<{
       sketchHistory.sketches,
     ]);
 
-    const handleNewButtonClick = useCallback(
-      () => dispatchSketch(initialSketch),
-      [dispatchSketch]
-    );
-
     const handleLoadButtonClick = useCallback(async () => {
       let fileHandle;
 
       try {
-        [fileHandle] = await showOpenFilePicker({
-          types: [
-            {
-              description: "troopa sketch",
-              accept: {
-                "application/json": [".json"],
-              },
-            },
-          ],
-        });
+        [fileHandle] = await showOpenFilePicker(filePickerOptions);
       } catch (exception) {
         if (exception instanceof Error && exception.name === "AbortError") {
           return;
@@ -174,7 +162,8 @@ const TopBar: FunctionComponent<{
       });
 
       fileReader.readAsText(file);
-    }, [dispatchSketch]);
+      dispatchFileHandle(fileHandle);
+    }, [dispatchFileHandle, dispatchSketch]);
 
     const handleSaveButtonClick = useCallback(
       () => saveSketch({ sketch }),
@@ -257,19 +246,6 @@ const TopBar: FunctionComponent<{
                     onClick={handleRedoButtonClick}
                   >
                     <Redo />
-                  </IconButton>
-                </span>
-              </Tooltip>
-            </Grid>
-
-            <Grid item>
-              <Tooltip title="New">
-                <span>
-                  <IconButton
-                    disabled={Boolean(player)}
-                    onClick={handleNewButtonClick}
-                  >
-                    <InsertDriveFileOutlined />
                   </IconButton>
                 </span>
               </Tooltip>

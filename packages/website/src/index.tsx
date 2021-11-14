@@ -31,41 +31,6 @@ const main = () => {
     }
   }
 
-  try {
-    const localStorageTest = "localStorageTest";
-
-    localStorage.setItem(localStorageTest, localStorageTest);
-    localStorage.removeItem(localStorageTest);
-  } catch (exception) {
-    const unavailable =
-      !(exception instanceof DOMException) ||
-      (exception.code !== 22 &&
-        exception.code !== 1014 &&
-        exception.name !== "QuotaExceededError" &&
-        exception.name !== "NS_ERROR_DOM_QUOTA_REACHED") ||
-      !localStorage ||
-      localStorage.length === 0;
-
-    if (unavailable) {
-      ReactDOM.render(
-        <>
-          Please enable localStorage to use troopa 👀.
-          <br />
-          <a
-            href="https://helpfeel.com/hata6502/?kinds=troopa"
-            rel="noreferrer"
-            target="_blank"
-          >
-            Help
-          </a>
-        </>,
-        document.querySelector("#app")
-      );
-
-      return;
-    }
-  }
-
   ReactDOM.render(
     <Sentry.ErrorBoundary
       fallback={
