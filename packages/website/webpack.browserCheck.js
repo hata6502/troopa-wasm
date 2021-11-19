@@ -10,18 +10,27 @@ module.exports = {
     rules: [
       {
         test: /\.(j|t)sx?$/,
-        loader: "babel-loader",
-        options: {
-          presets: [
-            [
-              "@babel/preset-env",
-              {
-                targets: "defaults",
-              },
-            ],
-            "@babel/preset-typescript",
-          ],
-        },
+        use: [
+          {
+            loader: "babel-loader",
+            options: {
+              presets: [
+                [
+                  "@babel/preset-env",
+                  {
+                    targets: "defaults",
+                  },
+                ],
+              ],
+            },
+          },
+          {
+            loader: "ts-loader",
+            options: {
+              transpileOnly: true,
+            },
+          },
+        ],
       },
     ],
   },

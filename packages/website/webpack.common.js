@@ -12,25 +12,28 @@ module.exports = {
     rules: [
       {
         test: /\.[jt]sx?$/,
-        loader: "babel-loader",
-        options: {
-          presets: [
-            [
-              "@babel/preset-env",
-              {
-                corejs: "3.19.0",
-                useBuiltIns: "entry",
-              },
-            ],
-            [
-              "@babel/preset-react",
-              {
-                runtime: "automatic",
-              },
-            ],
-            "@babel/preset-typescript",
-          ],
-        },
+        use: [
+          {
+            loader: "babel-loader",
+            options: {
+              presets: [
+                [
+                  "@babel/preset-env",
+                  {
+                    corejs: "3.19.0",
+                    useBuiltIns: "entry",
+                  },
+                ],
+              ],
+            },
+          },
+          {
+            loader: "ts-loader",
+            options: {
+              transpileOnly: true,
+            },
+          },
+        ],
       },
     ],
   },
