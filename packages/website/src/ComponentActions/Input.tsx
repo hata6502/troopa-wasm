@@ -1,10 +1,14 @@
-import { TextField } from "@material-ui/core";
-import type { TextFieldProps } from "@material-ui/core";
-import { memo, useCallback } from "react";
-import type { Dispatch, FunctionComponent, SetStateAction } from "react";
-import type { Player } from "../Player";
+import { TextField, TextFieldProps } from "@material-ui/core";
+import {
+  Dispatch,
+  FunctionComponent,
+  SetStateAction,
+  memo,
+  useCallback,
+} from "react";
+import { Player } from "../Player";
 import { InputComponent, componentType } from "../component";
-import type { SketchV2 } from "../sketch";
+import { SketchV2 } from "../sketch";
 
 const Input: FunctionComponent<{
   id: string;

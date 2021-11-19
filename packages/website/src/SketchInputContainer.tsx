@@ -1,16 +1,21 @@
 import { Grid, TextField, makeStyles } from "@material-ui/core";
-import { memo, useCallback, useMemo } from "react";
-import type {
+import {
   ChangeEventHandler,
   Dispatch,
   FunctionComponent,
   SetStateAction,
+  memo,
+  useCallback,
+  useMemo,
 } from "react";
-import type { DraggableEventHandler } from "react-draggable";
+import { DraggableEventHandler } from "react-draggable";
 import { ConnectableAnchor } from "./ConnectableAnchor";
-import { getDestinationsByPosition, serializeDestination } from "./destination";
-import type { Destination } from "./destination";
-import type { SketchV2, SketchInput } from "./sketch";
+import {
+  Destination,
+  getDestinationsByPosition,
+  serializeDestination,
+} from "./destination";
+import { SketchV2, SketchInput } from "./sketch";
 
 const useStyles = makeStyles(({ spacing }) => ({
   name: {

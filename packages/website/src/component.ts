@@ -1,6 +1,6 @@
-import type { ControlPosition } from "react-draggable";
-import type { Destination } from "./destination";
-import type { SketchV1, SketchV2 } from "./sketch";
+import { ControlPosition } from "react-draggable";
+import { Destination } from "./destination";
+import { SketchV1, SketchV2 } from "./sketch";
 
 const coreComponentType = {
   amplifier: 0,
@@ -213,11 +213,12 @@ const getComponentInputNames = ({
 };
 
 export {
+  ComponentType,
+  InputComponent,
+  PrimitiveComponentType,
   componentInputMaxLength,
   componentName,
   componentType,
   distributorComponentInInput,
   getComponentInputNames,
 };
-
-export type { ComponentType, InputComponent, PrimitiveComponentType };

@@ -12,11 +12,15 @@ import {
   makeStyles,
 } from "@material-ui/core";
 import { Favorite, Help } from "@material-ui/icons";
-import { memo, useCallback } from "react";
-import type { Dispatch, FunctionComponent, SetStateAction } from "react";
-import { componentType } from "../component";
-import type { ComponentType } from "../component";
-import type { SketchV2 } from "../sketch";
+import {
+  Dispatch,
+  FunctionComponent,
+  SetStateAction,
+  memo,
+  useCallback,
+} from "react";
+import { ComponentType, componentType } from "../component";
+import { SketchV2 } from "../sketch";
 import { PrimitiveComponentListItem } from "./PrimitiveComponentListItem";
 import { SketchComponentListItem } from "./SketchComponentListItem";
 

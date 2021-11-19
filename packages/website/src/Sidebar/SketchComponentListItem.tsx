@@ -1,14 +1,16 @@
-import { ListItem, ListItemText } from "@material-ui/core";
-import type { ListItemProps } from "@material-ui/core";
-import { memo, useCallback } from "react";
-import type { Dispatch, FunctionComponent, SetStateAction } from "react";
+import { ListItem, ListItemProps, ListItemText } from "@material-ui/core";
+import {
+  Dispatch,
+  FunctionComponent,
+  SetStateAction,
+  memo,
+  useCallback,
+} from "react";
 import { v4 as uuidv4 } from "uuid";
-import { componentName, componentType } from "../component";
-import type { ComponentV2 } from "../component";
-import type { Destination } from "../destination";
+import { ComponentV2, componentName, componentType } from "../component";
+import { Destination } from "../destination";
 import { filePickerOptions } from "../filePickerOptions";
-import { upgradeSketch } from "../sketch";
-import type { Sketch, SketchV2 } from "../sketch";
+import { Sketch, SketchV2, upgradeSketch } from "../sketch";
 
 const replaceComponentIDInDestination = ({
   destination,

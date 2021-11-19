@@ -149,5 +149,10 @@ const serializeDestination = ({
   }
 };
 
-export { getDestinationsByPosition, isSameDestination, serializeDestination };
-export type { ComponentDestination, Destination };
+export {
+  ComponentDestination,
+  Destination,
+  getDestinationsByPosition,
+  isSameDestination,
+  serializeDestination,
+};

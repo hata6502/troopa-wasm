@@ -12,30 +12,34 @@ import {
 } from "@material-ui/core";
 import { Delete, Error as ErrorIcon } from "@material-ui/icons";
 import clsx from "clsx";
-import { memo, useCallback, useMemo } from "react";
-import type {
+import {
   ChangeEventHandler,
   Dispatch,
   FunctionComponent,
   MouseEventHandler,
   SetStateAction,
+  memo,
+  useCallback,
+  useMemo,
 } from "react";
 import { ArcherElement } from "react-archer";
-import Draggable from "react-draggable";
-import type { DraggableEventHandler } from "react-draggable";
-import { sketchHeight, sketchOutputDestination, sketchWidth } from "./App";
-import type { AlertData } from "./App";
+import Draggable, { DraggableEventHandler } from "react-draggable";
+import {
+  AlertData,
+  sketchHeight,
+  sketchOutputDestination,
+  sketchWidth,
+} from "./App";
 import { ConnectableAnchor } from "./ConnectableAnchor";
 import { Player } from "./Player";
-import { getComponentInputNames } from "./component";
-import type { ComponentV2 } from "./component";
+import { ComponentV2, getComponentInputNames } from "./component";
 import {
+  Destination,
   getDestinationsByPosition,
   isSameDestination,
   serializeDestination,
 } from "./destination";
-import type { Destination } from "./destination";
-import type { SketchV2 } from "./sketch";
+import { SketchV2 } from "./sketch";
 
 const useStyles = makeStyles(({ palette, spacing }) => ({
   card: {
@@ -432,5 +436,4 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
   }
 );
 
-export { ComponentContainer };
-export type { ComponentContainerProps };
+export { ComponentContainer, ComponentContainerProps };

@@ -1,6 +1,5 @@
-import { componentType } from "./component";
-import type { ComponentV1, ComponentV2 } from "./component";
-import type { Destination } from "./destination";
+import { ComponentV1, ComponentV2, componentType } from "./component";
+import { Destination } from "./destination";
 
 const sketchComponentMaxLength = 4096;
 

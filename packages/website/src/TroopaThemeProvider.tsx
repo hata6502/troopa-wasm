@@ -1,6 +1,5 @@
 import { ThemeProvider, createTheme, useMediaQuery } from "@material-ui/core";
-import { memo, useMemo } from "react";
-import type { FunctionComponent } from "react";
+import { FunctionComponent, memo, useMemo } from "react";
 
 const TroopaThemeProvider: FunctionComponent = memo(({ children }) => {
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");

@@ -1,7 +1,6 @@
 import { Button } from "@material-ui/core";
-import { memo, useCallback } from "react";
-import type { FunctionComponent } from "react";
-import type { SketchV2 } from "../sketch";
+import { FunctionComponent, memo, useCallback } from "react";
+import { SketchV2 } from "../sketch";
 import { filePickerOptions } from "../filePickerOptions";
 
 const SketchAction: FunctionComponent<{

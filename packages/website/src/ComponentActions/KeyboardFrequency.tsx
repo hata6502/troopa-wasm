@@ -1,6 +1,5 @@
-import { memo, useEffect, useState } from "react";
-import type { FunctionComponent } from "react";
-import type { Player } from "../Player";
+import { FunctionComponent, memo, useEffect, useState } from "react";
+import { Player } from "../Player";
 
 interface Scale {
   notation: string;

@@ -1,9 +1,7 @@
-import { memo } from "react";
-import type { Dispatch, FunctionComponent, SetStateAction } from "react";
-import type { Player } from "../Player";
-import { componentType } from "../component";
-import type { ComponentV2 } from "../component";
-import type { SketchV2 } from "../sketch";
+import { Dispatch, FunctionComponent, SetStateAction, memo } from "react";
+import { Player } from "../Player";
+import { ComponentV2, componentType } from "../component";
+import { SketchV2 } from "../sketch";
 import { Input } from "./Input";
 import { KeyboardFrequency } from "./KeyboardFrequency";
 import { KeyboardSwitch } from "./KeyboardSwitch";

@@ -1,10 +1,12 @@
-import type { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction } from "react";
 import * as core from "core-wasm";
-import { componentType, distributorComponentInInput } from "./component";
-import type { SketchComponentV2 } from "./component";
-import type { ComponentDestination, Destination } from "./destination";
-import { sketchComponentMaxLength } from "./sketch";
-import type { SketchV2 } from "./sketch";
+import {
+  SketchComponentV2,
+  componentType,
+  distributorComponentInInput,
+} from "./component";
+import { ComponentDestination, Destination } from "./destination";
+import { SketchV2, sketchComponentMaxLength } from "./sketch";
 
 const bufferSize = 4096;
 

@@ -14,14 +14,18 @@ import {
   Stop,
   Undo,
 } from "@material-ui/icons";
-import { memo, useCallback } from "react";
-import type { Dispatch, FunctionComponent, SetStateAction } from "react";
-import type { SketchHistory } from "./App";
+import {
+  Dispatch,
+  FunctionComponent,
+  SetStateAction,
+  memo,
+  useCallback,
+} from "react";
+import { SketchHistory } from "./App";
 import { Player } from "./Player";
 import { sidebarWidth } from "./Sidebar";
 import { filePickerOptions } from "./filePickerOptions";
-import { upgradeSketch } from "./sketch";
-import type { Sketch, SketchV2 } from "./sketch";
+import { Sketch, SketchV2, upgradeSketch } from "./sketch";
 
 const useStyles = makeStyles(({ breakpoints, spacing }) => ({
   appBar: {

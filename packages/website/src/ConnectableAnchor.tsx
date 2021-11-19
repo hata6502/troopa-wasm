@@ -1,10 +1,19 @@
 import { Radio, makeStyles } from "@material-ui/core";
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
-import type { CSSProperties, FunctionComponent } from "react";
-import { ArcherElement } from "react-archer";
-import type { Relation } from "react-archer";
-import { DraggableCore } from "react-draggable";
-import type { DraggableData, DraggableEventHandler } from "react-draggable";
+import {
+  CSSProperties,
+  FunctionComponent,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { ArcherElement, Relation } from "react-archer";
+import {
+  DraggableCore,
+  DraggableData,
+  DraggableEventHandler,
+} from "react-draggable";
 
 const arrowLength = 40;
 

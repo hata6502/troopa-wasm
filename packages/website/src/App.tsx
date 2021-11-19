@@ -4,21 +4,39 @@ import {
   Chip,
   Radio,
   Snackbar,
+  SnackbarProps,
   makeStyles,
   useTheme,
 } from "@material-ui/core";
-import type { SnackbarProps } from "@material-ui/core";
-import { Alert, AlertTitle } from "@material-ui/lab";
-import type { AlertProps, AlertTitleProps } from "@material-ui/lab";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { Dispatch, FunctionComponent, SetStateAction } from "react";
-import { ArcherContainer, ArcherElement } from "react-archer";
-import type { ArcherContainerProps } from "react-archer";
+import {
+  Alert,
+  AlertProps,
+  AlertTitle,
+  AlertTitleProps,
+} from "@material-ui/lab";
+import {
+  Dispatch,
+  FunctionComponent,
+  SetStateAction,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  ArcherContainer,
+  ArcherContainerProps,
+  ArcherElement,
+} from "react-archer";
 import { v4 as uuidv4 } from "uuid";
 import { ComponentActions } from "./ComponentActions";
-import { ComponentContainer } from "./ComponentContainer";
-import type { ComponentContainerProps } from "./ComponentContainer";
-import type { Player } from "./Player";
+import {
+  ComponentContainer,
+  ComponentContainerProps,
+} from "./ComponentContainer";
+import { Player } from "./Player";
 import { Sidebar } from "./Sidebar";
 import { SketchInputContainer } from "./SketchInputContainer";
 import { TopBar } from "./TopBar";
@@ -27,15 +45,18 @@ import {
   componentName,
   componentType,
 } from "./component";
-import { isSameDestination, serializeDestination } from "./destination";
-import type { Destination } from "./destination";
+import {
+  Destination,
+  isSameDestination,
+  serializeDestination,
+} from "./destination";
 import { filePickerOptions } from "./filePickerOptions";
 import {
+  SketchV2,
   countPrimitiveComponents,
   initialSketch,
   sketchComponentMaxLength,
 } from "./sketch";
-import type { SketchV2 } from "./sketch";
 
 const historyMaxLength = 30;
 
@@ -479,5 +500,10 @@ export const App: FunctionComponent = memo(() => {
   );
 });
 
-export { sketchHeight, sketchOutputDestination, sketchWidth };
-export type { AlertData, SketchHistory };
+export {
+  AlertData,
+  SketchHistory,
+  sketchHeight,
+  sketchOutputDestination,
+  sketchWidth,
+};

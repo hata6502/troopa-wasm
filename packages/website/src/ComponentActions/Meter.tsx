@@ -1,5 +1,4 @@
-import { memo } from "react";
-import type { FunctionComponent } from "react";
+import { FunctionComponent, memo } from "react";
 
 const Meter: FunctionComponent<{
   value: number;
