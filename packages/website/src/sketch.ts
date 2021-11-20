@@ -1,8 +1,6 @@
 import { ComponentV1, ComponentV2, componentType } from "./component";
 import { Destination } from "./destination";
 
-const sketchComponentMaxLength = 4096;
-
 export interface SketchInput {
   name: string;
   destination?: Destination;
@@ -20,59 +18,6 @@ export type SketchV2 = Omit<SketchV1, "component"> & {
 };
 
 export type Sketch = SketchV1 | SketchV2;
-
-const countPrimitiveComponents = ({ sketch }: { sketch: SketchV2 }): number => {
-  let count = 0;
-
-  sketch.componentEntries.forEach(([, component]) => {
-    switch (component.type) {
-      case componentType.amplifier:
-      case componentType.buffer:
-      case componentType.differentiator:
-      case componentType.distributor:
-      case componentType.divider:
-      case componentType.integrator:
-      case componentType.lowerSaturator:
-      case componentType.mixer:
-      case componentType.noise:
-      case componentType.saw:
-      case componentType.sine:
-      case componentType.square:
-      case componentType.subtractor:
-      case componentType.triangle:
-      case componentType.upperSaturator:
-      case componentType.and:
-      case componentType.not:
-      case componentType.or:
-      case componentType.input:
-      case componentType.keyboardFrequency:
-      case componentType.keyboardSwitch:
-      case componentType.speaker:
-      case componentType.meter: {
-        count++;
-
-        break;
-      }
-
-      case componentType.sketch: {
-        count += countPrimitiveComponents({
-          sketch: component.extendedData.sketch,
-        });
-
-        break;
-      }
-
-      default: {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const exhaustiveCheck: never = component;
-
-        throw new Error("Unrecognized component type");
-      }
-    }
-  });
-
-  return count;
-};
 
 export const initialSketch: SketchV2 = {
   version: 2,
@@ -188,5 +133,3 @@ export const upgradeSketch = ({ sketch }: { sketch: Sketch }): SketchV2 => {
 
   return upgradedSketch;
 };
-
-export { countPrimitiveComponents, sketchComponentMaxLength };

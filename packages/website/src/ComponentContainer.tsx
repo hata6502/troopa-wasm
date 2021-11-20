@@ -1,6 +1,5 @@
 import {
   Box,
-  Button,
   Card,
   CardActions,
   IconButton,
@@ -16,7 +15,6 @@ import {
   ChangeEventHandler,
   Dispatch,
   FunctionComponent,
-  MouseEventHandler,
   SetStateAction,
   memo,
   useCallback,
@@ -24,14 +22,8 @@ import {
 } from "react";
 import { ArcherElement } from "react-archer";
 import Draggable, { DraggableEventHandler } from "react-draggable";
-import {
-  AlertData,
-  sketchHeight,
-  sketchOutputDestination,
-  sketchWidth,
-} from "./App";
+import { sketchHeight, sketchOutputDestination, sketchWidth } from "./App";
 import { ConnectableAnchor } from "./ConnectableAnchor";
-import { Player } from "./Player";
 import { ComponentV2, getComponentInputNames } from "./component";
 import {
   Destination,
@@ -89,12 +81,10 @@ interface ComponentContainerProps {
   component: ComponentV2;
   sketch: SketchV2;
   disabled?: boolean;
-  dispatchAlertData: Dispatch<SetStateAction<AlertData>>;
   dispatchComponentEntries: Dispatch<
     SetStateAction<SketchV2["componentEntries"]>
   >;
   isError?: boolean;
-  onDistributorButtonClick?: MouseEventHandler<HTMLButtonElement>;
   onRemoveComponentRequest?: (event: {
     id: string;
     component: ComponentV2;
@@ -109,10 +99,8 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
     component,
     sketch,
     disabled,
-    dispatchAlertData,
     dispatchComponentEntries,
     isError = false,
-    onDistributorButtonClick,
     onRemoveComponentRequest,
     onRemoveConnectionsRequest,
   }) => {
@@ -172,19 +160,6 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
       [component, id, onRemoveComponentRequest]
     );
 
-    const handleDistributorButtonClick: MouseEventHandler<HTMLButtonElement> =
-      useCallback(
-        (event) => {
-          dispatchAlertData((prevAlertData) => ({
-            ...prevAlertData,
-            isOpen: false,
-          }));
-
-          onDistributorButtonClick?.(event);
-        },
-        [dispatchAlertData, onDistributorButtonClick]
-      );
-
     const handleOutputStop: DraggableEventHandler = useCallback(
       (event) => {
         let x;
@@ -224,56 +199,29 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
               ).values(),
             ];
 
-        if (
-          uniqueOutputDestinations.length <= Player.coreComponentOutputLength
-        ) {
-          onRemoveConnectionsRequest?.(newOutputDestinations);
+        onRemoveConnectionsRequest?.(newOutputDestinations);
 
-          dispatchComponentEntries((prevComponentEntries) => {
-            const prevComponentMap = new Map(prevComponentEntries);
-            const prevComponent = prevComponentMap.get(id);
+        dispatchComponentEntries((prevComponentEntries) => {
+          const prevComponentMap = new Map(prevComponentEntries);
+          const prevComponent = prevComponentMap.get(id);
 
-            if (!prevComponent) {
-              throw new Error("Component not found");
-            }
+          if (!prevComponent) {
+            throw new Error("Component not found");
+          }
 
-            return [
-              ...prevComponentMap
-                .set(id, {
-                  ...prevComponent,
-                  outputDestinations: uniqueOutputDestinations,
-                })
-                .entries(),
-            ];
-          });
-        } else {
-          dispatchAlertData({
-            isOpen: true,
-            severity: "info",
-            title: "Please use distributor component",
-            description: (
-              <>
-                A component can output to up to&nbsp;
-                {Player.coreComponentOutputLength} destinations. Please
-                use&nbsp;
-                <Button
-                  variant="outlined"
-                  size="small"
-                  onClick={handleDistributorButtonClick}
-                >
-                  distributor
-                </Button>
-                &nbsp;component to expand it.
-              </>
-            ),
-          });
-        }
+          return [
+            ...prevComponentMap
+              .set(id, {
+                ...prevComponent,
+                outputDestinations: uniqueOutputDestinations,
+              })
+              .entries(),
+          ];
+        });
       },
       [
         component.outputDestinations,
-        dispatchAlertData,
         dispatchComponentEntries,
-        handleDistributorButtonClick,
         id,
         onRemoveConnectionsRequest,
       ]

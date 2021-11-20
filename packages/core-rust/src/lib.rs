@@ -19,30 +19,7 @@ static OUTPUT_COMPONENT_INDEXES: Lazy<Mutex<[usize; OUTPUT_COMPONENT_INDEXES_MAX
     Lazy::new(|| Mutex::new([0; OUTPUT_COMPONENT_INDEXES_MAX_LENGTH]));
 
 static OUTPUT_COMPONENT_INDEXES_LENGTH: Lazy<Mutex<usize>> = Lazy::new(|| Mutex::new(0));
-
 static SKETCH: Lazy<Mutex<Sketch>> = Lazy::new(|| Mutex::new(Sketch::new()));
-
-#[wasm_bindgen]
-pub enum InterfaceComponentType {
-    Amplifier,
-    Buffer,
-    Differentiator,
-    Distributor,
-    Divider,
-    Integrator,
-    LowerSaturator,
-    Mixer,
-    Noise,
-    Saw,
-    Sine,
-    Square,
-    Subtractor,
-    Triangle,
-    UpperSaturator,
-    And,
-    Not,
-    Or,
-}
 
 #[wasm_bindgen]
 pub fn initialize(sample_rate: f64) {
@@ -73,28 +50,7 @@ pub fn connect(
 }
 
 #[wasm_bindgen]
-pub fn create_component(interface_component_type: InterfaceComponentType) -> usize {
-    let component_type = match interface_component_type {
-        InterfaceComponentType::Amplifier => ComponentType::Amplifier,
-        InterfaceComponentType::Buffer => ComponentType::Buffer,
-        InterfaceComponentType::Differentiator => ComponentType::Differentiator,
-        InterfaceComponentType::Distributor => ComponentType::Distributor,
-        InterfaceComponentType::Divider => ComponentType::Divider,
-        InterfaceComponentType::Integrator => ComponentType::Integrator,
-        InterfaceComponentType::LowerSaturator => ComponentType::LowerSaturator,
-        InterfaceComponentType::Mixer => ComponentType::Mixer,
-        InterfaceComponentType::Noise => ComponentType::Noise,
-        InterfaceComponentType::Saw => ComponentType::Saw,
-        InterfaceComponentType::Sine => ComponentType::Sine,
-        InterfaceComponentType::Square => ComponentType::Square,
-        InterfaceComponentType::Subtractor => ComponentType::Subtractor,
-        InterfaceComponentType::Triangle => ComponentType::Triangle,
-        InterfaceComponentType::UpperSaturator => ComponentType::UpperSaturator,
-        InterfaceComponentType::And => ComponentType::And,
-        InterfaceComponentType::Not => ComponentType::Not,
-        InterfaceComponentType::Or => ComponentType::Or,
-    };
-
+pub fn create_component(component_type: ComponentType) -> usize {
     SKETCH.lock().unwrap().create_component(component_type)
 }
 

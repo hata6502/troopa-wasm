@@ -1,55 +1,46 @@
+extern crate wasm_bindgen;
+
 use once_cell::sync::Lazy;
 use rand;
 use rand::prelude::*;
 use std::f64;
 use std::sync::Mutex;
-
-type Destination = (usize, usize);
+use wasm_bindgen::prelude::*;
 
 pub const RETURN_CODE_SUCCESS: i32 = 0;
 pub const RETURN_CODE_INFINITE_LOOP_DETECTED: i32 = 1;
 
 const DIFF_TIME_INPUT: usize = 0;
-const SKETCH_COMPONENT_MAX_LENGTH: usize = 4096;
 
-#[derive(Clone, Copy)]
+type Destination = (usize, usize);
+
 pub struct Sketch {
-    components: [Component; SKETCH_COMPONENT_MAX_LENGTH],
-    component_length: usize,
+    components: Vec<Component>,
     sample_rate: f64,
 }
 
 impl Sketch {
     pub const fn new() -> Self {
         Sketch {
-            components: [Component::new(ComponentType::Distributor); SKETCH_COMPONENT_MAX_LENGTH],
-            component_length: 0,
+            components: Vec::new(),
             sample_rate: 0.0,
         }
     }
 
     pub fn init(&mut self, sample_rate: f64) {
-        self.component_length = 0;
+        self.components.clear();
         self.sample_rate = sample_rate;
     }
 
     pub fn connect(&mut self, input_destination: Destination, output_component_index: usize) {
-        let output_destination_index =
-            self.components[output_component_index].output_destination_length;
-
-        self.components[output_component_index].output_destinations[output_destination_index] =
-            input_destination;
-
-        self.components[output_component_index].output_destination_length += 1;
+        self.components[output_component_index]
+            .output_destinations
+            .push(input_destination);
     }
 
     pub fn create_component(&mut self, component_type: ComponentType) -> usize {
-        let index = self.component_length;
-
-        self.components[index] = Component::new(component_type);
-        self.component_length += 1;
-
-        index
+        self.components.push(Component::new(component_type));
+        self.components.len() - 1
     }
 
     pub fn get_output_value(&self, index: usize) -> f64 {
@@ -57,8 +48,8 @@ impl Sketch {
     }
 
     pub fn input_values(&mut self, inputs: Vec<(Destination, f64)>) -> Result<(), i32> {
-        for index in 0..self.component_length {
-            self.components[index].loop_count = 0;
+        for component_index in 0..self.components.len() {
+            self.components[component_index].loop_count = 0;
         }
 
         let mut component_indexes = Vec::new();
@@ -85,7 +76,7 @@ impl Sketch {
                 };
 
                 for output_destination_index in
-                    0..self.components[component_index].output_destination_length
+                    0..self.components[component_index].output_destinations.len()
                 {
                     let output_destination = self.components[component_index].output_destinations
                         [output_destination_index];
@@ -115,7 +106,7 @@ impl Sketch {
         let diff_time = 1.0 / self.sample_rate;
         let mut inputs = Vec::new();
 
-        for index in 0..self.component_length {
+        for index in 0..self.components.len() {
             inputs.push(((index, DIFF_TIME_INPUT), diff_time));
         }
 
@@ -123,7 +114,7 @@ impl Sketch {
     }
 }
 
-#[derive(Clone, Copy)]
+#[wasm_bindgen]
 pub enum ComponentType {
     Amplifier,
     Buffer,
@@ -149,17 +140,14 @@ static RNG: Lazy<Mutex<rand::rngs::StdRng>> =
     Lazy::new(|| Mutex::new(rand::SeedableRng::from_seed([0; 32])));
 
 const COMPONENT_INPUT_LENGTH: usize = 8;
-const COMPONENT_OUTPUT_LENGTH: usize = 8;
 const COMPONENT_REGISTER_LENGTH: usize = 8;
 
-#[derive(Clone, Copy)]
 pub struct Component {
     component_type: ComponentType,
     input_values: [f64; COMPONENT_INPUT_LENGTH],
     loop_count: i32,
     output_value: f64,
-    output_destinations: [Destination; COMPONENT_OUTPUT_LENGTH],
-    output_destination_length: usize,
+    output_destinations: Vec<Destination>,
     registers: [f64; COMPONENT_REGISTER_LENGTH],
 }
 
@@ -174,8 +162,7 @@ impl Component {
             input_values: [0.0; COMPONENT_REGISTER_LENGTH],
             loop_count: 0,
             output_value: 0.0,
-            output_destinations: [(0, 0); COMPONENT_OUTPUT_LENGTH],
-            output_destination_length: 0,
+            output_destinations: Vec::new(),
             registers: [0.0; COMPONENT_REGISTER_LENGTH],
         }
     }

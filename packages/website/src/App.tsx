@@ -1,7 +1,5 @@
 import {
-  Box,
   Button,
-  Chip,
   Radio,
   Snackbar,
   SnackbarProps,
@@ -21,7 +19,6 @@ import {
   memo,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -51,12 +48,7 @@ import {
   serializeDestination,
 } from "./destination";
 import { filePickerOptions } from "./filePickerOptions";
-import {
-  SketchV2,
-  countPrimitiveComponents,
-  initialSketch,
-  sketchComponentMaxLength,
-} from "./sketch";
+import { SketchV2, initialSketch } from "./sketch";
 
 const historyMaxLength = 30;
 
@@ -287,27 +279,6 @@ export const App: FunctionComponent = memo(() => {
     return () => player.setCoreInfiniteLoopDetectedHandler(undefined);
   }, [player]);
 
-  const handleDistributorButtonClick = useCallback(
-    () =>
-      dispatchSketch((prevSketch) => ({
-        ...prevSketch,
-        componentEntries: [
-          ...prevSketch.componentEntries,
-          [
-            uuidv4(),
-            {
-              name: componentName[componentType.distributor],
-              type: componentType.distributor,
-              outputDestinations: [],
-              position: { x: window.scrollX, y: window.scrollY },
-              extendedData: {},
-            },
-          ],
-        ],
-      })),
-    []
-  );
-
   const removeConnections = useCallback(
     (targets: Destination[]) =>
       dispatchSketch((prevSketch) => ({
@@ -389,11 +360,6 @@ export const App: FunctionComponent = memo(() => {
 
   const isPlaying = Boolean(player);
 
-  const freeComponentLength = useMemo(
-    () => sketchComponentMaxLength - countPrimitiveComponents({ sketch }),
-    [sketch]
-  );
-
   const sketchOutputID = serializeDestination({
     destination: sketchOutputDestination,
   });
@@ -422,13 +388,6 @@ export const App: FunctionComponent = memo(() => {
       <main className={classes.main}>
         <div className={classes.toolbar} />
 
-        <Box mb={2}>
-          <Chip
-            label={`${freeComponentLength} components free`}
-            variant="outlined"
-          />
-        </Box>
-
         <div className={classes.sketch}>
           <ArcherContainer
             className={classes.archerContainer}
@@ -443,10 +402,8 @@ export const App: FunctionComponent = memo(() => {
                 component={component}
                 sketch={sketch}
                 disabled={isPlaying}
-                dispatchAlertData={dispatchAlertData}
                 dispatchComponentEntries={dispatchComponentEntries}
                 isError={errorComponentIDs.includes(id)}
-                onDistributorButtonClick={handleDistributorButtonClick}
                 onRemoveComponentRequest={handleRemoveComponentRequest}
                 onRemoveConnectionsRequest={removeConnections}
               >

@@ -6,7 +6,7 @@ import {
   distributorComponentInInput,
 } from "./component";
 import { ComponentDestination, Destination } from "./destination";
-import { SketchV2, sketchComponentMaxLength } from "./sketch";
+import { SketchV2 } from "./sketch";
 
 const bufferSize = 4096;
 
@@ -20,8 +20,6 @@ type CoreInfiniteLoopDetectedEventHandler = (event: {
 type Scope = { sketch: SketchV2; sketchComponent?: SketchComponentV2 };
 
 class Player {
-  static coreComponentOutputLength = 8;
-
   private static createCoreComponents({
     sketch,
   }: {
@@ -258,10 +256,7 @@ class Player {
       return;
     }
 
-    if (
-      returnCode >= returnCodeInfiniteLoopDetected &&
-      returnCode < returnCodeInfiniteLoopDetected + sketchComponentMaxLength
-    ) {
+    if (returnCode >= returnCodeInfiniteLoopDetected) {
       const componentIndex = returnCode - returnCodeInfiniteLoopDetected;
 
       const componentID = [...this.componentIndexMap.entries()].find(

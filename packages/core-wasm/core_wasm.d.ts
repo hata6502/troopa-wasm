@@ -15,10 +15,10 @@ export function append_output_component_index(output_component_index: number): v
 */
 export function connect(input_component_index: number, input_input_index: number, output_component_index: number): void;
 /**
-* @param {number} interface_component_type
+* @param {number} component_type
 * @returns {number}
 */
-export function create_component(interface_component_type: number): number;
+export function create_component(component_type: number): number;
 /**
 * @returns {Float64Array}
 */
@@ -36,7 +36,7 @@ export function input_value(component_index: number, input_index: number, value:
 export function process(): number;
 /**
 */
-export enum InterfaceComponentType {
+export enum ComponentType {
   Amplifier,
   Buffer,
   Differentiator,
