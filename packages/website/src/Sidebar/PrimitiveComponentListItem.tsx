@@ -8,8 +8,8 @@ import {
 } from "react";
 import { v4 as uuidv4 } from "uuid";
 import {
+  ComponentType,
   ComponentV2,
-  PrimitiveComponentType,
   componentName,
   componentType,
 } from "../component";
@@ -18,7 +18,7 @@ import { SketchV2 } from "../sketch";
 const createPrimitiveComponent = ({
   type,
 }: {
-  type: PrimitiveComponentType;
+  type: ComponentType;
 }): ComponentV2 => {
   const componentBase = {
     name: componentName[type],
@@ -75,6 +75,10 @@ const createPrimitiveComponent = ({
       };
     }
 
+    case componentType.sketch: {
+      throw new Error("Sketch component is not supported.");
+    }
+
     default: {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const exhaustiveCheck: never = type;
@@ -88,7 +92,7 @@ interface PrimitiveComponentListItemProps
   extends Omit<ListItemProps<"div">, "button"> {
   dispatchIsSidebarOpen: Dispatch<SetStateAction<boolean>>;
   dispatchSketch: Dispatch<SetStateAction<SketchV2>>;
-  type: PrimitiveComponentType;
+  type: ComponentType;
 }
 
 const PrimitiveComponentListItem: FunctionComponent<PrimitiveComponentListItemProps> =

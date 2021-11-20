@@ -36,19 +36,15 @@ const sketchComponentType = {
   sketch: -7,
 } as const;
 
-const componentType = {
+export const componentType = {
   ...coreComponentType,
   ...interfaceComponentType,
   ...sketchComponentType,
 };
 
-type PrimitiveComponentType =
-  | typeof coreComponentType[keyof typeof coreComponentType]
-  | typeof interfaceComponentType[keyof typeof interfaceComponentType];
+export type ComponentType = typeof componentType[keyof typeof componentType];
 
-type ComponentType = PrimitiveComponentType | typeof componentType.sketch;
-
-const componentName: Record<ComponentType, string> = {
+export const componentName: Record<ComponentType, string> = {
   [componentType.amplifier]: "amplifier",
   [componentType.buffer]: "buffer",
   [componentType.differentiator]: "differentiator",
@@ -77,35 +73,6 @@ const componentName: Record<ComponentType, string> = {
 
 const distributorComponentInInput = 1;
 
-const primitiveComponentInputNames: Record<
-  PrimitiveComponentType,
-  (string | undefined)[]
-> = {
-  [componentType.amplifier]: [undefined, "in 1", "in 2"],
-  [componentType.buffer]: [undefined, "in"],
-  [componentType.differentiator]: [undefined, "in"],
-  [componentType.distributor]: [undefined, "in"],
-  [componentType.divider]: [undefined, "in 1", "in 2"],
-  [componentType.integrator]: [undefined, "in", "reset"],
-  [componentType.lowerSaturator]: [undefined, "in 1", "in 2"],
-  [componentType.mixer]: [undefined, "in 1", "in 2"],
-  [componentType.noise]: [undefined],
-  [componentType.saw]: [undefined, "frequency"],
-  [componentType.sine]: [undefined, "frequency"],
-  [componentType.square]: [undefined, "frequency", "duty"],
-  [componentType.subtractor]: [undefined, "in 1", "in 2"],
-  [componentType.triangle]: [undefined, "frequency"],
-  [componentType.upperSaturator]: [undefined, "in 1", "in 2"],
-  [componentType.input]: [undefined],
-  [componentType.keyboardFrequency]: [undefined],
-  [componentType.keyboardSwitch]: [undefined],
-  [componentType.speaker]: [undefined, "sound"],
-  [componentType.meter]: [undefined, "in"],
-  [componentType.and]: [undefined, "in 1", "in 2"],
-  [componentType.not]: [undefined, "in"],
-  [componentType.or]: [undefined, "in 1", "in 2"],
-};
-
 interface ComponentBase<
   Type extends ComponentType,
   ExtendedData extends Record<string, unknown>
@@ -117,7 +84,7 @@ interface ComponentBase<
   extendedData: ExtendedData;
 }
 
-type InputComponent = ComponentBase<
+export type InputComponent = ComponentBase<
   typeof componentType.input,
   { value: string }
 >;
@@ -194,7 +161,31 @@ const getComponentInputNames = ({
     case componentType.keyboardSwitch:
     case componentType.speaker:
     case componentType.meter: {
-      return primitiveComponentInputNames[component.type];
+      return {
+        [componentType.amplifier]: [undefined, "in 1", "in 2"],
+        [componentType.buffer]: [undefined, "in"],
+        [componentType.differentiator]: [undefined, "in"],
+        [componentType.distributor]: [undefined, "in"],
+        [componentType.divider]: [undefined, "in 1", "in 2"],
+        [componentType.integrator]: [undefined, "in", "reset"],
+        [componentType.lowerSaturator]: [undefined, "in 1", "in 2"],
+        [componentType.mixer]: [undefined, "in 1", "in 2"],
+        [componentType.noise]: [undefined],
+        [componentType.saw]: [undefined, "frequency"],
+        [componentType.sine]: [undefined, "frequency"],
+        [componentType.square]: [undefined, "frequency", "duty"],
+        [componentType.subtractor]: [undefined, "in 1", "in 2"],
+        [componentType.triangle]: [undefined, "frequency"],
+        [componentType.upperSaturator]: [undefined, "in 1", "in 2"],
+        [componentType.input]: [undefined],
+        [componentType.keyboardFrequency]: [undefined],
+        [componentType.keyboardSwitch]: [undefined],
+        [componentType.speaker]: [undefined, "sound"],
+        [componentType.meter]: [undefined, "in"],
+        [componentType.and]: [undefined, "in 1", "in 2"],
+        [componentType.not]: [undefined, "in"],
+        [componentType.or]: [undefined, "in 1", "in 2"],
+      }[component.type];
     }
 
     case componentType.sketch: {
@@ -213,12 +204,7 @@ const getComponentInputNames = ({
 };
 
 export {
-  ComponentType,
-  InputComponent,
-  PrimitiveComponentType,
   componentInputMaxLength,
-  componentName,
-  componentType,
   distributorComponentInInput,
   getComponentInputNames,
 };
