@@ -19,43 +19,22 @@ import {
   memo,
   useCallback,
 } from "react";
-import { ComponentType, componentType } from "../component";
+import {
+  ComponentType,
+  componentType,
+  coreComponentType,
+  interfaceComponentType,
+  sketchComponentType,
+} from "../component";
 import { SketchV2 } from "../sketch";
 import { PrimitiveComponentListItem } from "./PrimitiveComponentListItem";
 import { SketchComponentListItem } from "./SketchComponentListItem";
 
 const sidebarWidth = 200;
 
-const coreComponentTypes = [
-  componentType.amplifier,
-  componentType.and,
-  componentType.buffer,
-  componentType.differentiator,
-  componentType.distributor,
-  componentType.divider,
-  componentType.integrator,
-  componentType.lowerSaturator,
-  componentType.mixer,
-  componentType.noise,
-  componentType.not,
-  componentType.or,
-  componentType.saw,
-  componentType.sine,
-  componentType.square,
-  componentType.subtractor,
-  componentType.triangle,
-  componentType.upperSaturator,
-];
-
-const interfaceComponentTypes = [
-  componentType.input,
-  componentType.keyboardFrequency,
-  componentType.keyboardSwitch,
-  componentType.speaker,
-  componentType.meter,
-];
-
-const sketchComponentTypes = [componentType.sketch];
+const coreComponentTypes = Object.values(coreComponentType);
+const interfaceComponentTypes = Object.values(interfaceComponentType);
+const sketchComponentTypes = Object.values(sketchComponentType);
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const listedComponentTypeExhaustiveCheck: (

@@ -2,7 +2,7 @@ import { ControlPosition } from "react-draggable";
 import { Destination } from "./destination";
 import { SketchV1, SketchV2 } from "./sketch";
 
-const coreComponentType = {
+export const coreComponentType = {
   amplifier: 0,
   buffer: 1,
   differentiator: 2,
@@ -23,7 +23,7 @@ const coreComponentType = {
   or: 17,
 } as const;
 
-const interfaceComponentType = {
+export const interfaceComponentType = {
   input: -1,
   keyboardFrequency: -2,
   keyboardSwitch: -3,
@@ -32,7 +32,7 @@ const interfaceComponentType = {
   // scope: -6
 } as const;
 
-const sketchComponentType = {
+export const sketchComponentType = {
   sketch: -7,
 } as const;
 
