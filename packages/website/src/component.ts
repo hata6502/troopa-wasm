@@ -132,7 +132,7 @@ export type ComponentV2 =
 
 const componentInputMaxLength = 8;
 
-const getComponentInputNames = ({
+export const getComponentInputNames = ({
   component,
 }: {
   component: ComponentV2;
@@ -203,8 +203,73 @@ const getComponentInputNames = ({
   }
 };
 
-export {
-  componentInputMaxLength,
-  distributorComponentInInput,
-  getComponentInputNames,
+export const getComponentOutputName = ({
+  component,
+}: {
+  component: ComponentV2;
+}): string => {
+  switch (component.type) {
+    case componentType.amplifier:
+    case componentType.buffer:
+    case componentType.differentiator:
+    case componentType.distributor:
+    case componentType.divider:
+    case componentType.integrator:
+    case componentType.lowerSaturator:
+    case componentType.mixer:
+    case componentType.noise:
+    case componentType.saw:
+    case componentType.sine:
+    case componentType.square:
+    case componentType.subtractor:
+    case componentType.triangle:
+    case componentType.upperSaturator:
+    case componentType.and:
+    case componentType.not:
+    case componentType.or:
+    case componentType.input:
+    case componentType.keyboardFrequency:
+    case componentType.keyboardSwitch:
+    case componentType.speaker:
+    case componentType.meter: {
+      return {
+        [componentType.amplifier]: "amplified",
+        [componentType.buffer]: "delayed",
+        [componentType.differentiator]: "differentiated",
+        [componentType.distributor]: "thru",
+        [componentType.divider]: "divided",
+        [componentType.integrator]: "integrated",
+        [componentType.lowerSaturator]: "lower saturated",
+        [componentType.mixer]: "mixed",
+        [componentType.noise]: "noise",
+        [componentType.saw]: "saw",
+        [componentType.sine]: "sine",
+        [componentType.square]: "square",
+        [componentType.subtractor]: "subtracted",
+        [componentType.triangle]: "triangle",
+        [componentType.upperSaturator]: "upper saturated",
+        [componentType.input]: "input",
+        [componentType.keyboardFrequency]: "frequency",
+        [componentType.keyboardSwitch]: "on/off",
+        [componentType.speaker]: "thru",
+        [componentType.meter]: "thru",
+        [componentType.and]: "and",
+        [componentType.not]: "or",
+        [componentType.or]: "not",
+      }[component.type];
+    }
+
+    case componentType.sketch: {
+      return "output";
+    }
+
+    default: {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const exhaustiveCheck: never = component;
+
+      throw new Error();
+    }
+  }
 };
+
+export { componentInputMaxLength, distributorComponentInInput };

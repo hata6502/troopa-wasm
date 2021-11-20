@@ -175,7 +175,7 @@ const ConnectableAnchor: FunctionComponent<{
         onStop={handleStop}
       >
         {/* DraggableCore target. */}
-        <div className="cancel-component-container-drag">
+        <span className="cancel-component-container-drag">
           <ArcherElement id={radioID} relations={relations}>
             <Radio
               id={radioID}
@@ -185,7 +185,7 @@ const ConnectableAnchor: FunctionComponent<{
               size="small"
             />
           </ArcherElement>
-        </div>
+        </span>
       </DraggableCore>
 
       {connectionCurorStyle && (

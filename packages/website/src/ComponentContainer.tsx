@@ -24,7 +24,11 @@ import { ArcherElement } from "react-archer";
 import Draggable, { DraggableEventHandler } from "react-draggable";
 import { sketchHeight, sketchOutputDestination, sketchWidth } from "./App";
 import { ConnectableAnchor } from "./ConnectableAnchor";
-import { ComponentV2, getComponentInputNames } from "./component";
+import {
+  ComponentV2,
+  getComponentInputNames,
+  getComponentOutputName,
+} from "./component";
 import {
   Destination,
   getDestinationsByPosition,
@@ -34,6 +38,15 @@ import {
 import { SketchV2 } from "./sketch";
 
 const useStyles = makeStyles(({ palette, spacing }) => ({
+  anchor: {
+    position: "absolute",
+    left: 0,
+    top: "50%",
+    transform: "translate(-50%, -50%)",
+    backgroundColor: palette.background.paper,
+    padding: 0,
+    width: 20,
+  },
   card: {
     overflow: "visible",
   },
@@ -54,25 +67,17 @@ const useStyles = makeStyles(({ palette, spacing }) => ({
     left: spacing(0),
     top: spacing(-4),
   },
-  input: {
-    position: "absolute",
-    left: 0,
-    top: "50%",
-    transform: "translate(-50%, -50%)",
-    backgroundColor: palette.background.paper,
-    padding: 0,
-    width: 20,
-  },
   inputContainer: {
     position: "relative",
     paddingLeft: spacing(2),
     paddingRight: spacing(2),
   },
-  output: {
+  outputContainer: {
     position: "absolute",
-    right: 0,
+    left: "100%",
     top: "50%",
-    transform: "translate(50%, -50%)",
+    paddingLeft: spacing(2),
+    transform: "translateY(-50%)",
   },
 }));
 
@@ -270,9 +275,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
 
             return [
               <div key={inputIndex} className={classes.inputContainer}>
-                <Typography variant="body2" gutterBottom>
-                  {inputName}
-                </Typography>
+                <Typography variant="body2">{inputName}</Typography>
 
                 <ArcherElement id={radioID}>
                   <Radio
@@ -281,7 +284,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
                     id={radioID}
                     checked={isConnected}
                     className={clsx(
-                      classes.input,
+                      classes.anchor,
                       "cancel-component-container-drag"
                     )}
                     disabled={disabled}
@@ -294,7 +297,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
           }
         ),
       [
-        classes.input,
+        classes.anchor,
         classes.inputContainer,
         component,
         disabled,
@@ -370,13 +373,19 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
             </span>
           </Tooltip>
 
-          <div className={classes.output}>
-            <ConnectableAnchor
-              id={`component-${id}-output`}
-              anchorlessRelations={outputRelations}
-              disabled={disabled}
-              onStop={handleOutputStop}
-            />
+          <div className={classes.outputContainer}>
+            <div className={classes.anchor}>
+              <ConnectableAnchor
+                id={`component-${id}-output`}
+                anchorlessRelations={outputRelations}
+                disabled={disabled}
+                onStop={handleOutputStop}
+              />
+            </div>
+
+            <Typography variant="body2">
+              {getComponentOutputName({ component })}
+            </Typography>
           </div>
         </div>
       </Draggable>
