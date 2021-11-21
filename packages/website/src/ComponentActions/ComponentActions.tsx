@@ -1,6 +1,6 @@
 import { Dispatch, FunctionComponent, SetStateAction, memo } from "react";
 import { Player } from "../Player";
-import { ComponentV2, componentType } from "../component";
+import { Component, componentType } from "../component";
 import { SketchV2 } from "../sketch";
 import { Input } from "./Input";
 import { KeyboardFrequency } from "./KeyboardFrequency";
@@ -10,7 +10,7 @@ import { SketchAction } from "./SketchAction";
 
 const ComponentActions: FunctionComponent<{
   id: string;
-  component: ComponentV2;
+  component: Component;
   dispatchComponentEntries: Dispatch<
     SetStateAction<SketchV2["componentEntries"]>
   >;

@@ -1,4 +1,5 @@
-import { ComponentV1, ComponentV2, componentType } from "./component";
+import { SketchV1 } from "./SketchV1";
+import { Component, componentType } from "./component";
 import { Destination } from "./destination";
 
 export interface SketchInput {
@@ -6,15 +7,11 @@ export interface SketchInput {
   destination?: Destination;
 }
 
-export interface SketchV1 {
-  component: Record<string, ComponentV1>;
+export interface SketchV2 {
+  version: 2;
+  componentEntries: [string, Component][];
   inputs: SketchInput[];
 }
-
-export type SketchV2 = Omit<SketchV1, "component"> & {
-  version: 2;
-  componentEntries: [string, ComponentV2][];
-};
 
 export type Sketch = SketchV1 | SketchV2;
 

@@ -7,7 +7,7 @@ import {
   useCallback,
 } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { ComponentV2, componentName, componentType } from "../component";
+import { Component, componentName, componentType } from "../component";
 import { Destination } from "../destination";
 import { filePickerOptions } from "../filePickerOptions";
 import { Sketch, SketchV2, upgradeSketch } from "../sketch";
@@ -50,9 +50,9 @@ const replaceComponentIDsInComponent = ({
   component,
   newComponentIDMap,
 }: {
-  component: ComponentV2;
+  component: Component;
   newComponentIDMap: Map<string, string>;
-}): ComponentV2 => {
+}): Component => {
   const newOutputDestinations = component.outputDestinations.map(
     (outputDestination) =>
       replaceComponentIDInDestination({

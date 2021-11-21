@@ -25,7 +25,7 @@ import Draggable, { DraggableEventHandler } from "react-draggable";
 import { sketchHeight, sketchOutputDestination, sketchWidth } from "./App";
 import { ConnectableAnchor } from "./ConnectableAnchor";
 import {
-  ComponentV2,
+  Component,
   getComponentInputNames,
   getComponentOutputName,
 } from "./component";
@@ -82,7 +82,7 @@ const useStyles = makeStyles(({ palette, spacing }) => ({
 
 interface ComponentContainerProps {
   id: string;
-  component: ComponentV2;
+  component: Component;
   sketch: SketchV2;
   disabled?: boolean;
   dispatchComponentEntries: Dispatch<
@@ -91,7 +91,7 @@ interface ComponentContainerProps {
   isError?: boolean;
   onRemoveComponentRequest?: (event: {
     id: string;
-    component: ComponentV2;
+    component: Component;
   }) => void;
   onRemoveConnectionsRequest?: (event: Destination[]) => void;
 }

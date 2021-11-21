@@ -9,7 +9,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import {
   ComponentType,
-  ComponentV2,
+  Component,
   componentName,
   componentType,
 } from "../component";
@@ -19,7 +19,7 @@ const createPrimitiveComponent = ({
   type,
 }: {
   type: ComponentType;
-}): ComponentV2 => {
+}): Component => {
   const componentBase = {
     name: componentName[type],
     outputDestinations: [],

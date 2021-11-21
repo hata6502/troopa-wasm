@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction } from "react";
 import * as core from "core-wasm";
 import {
-  SketchComponentV2,
+  SketchComponent,
   componentType,
   distributorComponentInInput,
 } from "./component";
@@ -17,7 +17,7 @@ type CoreInfiniteLoopDetectedEventHandler = (event: {
   componentID: string;
 }) => void;
 
-type Scope = { sketch: SketchV2; sketchComponent?: SketchComponentV2 };
+type Scope = { sketch: SketchV2; sketchComponent?: SketchComponent };
 
 class Player {
   private static createCoreComponents({
