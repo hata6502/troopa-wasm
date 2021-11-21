@@ -9,7 +9,6 @@ export interface SketchInput {
 export interface SketchV1 {
   component: Record<string, ComponentV1>;
   inputs: SketchInput[];
-  outputComponentID?: string;
 }
 
 export type SketchV2 = Omit<SketchV1, "component"> & {
