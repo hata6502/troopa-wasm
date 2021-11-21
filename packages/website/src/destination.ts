@@ -4,11 +4,12 @@ export interface ComponentDestination {
   inputIndex: number;
 }
 
-interface SketchOutputDestination {
-  type: "sketchOutput";
+interface OutputDestination {
+  type: "output";
+  index: number;
 }
 
-export type Destination = ComponentDestination | SketchOutputDestination;
+export type Destination = ComponentDestination | OutputDestination;
 
 export const getDestinationsByPosition = ({
   x,

@@ -8,12 +8,15 @@ export interface SketchInput {
   destination?: Destination;
 }
 
-export { SketchV2 };
+interface SketchOutput {
+  name: string;
+}
 
 export interface SketchV3 {
-  version: 2;
+  version: 3;
   componentEntries: [string, Component][];
   inputs: SketchInput[];
+  outputs: SketchOutput[];
 }
 
 export type Sketch = SketchV1 | SketchV2 | SketchV3;
