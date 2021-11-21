@@ -71,64 +71,66 @@ export const upgradeSketch = ({ sketch }: { sketch: Sketch }): SketchV2 => {
   let upgradedSketch = sketch;
 
   if (!("version" in upgradedSketch)) {
-    upgradedSketch = {
-      ...upgradedSketch,
-      version: 2,
-      componentEntries: Object.entries(upgradedSketch.component).map(
-        ([id, componentV1]) => {
-          switch (componentV1.type) {
-            case componentType.amplifier:
-            case componentType.buffer:
-            case componentType.differentiator:
-            case componentType.distributor:
-            case componentType.divider:
-            case componentType.integrator:
-            case componentType.lowerSaturator:
-            case componentType.mixer:
-            case componentType.noise:
-            case componentType.saw:
-            case componentType.sine:
-            case componentType.square:
-            case componentType.subtractor:
-            case componentType.triangle:
-            case componentType.upperSaturator:
-            case componentType.and:
-            case componentType.not:
-            case componentType.or:
-            case componentType.input:
-            case componentType.keyboardFrequency:
-            case componentType.keyboardSwitch:
-            case componentType.speaker:
-            case componentType.meter: {
-              return [id, componentV1];
-            }
-
-            case componentType.sketch: {
-              return [
-                id,
-                {
-                  ...componentV1,
-                  extendedData: {
-                    ...componentV1.extendedData,
-                    sketch: upgradeSketch({
-                      sketch: componentV1.extendedData.sketch,
-                    }),
-                  },
-                },
-              ];
-            }
-
-            default: {
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              const exhaustiveCheck: never = componentV1;
-
-              throw new Error("Unrecognized component type");
-            }
-          }
-        }
-      ),
-    };
+    upgradedSketch = upgradeSketchToV2({ sketchV1: upgradedSketch });
   }
 
   return upgradedSketch;
 };
+
+const upgradeSketchToV2 = ({ sketchV1 }: { sketchV1: SketchV1 }): SketchV2 => ({
+  ...sketchV1,
+  version: 2,
+  componentEntries: Object.entries(sketchV1.component).map(
+    ([id, componentV1]) => {
+      switch (componentV1.type) {
+        case componentType.amplifier:
+        case componentType.buffer:
+        case componentType.differentiator:
+        case componentType.distributor:
+        case componentType.divider:
+        case componentType.integrator:
+        case componentType.lowerSaturator:
+        case componentType.mixer:
+        case componentType.noise:
+        case componentType.saw:
+        case componentType.sine:
+        case componentType.square:
+        case componentType.subtractor:
+        case componentType.triangle:
+        case componentType.upperSaturator:
+        case componentType.and:
+        case componentType.not:
+        case componentType.or:
+        case componentType.input:
+        case componentType.keyboardFrequency:
+        case componentType.keyboardSwitch:
+        case componentType.speaker:
+        case componentType.meter: {
+          return [id, componentV1];
+        }
+
+        case componentType.sketch: {
+          return [
+            id,
+            {
+              ...componentV1,
+              extendedData: {
+                ...componentV1.extendedData,
+                sketch: upgradeSketchToV2({
+                  sketchV1: componentV1.extendedData.sketch,
+                }),
+              },
+            },
+          ];
+        }
+
+        default: {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const exhaustiveCheck: never = componentV1;
+
+          throw new Error("Unrecognized component type");
+        }
+      }
+    }
+  ),
+});

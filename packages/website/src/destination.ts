@@ -1,16 +1,16 @@
-interface ComponentDestination {
+export interface ComponentDestination {
   type: "component";
   id: string;
   inputIndex: number;
 }
 
-type Destination =
-  | ComponentDestination
-  | {
-      type: "sketchOutput";
-    };
+interface SketchOutputDestination {
+  type: "sketchOutput";
+}
 
-const getDestinationsByPosition = ({
+export type Destination = ComponentDestination | SketchOutputDestination;
+
+export const getDestinationsByPosition = ({
   x,
   y,
 }: {
@@ -49,7 +49,7 @@ const getDestinationsByPosition = ({
   });
 };
 
-const serializeDestination = ({
+export const serializeDestination = ({
   destination,
 }: {
   destination: Destination;
@@ -70,11 +70,4 @@ const serializeDestination = ({
       throw new Error();
     }
   }
-};
-
-export {
-  ComponentDestination,
-  Destination,
-  getDestinationsByPosition,
-  serializeDestination,
 };
