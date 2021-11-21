@@ -13,7 +13,7 @@ import {
   componentName,
   componentType,
 } from "../component";
-import { SketchV2 } from "../sketch";
+import { SketchV3 } from "../sketch";
 
 const createPrimitiveComponent = ({
   type,
@@ -91,7 +91,7 @@ const createPrimitiveComponent = ({
 interface PrimitiveComponentListItemProps
   extends Omit<ListItemProps<"div">, "button"> {
   dispatchIsSidebarOpen: Dispatch<SetStateAction<boolean>>;
-  dispatchSketch: Dispatch<SetStateAction<SketchV2>>;
+  dispatchSketch: Dispatch<SetStateAction<SketchV3>>;
   type: ComponentType;
 }
 

@@ -1,6 +1,6 @@
 import { ControlPosition } from "react-draggable";
 import { Destination } from "./destination";
-import { SketchV2 } from "./sketch";
+import { SketchV3 } from "./sketch";
 
 export const coreComponentType = {
   amplifier: 0,
@@ -91,7 +91,7 @@ export type InputComponent = ComponentBase<
 
 export type SketchComponent = ComponentBase<
   typeof componentType.sketch,
-  { sketch: SketchV2 }
+  { sketch: SketchV3 }
 >;
 
 export type Component =

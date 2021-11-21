@@ -36,7 +36,7 @@ interface ComponentBase<
 > {
   name: string;
   type: Type;
-  outputDestinations: Destination[];
+  outputDestinations: DestinationV2[];
   position: ControlPosition;
   extendedData: ExtendedData;
 }
@@ -55,7 +55,7 @@ type SketchComponent = ComponentBase<
 
 interface SketchInput {
   name: string;
-  destination?: Destination;
+  destination?: DestinationV2;
 }
 
 interface ComponentDestination {
@@ -68,7 +68,7 @@ interface SketchOutputDestination {
   type: "sketchOutput";
 }
 
-type Destination = ComponentDestination | SketchOutputDestination;
+export type DestinationV2 = ComponentDestination | SketchOutputDestination;
 
 const coreComponentType = {
   amplifier: 0,

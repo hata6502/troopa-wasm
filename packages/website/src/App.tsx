@@ -44,7 +44,7 @@ import {
 } from "./component";
 import { Destination, serializeDestination } from "./destination";
 import { filePickerOptions } from "./filePickerOptions";
-import { SketchV2, initialSketch } from "./sketch";
+import { SketchV3, initialSketch } from "./sketch";
 
 const historyMaxLength = 30;
 
@@ -57,10 +57,10 @@ interface AlertData {
 
 interface SketchHistory {
   index: number;
-  sketches: SketchV2[];
+  sketches: SketchV3[];
 }
 
-const sketchOutputDestination: Destination = {
+export const sketchOutputDestination: Destination = {
   type: "sketchOutput",
 };
 
@@ -190,7 +190,7 @@ export const App: FunctionComponent = memo(() => {
   const theme = useTheme();
 
   const dispatchComponentEntries: Dispatch<
-    SetStateAction<SketchV2["componentEntries"]>
+    SetStateAction<SketchV3["componentEntries"]>
   > = (action) =>
     dispatchSketch((prevSketch) => ({
       ...prevSketch,
@@ -200,7 +200,7 @@ export const App: FunctionComponent = memo(() => {
           : action,
     }));
 
-  const dispatchInputs: Dispatch<SetStateAction<SketchV2["inputs"]>> = (
+  const dispatchInputs: Dispatch<SetStateAction<SketchV3["inputs"]>> = (
     action
   ) =>
     dispatchSketch((prevSketch) => ({
@@ -462,6 +462,5 @@ export {
   AlertData,
   SketchHistory,
   sketchHeight,
-  sketchOutputDestination,
   sketchWidth,
 };

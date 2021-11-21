@@ -1,5 +1,5 @@
 import { SketchV1 } from "./SketchV1";
-import { SketchV2 } from "./SketchV2";
+import { DestinationV2, SketchV2 } from "./SketchV2";
 import { Component, componentType } from "./component";
 import { Destination } from "./destination";
 
@@ -21,8 +21,8 @@ export interface SketchV3 {
 
 export type Sketch = SketchV1 | SketchV2 | SketchV3;
 
-export const initialSketch: SketchV2 = {
-  version: 2,
+export const initialSketch: SketchV3 = {
+  version: 3,
   componentEntries: [
     [
       "df5bb750-e9fe-fbf3-26e0-bbd601fe98c9",
@@ -67,25 +67,74 @@ export const initialSketch: SketchV2 = {
       },
     ],
   ],
-  inputs: [...Array(8).keys()].map(() => ({ name: "" })),
+  inputs: [
+    { name: "" },
+    { name: "" },
+    { name: "" },
+    { name: "" },
+    { name: "" },
+    { name: "" },
+    { name: "" },
+    { name: "" },
+  ],
+  outputs: [
+    { name: "" },
+    { name: "" },
+    { name: "" },
+    { name: "" },
+    { name: "" },
+    { name: "" },
+    { name: "" },
+    { name: "" },
+  ],
 };
 
-export const upgradeSketch = ({ sketch }: { sketch: Sketch }): SketchV2 => {
+export const upgradeSketch = ({ sketch }: { sketch: Sketch }): SketchV3 => {
   let upgradedSketch = sketch;
 
   if (!("version" in upgradedSketch)) {
     upgradedSketch = upgradeSketchToV2({ sketchV1: upgradedSketch });
   }
 
+  if (upgradedSketch.version === 2) {
+    upgradedSketch = upgradeSketchToV3({ sketchV2: upgradedSketch });
+  }
+
   return upgradedSketch;
+};
+
+const upgradeDestinationToV3 = ({
+  destinationV2,
+}: {
+  destinationV2: DestinationV2;
+}): Destination => {
+  switch (destinationV2.type) {
+    case "component": {
+      return destinationV2;
+    }
+
+    case "sketchOutput": {
+      return {
+        type: "output",
+        index: 0,
+      };
+    }
+
+    default: {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const exhaustiveCheck: never = destinationV2;
+
+      throw new Error();
+    }
+  }
 };
 
 const upgradeSketchToV2 = ({ sketchV1 }: { sketchV1: SketchV1 }): SketchV2 => ({
   ...sketchV1,
   version: 2,
   componentEntries: Object.entries(sketchV1.component).map(
-    ([id, componentV1]) => {
-      switch (componentV1.type) {
+    ([id, component]) => {
+      switch (component.type) {
         case componentType.amplifier:
         case componentType.buffer:
         case componentType.differentiator:
@@ -109,18 +158,18 @@ const upgradeSketchToV2 = ({ sketchV1 }: { sketchV1: SketchV1 }): SketchV2 => ({
         case componentType.keyboardSwitch:
         case componentType.speaker:
         case componentType.meter: {
-          return [id, componentV1];
+          return [id, component];
         }
 
         case componentType.sketch: {
           return [
             id,
             {
-              ...componentV1,
+              ...component,
               extendedData: {
-                ...componentV1.extendedData,
+                ...component.extendedData,
                 sketch: upgradeSketchToV2({
-                  sketchV1: componentV1.extendedData.sketch,
+                  sketchV1: component.extendedData.sketch,
                 }),
               },
             },
@@ -129,11 +178,85 @@ const upgradeSketchToV2 = ({ sketchV1 }: { sketchV1: SketchV1 }): SketchV2 => ({
 
         default: {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const exhaustiveCheck: never = componentV1;
+          const exhaustiveCheck: never = component;
 
           throw new Error("Unrecognized component type");
         }
       }
     }
   ),
+});
+
+const upgradeSketchToV3 = ({ sketchV2 }: { sketchV2: SketchV2 }): SketchV3 => ({
+  ...sketchV2,
+  version: 3,
+  componentEntries: sketchV2.componentEntries.map(([id, component]) => {
+    const upgradedComponent = {
+      ...component,
+      outputDestinations: component.outputDestinations.map(
+        (outputDestination) =>
+          upgradeDestinationToV3({ destinationV2: outputDestination })
+      ),
+    };
+
+    switch (upgradedComponent.type) {
+      case componentType.amplifier:
+      case componentType.buffer:
+      case componentType.differentiator:
+      case componentType.distributor:
+      case componentType.divider:
+      case componentType.integrator:
+      case componentType.lowerSaturator:
+      case componentType.mixer:
+      case componentType.noise:
+      case componentType.saw:
+      case componentType.sine:
+      case componentType.square:
+      case componentType.subtractor:
+      case componentType.triangle:
+      case componentType.upperSaturator:
+      case componentType.and:
+      case componentType.not:
+      case componentType.or:
+      case componentType.input:
+      case componentType.keyboardFrequency:
+      case componentType.keyboardSwitch:
+      case componentType.speaker:
+      case componentType.meter: {
+        return [id, upgradedComponent];
+      }
+
+      case componentType.sketch: {
+        return [
+          id,
+          {
+            ...upgradedComponent,
+            extendedData: {
+              ...upgradedComponent.extendedData,
+              sketch: upgradeSketchToV3({
+                sketchV2: upgradedComponent.extendedData.sketch,
+              }),
+            },
+          },
+        ];
+      }
+
+      default: {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const exhaustiveCheck: never = upgradedComponent;
+
+        throw new Error("Unrecognized component type");
+      }
+    }
+  }),
+  inputs: sketchV2.inputs.map((input) => ({
+    ...input,
+    destination:
+      input.destination &&
+      upgradeDestinationToV3({ destinationV2: input.destination }),
+  })),
+  outputs: [
+    { name: "output" },
+    ...[...Array(7).keys()].map(() => ({ name: "" })),
+  ],
 });

@@ -34,7 +34,7 @@ import {
   getDestinationsByPosition,
   serializeDestination,
 } from "./destination";
-import { SketchV2 } from "./sketch";
+import { SketchV3 } from "./sketch";
 
 const useStyles = makeStyles(({ palette, spacing }) => ({
   anchor: {
@@ -83,10 +83,10 @@ const useStyles = makeStyles(({ palette, spacing }) => ({
 interface ComponentContainerProps {
   id: string;
   component: Component;
-  sketch: SketchV2;
+  sketch: SketchV3;
   disabled?: boolean;
   dispatchComponentEntries: Dispatch<
-    SetStateAction<SketchV2["componentEntries"]>
+    SetStateAction<SketchV3["componentEntries"]>
   >;
   isError?: boolean;
   onRemoveComponentRequest?: (event: {

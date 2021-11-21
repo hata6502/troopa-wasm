@@ -25,7 +25,7 @@ import { SketchHistory } from "./App";
 import { Player } from "./Player";
 import { sidebarWidth } from "./Sidebar";
 import { filePickerOptions } from "./filePickerOptions";
-import { Sketch, SketchV2, upgradeSketch } from "./sketch";
+import { Sketch, SketchV3, upgradeSketch } from "./sketch";
 
 const useStyles = makeStyles(({ breakpoints, spacing }) => ({
   appBar: {
@@ -52,10 +52,10 @@ const TopBar: FunctionComponent<{
   >;
   dispatchIsSidebarOpen: Dispatch<SetStateAction<boolean>>;
   dispatchPlayer: Dispatch<SetStateAction<Player | undefined>>;
-  dispatchSketch: Dispatch<SetStateAction<SketchV2>>;
+  dispatchSketch: Dispatch<SetStateAction<SketchV3>>;
   dispatchSketchHistory: Dispatch<SetStateAction<SketchHistory>>;
   player?: Player;
-  sketch: SketchV2;
+  sketch: SketchV3;
   sketchHistory: SketchHistory;
 }> = memo(
   ({

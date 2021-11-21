@@ -8,13 +8,13 @@ import {
 } from "react";
 import { Player } from "../Player";
 import { InputComponent, componentType } from "../component";
-import { SketchV2 } from "../sketch";
+import { SketchV3 } from "../sketch";
 
 const Input: FunctionComponent<{
   id: string;
   component: InputComponent;
   dispatchComponentEntries: Dispatch<
-    SetStateAction<SketchV2["componentEntries"]>
+    SetStateAction<SketchV3["componentEntries"]>
   >;
   isPlaying?: boolean;
   player?: Player;

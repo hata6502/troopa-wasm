@@ -26,7 +26,7 @@ import {
   interfaceComponentType,
   sketchComponentType,
 } from "../component";
-import { SketchV2 } from "../sketch";
+import { SketchV3 } from "../sketch";
 import { PrimitiveComponentListItem } from "./PrimitiveComponentListItem";
 import { SketchComponentListItem } from "./SketchComponentListItem";
 
@@ -57,7 +57,7 @@ const useStyles = makeStyles(({ breakpoints }) => ({
 
 const Sidebar: FunctionComponent<{
   dispatchIsSidebarOpen: Dispatch<SetStateAction<boolean>>;
-  dispatchSketch: Dispatch<SetStateAction<SketchV2>>;
+  dispatchSketch: Dispatch<SetStateAction<SketchV3>>;
   isPlaying?: boolean;
   isSidebarOpen: boolean;
 }> = memo(

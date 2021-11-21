@@ -60,8 +60,8 @@ export const serializeDestination = ({
       return `component-${destination.id}-input-${destination.inputIndex}`;
     }
 
-    case "sketchOutput": {
-      return "sketch-output";
+    case "output": {
+      return `output-${destination.index}`;
     }
 
     default: {

@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from "uuid";
 import { Component, componentName, componentType } from "../component";
 import { Destination } from "../destination";
 import { filePickerOptions } from "../filePickerOptions";
-import { Sketch, SketchV2, upgradeSketch } from "../sketch";
+import { Sketch, SketchV3, upgradeSketch } from "../sketch";
 
 const replaceComponentIDInDestination = ({
   destination,
@@ -33,7 +33,7 @@ const replaceComponentIDInDestination = ({
       };
     }
 
-    case "sketchOutput": {
+    case "output": {
       return destination;
     }
 
@@ -116,8 +116,8 @@ const replaceComponentIDsInComponent = ({
 const regenerateComponentIDsInSketch = ({
   sketch,
 }: {
-  sketch: SketchV2;
-}): SketchV2 => {
+  sketch: SketchV3;
+}): SketchV3 => {
   const newComponentIDMap = new Map(
     sketch.componentEntries.map(([id]) => [id, uuidv4()])
   );
@@ -154,7 +154,7 @@ const regenerateComponentIDsInSketch = ({
 interface SketchComponentListItemProps
   extends Omit<ListItemProps<"div">, "button"> {
   dispatchIsSidebarOpen: Dispatch<SetStateAction<boolean>>;
-  dispatchSketch: Dispatch<SetStateAction<SketchV2>>;
+  dispatchSketch: Dispatch<SetStateAction<SketchV3>>;
 }
 
 const SketchComponentListItem: FunctionComponent<SketchComponentListItemProps> =
