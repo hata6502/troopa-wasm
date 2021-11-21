@@ -49,83 +49,6 @@ const getDestinationsByPosition = ({
   });
 };
 
-const isSameDestination = ({
-  a,
-  b,
-}: {
-  a: Destination;
-  b: Destination;
-}): boolean => {
-  switch (a.type) {
-    case "component": {
-      if (b.type !== a.type) {
-        return false;
-      }
-
-      let key: keyof typeof a;
-
-      for (key in a) {
-        switch (key) {
-          case "type":
-          case "id":
-          case "inputIndex": {
-            if (a[key] !== b[key]) {
-              return false;
-            }
-
-            break;
-          }
-
-          default: {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const exhaustiveCheck: never = key;
-
-            throw new Error("Unhandled key");
-          }
-        }
-      }
-
-      return true;
-    }
-
-    case "sketchOutput": {
-      if (b.type !== a.type) {
-        return false;
-      }
-
-      let key: keyof typeof a;
-
-      for (key in a) {
-        switch (key) {
-          case "type": {
-            if (a[key] !== b[key]) {
-              return false;
-            }
-
-            break;
-          }
-
-          default: {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const exhaustiveCheck: never = key;
-
-            throw new Error("Unhandled key");
-          }
-        }
-      }
-
-      return true;
-    }
-
-    default: {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const exhaustiveCheckA: never = a;
-
-      throw new Error("Unhandled destination type");
-    }
-  }
-};
-
 const serializeDestination = ({
   destination,
 }: {
@@ -153,6 +76,5 @@ export {
   ComponentDestination,
   Destination,
   getDestinationsByPosition,
-  isSameDestination,
   serializeDestination,
 };

@@ -42,11 +42,7 @@ import {
   componentName,
   componentType,
 } from "./component";
-import {
-  Destination,
-  isSameDestination,
-  serializeDestination,
-} from "./destination";
+import { Destination, serializeDestination } from "./destination";
 import { filePickerOptions } from "./filePickerOptions";
 import { SketchV2, initialSketch } from "./sketch";
 
@@ -291,7 +287,8 @@ export const App: FunctionComponent = memo(() => {
               (outputDestination) =>
                 targets.every(
                   (target) =>
-                    !isSameDestination({ a: outputDestination, b: target })
+                    serializeDestination({ destination: outputDestination }) !==
+                    serializeDestination({ destination: target })
                 )
             ),
           },
@@ -301,7 +298,8 @@ export const App: FunctionComponent = memo(() => {
           destination: targets.some(
             (target) =>
               prevInput.destination &&
-              isSameDestination({ a: prevInput.destination, b: target })
+              serializeDestination({ destination: prevInput.destination }) ===
+                serializeDestination({ destination: target })
           )
             ? undefined
             : prevInput.destination,
@@ -348,14 +346,17 @@ export const App: FunctionComponent = memo(() => {
 
   const isOutputConnected =
     sketch.componentEntries.some(([, otherComponent]) =>
-      otherComponent.outputDestinations.some((outputDestination) =>
-        isSameDestination({ a: outputDestination, b: sketchOutputDestination })
+      otherComponent.outputDestinations.some(
+        (outputDestination) =>
+          serializeDestination({ destination: outputDestination }) ===
+          serializeDestination({ destination: sketchOutputDestination })
       )
     ) ||
     sketch.inputs.some(
       (input) =>
         input.destination &&
-        isSameDestination({ a: input.destination, b: sketchOutputDestination })
+        serializeDestination({ destination: input.destination }) ===
+          serializeDestination({ destination: sketchOutputDestination })
     );
 
   const isPlaying = Boolean(player);

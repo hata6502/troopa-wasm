@@ -32,7 +32,6 @@ import {
 import {
   Destination,
   getDestinationsByPosition,
-  isSameDestination,
   serializeDestination,
 } from "./destination";
 import { SketchV2 } from "./sketch";
@@ -189,10 +188,8 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
 
         const uniqueOutputDestinations = appendedOutputDestinations.some(
           (appendedOutputDestination) =>
-            isSameDestination({
-              a: appendedOutputDestination,
-              b: sketchOutputDestination,
-            })
+            serializeDestination({ destination: appendedOutputDestination }) ===
+            serializeDestination({ destination: sketchOutputDestination })
         )
           ? [sketchOutputDestination]
           : [
@@ -253,20 +250,17 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
 
             const isConnected =
               sketch.componentEntries.some(([, otherComponent]) =>
-                otherComponent.outputDestinations.some((outputDestination) =>
-                  isSameDestination({
-                    a: outputDestination,
-                    b: componentDestination,
-                  })
+                otherComponent.outputDestinations.some(
+                  (outputDestination) =>
+                    serializeDestination({ destination: outputDestination }) ===
+                    serializeDestination({ destination: componentDestination })
                 )
               ) ||
               sketch.inputs.some(
                 (input) =>
                   input.destination &&
-                  isSameDestination({
-                    a: input.destination,
-                    b: componentDestination,
-                  })
+                  serializeDestination({ destination: input.destination }) ===
+                    serializeDestination({ destination: componentDestination })
               );
 
             const radioID = serializeDestination({
