@@ -1,4 +1,5 @@
 import { SketchV1 } from "./SketchV1";
+import { SketchV2 } from "./SketchV2";
 import { Component, componentType } from "./component";
 import { Destination } from "./destination";
 
@@ -7,13 +8,15 @@ export interface SketchInput {
   destination?: Destination;
 }
 
-export interface SketchV2 {
+export { SketchV2 };
+
+export interface SketchV3 {
   version: 2;
   componentEntries: [string, Component][];
   inputs: SketchInput[];
 }
 
-export type Sketch = SketchV1 | SketchV2;
+export type Sketch = SketchV1 | SketchV2 | SketchV3;
 
 export const initialSketch: SketchV2 = {
   version: 2,
