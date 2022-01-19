@@ -33,21 +33,20 @@ const SketchInputContainer: FunctionComponent<{
   ({ index, disabled, dispatchInputs, input, onRemoveConnectionsRequest }) => {
     const classes = useStyles();
 
-    const handleInputNameChange: ChangeEventHandler<HTMLInputElement> =
-      useCallback(
-        (event) =>
-          dispatchInputs((prevInputs) => {
-            const inputs: SketchV3["inputs"] = [...prevInputs];
+    const handleNameChange: ChangeEventHandler<HTMLInputElement> = useCallback(
+      (event) =>
+        dispatchInputs((prevInputs) => {
+          const inputs: SketchV3["inputs"] = [...prevInputs];
 
-            inputs[index] = {
-              ...inputs[index],
-              name: event.target.value,
-            };
+          inputs[index] = {
+            ...inputs[index],
+            name: event.target.value,
+          };
 
-            return inputs;
-          }),
-        [dispatchInputs, index]
-      );
+          return inputs;
+        }),
+      [dispatchInputs, index]
+    );
 
     const handleAnchorStop: DraggableEventHandler = useCallback(
       (event) => {
@@ -108,7 +107,7 @@ const SketchInputContainer: FunctionComponent<{
             label="input name"
             size="small"
             value={input.name}
-            onChange={handleInputNameChange}
+            onChange={handleNameChange}
           />
         </Grid>
 

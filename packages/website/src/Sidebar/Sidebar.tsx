@@ -78,7 +78,7 @@ const Sidebar: FunctionComponent<{
         <List>
           <Link
             color="inherit"
-            href="https://helpfeel.com/hata6502/?kinds=troopa"
+            href="https://helpfeel.com/hata6502/?q=troopa"
             rel="noreferrer"
             target="_blank"
             underline="none"

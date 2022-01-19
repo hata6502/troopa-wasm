@@ -4,7 +4,7 @@ export interface ComponentDestination {
   inputIndex: number;
 }
 
-interface OutputDestination {
+export interface OutputDestination {
   type: "output";
   index: number;
 }
@@ -38,10 +38,13 @@ export const getDestinationsByPosition = ({
       ];
     }
 
-    if (element.dataset["sketchOutput"]) {
+    const sketchOutputIndexString = element.dataset["sketchOutputIndex"];
+
+    if (sketchOutputIndexString) {
       return [
         {
-          type: "sketchOutput",
+          type: "output",
+          index: Number(sketchOutputIndexString),
         },
       ];
     }

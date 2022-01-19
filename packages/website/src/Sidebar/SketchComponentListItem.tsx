@@ -53,12 +53,14 @@ const replaceComponentIDsInComponent = ({
   component: Component;
   newComponentIDMap: Map<string, string>;
 }): Component => {
-  const newOutputDestinations = component.outputDestinations.map(
-    (outputDestination) =>
-      replaceComponentIDInDestination({
-        destination: outputDestination,
-        newComponentIDMap,
-      })
+  const newOutputDestinationsList = component.outputDestinationsList.map(
+    (outputDestinations) =>
+      outputDestinations.map((outputDestination) =>
+        replaceComponentIDInDestination({
+          destination: outputDestination,
+          newComponentIDMap,
+        })
+      )
   );
 
   switch (component.type) {
@@ -87,14 +89,14 @@ const replaceComponentIDsInComponent = ({
     case componentType.meter: {
       return {
         ...component,
-        outputDestinations: newOutputDestinations,
+        outputDestinationsList: newOutputDestinationsList,
       };
     }
 
     case componentType.sketch: {
       return {
         ...component,
-        outputDestinations: newOutputDestinations,
+        outputDestinationsList: newOutputDestinationsList,
         extendedData: {
           ...component.extendedData,
           sketch: regenerateComponentIDsInSketch({
@@ -202,7 +204,9 @@ const SketchComponentListItem: FunctionComponent<SketchComponentListItemProps> =
                   {
                     name: file.name,
                     type: componentType.sketch,
-                    outputDestinations: [],
+                    outputDestinationsList: regeneratedSketch.outputs.map(
+                      () => []
+                    ),
                     position: { x: window.scrollX, y: window.scrollY },
                     extendedData: { sketch: regeneratedSketch },
                   },

@@ -22,7 +22,7 @@ const createPrimitiveComponent = ({
 }): Component => {
   const componentBase = {
     name: componentName[type],
-    outputDestinations: [],
+    outputDestinationsList: [[]],
     position: { x: window.scrollX, y: window.scrollY },
   };
 

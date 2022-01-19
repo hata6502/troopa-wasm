@@ -8,7 +8,7 @@ export interface SketchInput {
   destination?: Destination;
 }
 
-interface SketchOutput {
+export interface SketchOutput {
   name: string;
 }
 
@@ -29,12 +29,14 @@ export const initialSketch: SketchV3 = {
       {
         name: "sine",
         type: 10,
-        outputDestinations: [
-          {
-            type: "component",
-            id: "d417eb39-d2d7-4023-a58f-f058658b7c40",
-            inputIndex: 1,
-          },
+        outputDestinationsList: [
+          [
+            {
+              type: "component",
+              id: "d417eb39-d2d7-4023-a58f-f058658b7c40",
+              inputIndex: 1,
+            },
+          ],
         ],
         position: { x: 285, y: 36 },
         extendedData: {},
@@ -44,7 +46,7 @@ export const initialSketch: SketchV3 = {
       "d417eb39-d2d7-4023-a58f-f058658b7c40",
       {
         name: "speaker",
-        outputDestinations: [],
+        outputDestinationsList: [[]],
         position: { x: 545, y: 25 },
         type: -4,
         extendedData: {},
@@ -54,12 +56,14 @@ export const initialSketch: SketchV3 = {
       "e02d7ee9-dcf2-40ab-ba7f-8beac91e411b",
       {
         name: "input",
-        outputDestinations: [
-          {
-            type: "component",
-            id: "df5bb750-e9fe-fbf3-26e0-bbd601fe98c9",
-            inputIndex: 1,
-          },
+        outputDestinationsList: [
+          [
+            {
+              type: "component",
+              id: "df5bb750-e9fe-fbf3-26e0-bbd601fe98c9",
+              inputIndex: 1,
+            },
+          ],
         ],
         position: { x: 40, y: 41 },
         type: -1,
@@ -193,10 +197,11 @@ const upgradeSketchToV3 = ({ sketchV2 }: { sketchV2: SketchV2 }): SketchV3 => ({
   componentEntries: sketchV2.componentEntries.map(([id, component]) => {
     const upgradedComponent = {
       ...component,
-      outputDestinations: component.outputDestinations.map(
-        (outputDestination) =>
+      outputDestinationsList: [
+        component.outputDestinations.map((outputDestination) =>
           upgradeDestinationToV3({ destinationV2: outputDestination })
-      ),
+        ),
+      ],
     };
 
     switch (upgradedComponent.type) {

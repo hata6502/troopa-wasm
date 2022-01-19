@@ -4,4 +4,4 @@ Please see <https://scrapbox.io/hata6502/troopa>.
 
 ## Requirements
 
-- [ancenv](https://scrapbox.io/hata6502/ancenv)
+- [entropitor/dotenv-cli](https://github.com/entropitor/dotenv-cli)

@@ -148,19 +148,20 @@ class Player {
         }
       }
 
-      case "sketchOutput": {
+      case "output": {
         const currentSketchComponent = currentScope.sketchComponent;
 
         if (!currentSketchComponent) {
           return [];
         }
 
-        return currentSketchComponent.outputDestinations.flatMap(
-          (outputDestination) =>
-            Player.resolveDestination({
-              destination: outputDestination,
-              scopes: scopes.slice(0, scopes.length - 1),
-            })
+        return currentSketchComponent.outputDestinationsList[
+          destination.index
+        ].flatMap((outputDestination) =>
+          Player.resolveDestination({
+            destination: outputDestination,
+            scopes: scopes.slice(0, scopes.length - 1),
+          })
         );
       }
 
@@ -303,7 +304,7 @@ class Player {
         case componentType.keyboardSwitch:
         case componentType.speaker:
         case componentType.meter: {
-          component.outputDestinations.forEach((outputDestination) => {
+          component.outputDestinationsList[0].forEach((outputDestination) => {
             const resolvedDestinations = Player.resolveDestination({
               destination: outputDestination,
               scopes,

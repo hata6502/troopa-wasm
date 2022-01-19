@@ -1,6 +1,5 @@
 import {
   Button,
-  Radio,
   Snackbar,
   SnackbarProps,
   makeStyles,
@@ -22,11 +21,7 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  ArcherContainer,
-  ArcherContainerProps,
-  ArcherElement,
-} from "react-archer";
+import { ArcherContainer, ArcherContainerProps } from "react-archer";
 import { v4 as uuidv4 } from "uuid";
 import { ComponentActions } from "./ComponentActions";
 import {
@@ -36,6 +31,7 @@ import {
 import { Player } from "./Player";
 import { Sidebar } from "./Sidebar";
 import { SketchInputContainer } from "./SketchInputContainer";
+import { SketchOutputContainer } from "./SketchOutputContainer";
 import { TopBar } from "./TopBar";
 import {
   componentInputMaxLength,
@@ -59,10 +55,6 @@ interface SketchHistory {
   index: number;
   sketches: SketchV3[];
 }
-
-export const sketchOutputDestination: Destination = {
-  type: "sketchOutput",
-};
 
 const svgContainerStyle: ArcherContainerProps["svgContainerStyle"] = {
   // To display arrows in front of components.
@@ -96,13 +88,13 @@ const useStyles = makeStyles(({ mixins, palette, spacing }) => ({
     padding: spacing(3),
   },
   output: {
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-evenly",
     position: "absolute",
-    right: 0,
-    top: "50%",
-    transform: "translate(25%, -50%)",
-    backgroundColor: palette.background.paper,
-    padding: 0,
-    width: 20,
+    bottom: 0,
+    left: "calc(100% - 10px)",
+    top: 0,
   },
   sketch: {
     position: "relative",
@@ -208,6 +200,18 @@ export const App: FunctionComponent = memo(() => {
       inputs: typeof action === "function" ? action(prevSketch.inputs) : action,
     }));
 
+  const dispatchOutputs = useCallback<
+    Dispatch<SetStateAction<SketchV3["outputs"]>>
+  >(
+    (action) =>
+      dispatchSketch((prevSketch) => ({
+        ...prevSketch,
+        outputs:
+          typeof action === "function" ? action(prevSketch.outputs) : action,
+      })),
+    []
+  );
+
   useEffect(() => {
     const intervalID = setInterval(
       () => archerContainerElement.current?.refreshScreen(),
@@ -237,7 +241,7 @@ export const App: FunctionComponent = memo(() => {
             {
               name: componentName[componentType.buffer],
               type: componentType.buffer,
-              outputDestinations: [],
+              outputDestinationsList: [[]],
               position: { x: window.scrollX, y: window.scrollY },
               extendedData: {},
             },
@@ -283,12 +287,15 @@ export const App: FunctionComponent = memo(() => {
           id,
           {
             ...component,
-            outputDestinations: component.outputDestinations.filter(
-              (outputDestination) =>
-                targets.every(
-                  (target) =>
-                    serializeDestination({ destination: outputDestination }) !==
-                    serializeDestination({ destination: target })
+            outputDestinationsList: component.outputDestinationsList.map(
+              (outputDestinations) =>
+                outputDestinations.filter((outputDestination) =>
+                  targets.every(
+                    (target) =>
+                      serializeDestination({
+                        destination: outputDestination,
+                      }) !== serializeDestination({ destination: target })
+                  )
                 )
             ),
           },
@@ -339,31 +346,7 @@ export const App: FunctionComponent = memo(() => {
     []
   );
 
-  const handleOutputClick = useCallback(
-    () => removeConnections([sketchOutputDestination]),
-    [removeConnections]
-  );
-
-  const isOutputConnected =
-    sketch.componentEntries.some(([, otherComponent]) =>
-      otherComponent.outputDestinations.some(
-        (outputDestination) =>
-          serializeDestination({ destination: outputDestination }) ===
-          serializeDestination({ destination: sketchOutputDestination })
-      )
-    ) ||
-    sketch.inputs.some(
-      (input) =>
-        input.destination &&
-        serializeDestination({ destination: input.destination }) ===
-          serializeDestination({ destination: sketchOutputDestination })
-    );
-
   const isPlaying = Boolean(player);
-
-  const sketchOutputID = serializeDestination({
-    destination: sketchOutputDestination,
-  });
 
   return (
     <div className={classes.container}>
@@ -432,17 +415,17 @@ export const App: FunctionComponent = memo(() => {
             </div>
 
             <div className={classes.output}>
-              <ArcherElement id={sketchOutputID}>
-                <Radio
-                  data-sketch-output
-                  id={sketchOutputID}
-                  checked={isOutputConnected}
-                  className={classes.output}
+              {sketch.outputs.map((output, index) => (
+                <SketchOutputContainer
+                  key={index}
+                  index={index}
+                  output={output}
                   disabled={isPlaying}
-                  size="small"
-                  onClick={handleOutputClick}
+                  dispatchOutputs={dispatchOutputs}
+                  sketch={sketch}
+                  onRemoveConnectionsRequest={removeConnections}
                 />
-              </ArcherElement>
+              ))}
             </div>
           </ArcherContainer>
         </div>
@@ -458,9 +441,4 @@ export const App: FunctionComponent = memo(() => {
   );
 });
 
-export {
-  AlertData,
-  SketchHistory,
-  sketchHeight,
-  sketchWidth,
-};
+export { AlertData, SketchHistory, sketchHeight, sketchWidth };
