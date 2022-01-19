@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from "uuid";
 import { Component, componentName, componentType } from "../component";
 import { Destination } from "../destination";
 import { filePickerOptions } from "../filePickerOptions";
-import { Sketch, SketchV2, upgradeSketch } from "../sketch";
+import { Sketch, SketchV3, upgradeSketch } from "../sketch";
 
 const replaceComponentIDInDestination = ({
   destination,
@@ -33,7 +33,7 @@ const replaceComponentIDInDestination = ({
       };
     }
 
-    case "sketchOutput": {
+    case "output": {
       return destination;
     }
 
@@ -53,12 +53,14 @@ const replaceComponentIDsInComponent = ({
   component: Component;
   newComponentIDMap: Map<string, string>;
 }): Component => {
-  const newOutputDestinations = component.outputDestinations.map(
-    (outputDestination) =>
-      replaceComponentIDInDestination({
-        destination: outputDestination,
-        newComponentIDMap,
-      })
+  const newOutputDestinationsList = component.outputDestinationsList.map(
+    (outputDestinations) =>
+      outputDestinations.map((outputDestination) =>
+        replaceComponentIDInDestination({
+          destination: outputDestination,
+          newComponentIDMap,
+        })
+      )
   );
 
   switch (component.type) {
@@ -87,14 +89,14 @@ const replaceComponentIDsInComponent = ({
     case componentType.meter: {
       return {
         ...component,
-        outputDestinations: newOutputDestinations,
+        outputDestinationsList: newOutputDestinationsList,
       };
     }
 
     case componentType.sketch: {
       return {
         ...component,
-        outputDestinations: newOutputDestinations,
+        outputDestinationsList: newOutputDestinationsList,
         extendedData: {
           ...component.extendedData,
           sketch: regenerateComponentIDsInSketch({
@@ -116,8 +118,8 @@ const replaceComponentIDsInComponent = ({
 const regenerateComponentIDsInSketch = ({
   sketch,
 }: {
-  sketch: SketchV2;
-}): SketchV2 => {
+  sketch: SketchV3;
+}): SketchV3 => {
   const newComponentIDMap = new Map(
     sketch.componentEntries.map(([id]) => [id, uuidv4()])
   );
@@ -154,7 +156,7 @@ const regenerateComponentIDsInSketch = ({
 interface SketchComponentListItemProps
   extends Omit<ListItemProps<"div">, "button"> {
   dispatchIsSidebarOpen: Dispatch<SetStateAction<boolean>>;
-  dispatchSketch: Dispatch<SetStateAction<SketchV2>>;
+  dispatchSketch: Dispatch<SetStateAction<SketchV3>>;
 }
 
 const SketchComponentListItem: FunctionComponent<SketchComponentListItemProps> =
@@ -202,7 +204,9 @@ const SketchComponentListItem: FunctionComponent<SketchComponentListItemProps> =
                   {
                     name: file.name,
                     type: componentType.sketch,
-                    outputDestinations: [],
+                    outputDestinationsList: regeneratedSketch.outputs.map(
+                      () => []
+                    ),
                     position: { x: window.scrollX, y: window.scrollY },
                     extendedData: { sketch: regeneratedSketch },
                   },

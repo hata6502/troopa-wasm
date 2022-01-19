@@ -6,7 +6,7 @@ import {
   distributorComponentInInput,
 } from "./component";
 import { ComponentDestination, Destination } from "./destination";
-import { SketchV2 } from "./sketch";
+import { SketchV3 } from "./sketch";
 
 const bufferSize = 4096;
 
@@ -17,13 +17,13 @@ type CoreInfiniteLoopDetectedEventHandler = (event: {
   componentID: string;
 }) => void;
 
-type Scope = { sketch: SketchV2; sketchComponent?: SketchComponent };
+type Scope = { sketch: SketchV3; sketchComponent?: SketchComponent };
 
 class Player {
   private static createCoreComponents({
     sketch,
   }: {
-    sketch: SketchV2;
+    sketch: SketchV3;
   }): [string, number][] {
     return sketch.componentEntries.flatMap(([id, component]) => {
       switch (component.type) {
@@ -148,19 +148,20 @@ class Player {
         }
       }
 
-      case "sketchOutput": {
+      case "output": {
         const currentSketchComponent = currentScope.sketchComponent;
 
         if (!currentSketchComponent) {
           return [];
         }
 
-        return currentSketchComponent.outputDestinations.flatMap(
-          (outputDestination) =>
-            Player.resolveDestination({
-              destination: outputDestination,
-              scopes: scopes.slice(0, scopes.length - 1),
-            })
+        return currentSketchComponent.outputDestinationsList[
+          destination.index
+        ].flatMap((outputDestination) =>
+          Player.resolveDestination({
+            destination: outputDestination,
+            scopes: scopes.slice(0, scopes.length - 1),
+          })
         );
       }
 
@@ -184,8 +185,8 @@ class Player {
     dispatchSketch,
     sketch,
   }: {
-    dispatchSketch: Dispatch<SetStateAction<SketchV2>>;
-    sketch: SketchV2;
+    dispatchSketch: Dispatch<SetStateAction<SketchV3>>;
+    sketch: SketchV3;
   }) {
     this.audioContext = new AudioContext();
     this.dispatchSketch = dispatchSketch;
@@ -303,7 +304,7 @@ class Player {
         case componentType.keyboardSwitch:
         case componentType.speaker:
         case componentType.meter: {
-          component.outputDestinations.forEach((outputDestination) => {
+          component.outputDestinationsList[0].forEach((outputDestination) => {
             const resolvedDestinations = Player.resolveDestination({
               destination: outputDestination,
               scopes,

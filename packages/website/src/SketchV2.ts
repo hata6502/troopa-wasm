@@ -1,20 +1,8 @@
-export interface SketchV1 {
-  component: Record<string, Component>;
+export interface SketchV2 {
+  version: 2;
+  componentEntries: [string, Component][];
   inputs: SketchInput[];
 }
-
-interface ComponentBase<
-  Type extends ComponentType,
-  ExtendedData extends Record<string, unknown>
-> {
-  name: string;
-  type: Type;
-  outputDestinations: Destination[];
-  position: ControlPosition;
-  extendedData: ExtendedData;
-}
-
-type ComponentType = typeof componentType[keyof typeof componentType];
 
 type Component =
   | ComponentBase<typeof componentType.amplifier, Record<string, never>>
@@ -42,10 +30,33 @@ type Component =
   | ComponentBase<typeof componentType.meter, { value: number }>
   | SketchComponent;
 
+interface ComponentBase<
+  Type extends ComponentType,
+  ExtendedData extends Record<string, unknown>
+> {
+  name: string;
+  type: Type;
+  outputDestinations: DestinationV2[];
+  position: ControlPosition;
+  extendedData: ExtendedData;
+}
+
+type ControlPosition = { x: number; y: number };
+
 type InputComponent = ComponentBase<
   typeof componentType.input,
   { value: string }
 >;
+
+type SketchComponent = ComponentBase<
+  typeof componentType.sketch,
+  { sketch: SketchV2 }
+>;
+
+interface SketchInput {
+  name: string;
+  destination?: DestinationV2;
+}
 
 interface ComponentDestination {
   type: "component";
@@ -53,23 +64,11 @@ interface ComponentDestination {
   inputIndex: number;
 }
 
-type ControlPosition = { x: number; y: number };
-
 interface SketchOutputDestination {
   type: "sketchOutput";
 }
 
-type Destination = ComponentDestination | SketchOutputDestination;
-
-type SketchComponent = ComponentBase<
-  typeof componentType.sketch,
-  { sketch: SketchV1 }
->;
-
-interface SketchInput {
-  name: string;
-  destination?: Destination;
-}
+export type DestinationV2 = ComponentDestination | SketchOutputDestination;
 
 const coreComponentType = {
   amplifier: 0,
@@ -110,3 +109,5 @@ const componentType = {
   ...interfaceComponentType,
   ...sketchComponentType,
 };
+
+type ComponentType = typeof componentType[keyof typeof componentType];

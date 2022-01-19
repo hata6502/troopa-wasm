@@ -3,5 +3,5 @@
 ## Development
 
 ```bash
-ancenv npm run dev
+dotenv -e ../../.env npm run dev
 ```

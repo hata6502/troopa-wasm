@@ -1,6 +1,6 @@
 import { ControlPosition } from "react-draggable";
 import { Destination } from "./destination";
-import { SketchV2 } from "./sketch";
+import { SketchV3 } from "./sketch";
 
 export const coreComponentType = {
   amplifier: 0,
@@ -79,7 +79,7 @@ interface ComponentBase<
 > {
   name: string;
   type: Type;
-  outputDestinations: Destination[];
+  outputDestinationsList: Destination[][];
   position: ControlPosition;
   extendedData: ExtendedData;
 }
@@ -91,7 +91,7 @@ export type InputComponent = ComponentBase<
 
 export type SketchComponent = ComponentBase<
   typeof componentType.sketch,
-  { sketch: SketchV2 }
+  { sketch: SketchV3 }
 >;
 
 export type Component =
@@ -179,9 +179,7 @@ export const getComponentInputNames = ({
     }
 
     case componentType.sketch: {
-      return component.extendedData.sketch.inputs.map(
-        (input) => input.destination && input.name
-      );
+      return component.extendedData.sketch.inputs.map((input) => input.name);
     }
 
     default: {
@@ -193,11 +191,11 @@ export const getComponentInputNames = ({
   }
 };
 
-export const getComponentOutputName = ({
+export const getComponentOutputNames = ({
   component,
 }: {
   component: Component;
-}): string => {
+}): string[] => {
   switch (component.type) {
     case componentType.amplifier:
     case componentType.buffer:
@@ -223,34 +221,34 @@ export const getComponentOutputName = ({
     case componentType.speaker:
     case componentType.meter: {
       return {
-        [componentType.amplifier]: "amplified",
-        [componentType.buffer]: "delayed",
-        [componentType.differentiator]: "differentiated",
-        [componentType.distributor]: "thru",
-        [componentType.divider]: "divided",
-        [componentType.integrator]: "integrated",
-        [componentType.lowerSaturator]: "lower saturated",
-        [componentType.mixer]: "mixed",
-        [componentType.noise]: "noise",
-        [componentType.saw]: "saw",
-        [componentType.sine]: "sine",
-        [componentType.square]: "square",
-        [componentType.subtractor]: "subtracted",
-        [componentType.triangle]: "triangle",
-        [componentType.upperSaturator]: "upper saturated",
-        [componentType.input]: "input",
-        [componentType.keyboardFrequency]: "frequency",
-        [componentType.keyboardSwitch]: "on/off",
-        [componentType.speaker]: "thru",
-        [componentType.meter]: "thru",
-        [componentType.and]: "and",
-        [componentType.not]: "or",
-        [componentType.or]: "not",
+        [componentType.amplifier]: ["amplified"],
+        [componentType.buffer]: ["delayed"],
+        [componentType.differentiator]: ["differentiated"],
+        [componentType.distributor]: ["thru"],
+        [componentType.divider]: ["divided"],
+        [componentType.integrator]: ["integrated"],
+        [componentType.lowerSaturator]: ["lower saturated"],
+        [componentType.mixer]: ["mixed"],
+        [componentType.noise]: ["noise"],
+        [componentType.saw]: ["saw"],
+        [componentType.sine]: ["sine"],
+        [componentType.square]: ["square"],
+        [componentType.subtractor]: ["subtracted"],
+        [componentType.triangle]: ["triangle"],
+        [componentType.upperSaturator]: ["upper saturated"],
+        [componentType.input]: ["input"],
+        [componentType.keyboardFrequency]: ["frequency"],
+        [componentType.keyboardSwitch]: ["on/off"],
+        [componentType.speaker]: ["thru"],
+        [componentType.meter]: ["thru"],
+        [componentType.and]: ["and"],
+        [componentType.not]: ["or"],
+        [componentType.or]: ["not"],
       }[component.type];
     }
 
     case componentType.sketch: {
-      return "output";
+      return component.extendedData.sketch.outputs.map(({ name }) => name);
     }
 
     default: {

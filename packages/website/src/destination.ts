@@ -4,11 +4,12 @@ export interface ComponentDestination {
   inputIndex: number;
 }
 
-interface SketchOutputDestination {
-  type: "sketchOutput";
+export interface OutputDestination {
+  type: "output";
+  index: number;
 }
 
-export type Destination = ComponentDestination | SketchOutputDestination;
+export type Destination = ComponentDestination | OutputDestination;
 
 export const getDestinationsByPosition = ({
   x,
@@ -37,10 +38,13 @@ export const getDestinationsByPosition = ({
       ];
     }
 
-    if (element.dataset["sketchOutput"]) {
+    const sketchOutputIndexString = element.dataset["sketchOutputIndex"];
+
+    if (sketchOutputIndexString) {
       return [
         {
-          type: "sketchOutput",
+          type: "output",
+          index: Number(sketchOutputIndexString),
         },
       ];
     }
@@ -59,8 +63,8 @@ export const serializeDestination = ({
       return `component-${destination.id}-input-${destination.inputIndex}`;
     }
 
-    case "sketchOutput": {
-      return "sketch-output";
+    case "output": {
+      return `output-${destination.index}`;
     }
 
     default: {

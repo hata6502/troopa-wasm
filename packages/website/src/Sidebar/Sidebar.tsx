@@ -26,7 +26,7 @@ import {
   interfaceComponentType,
   sketchComponentType,
 } from "../component";
-import { SketchV2 } from "../sketch";
+import { SketchV3 } from "../sketch";
 import { PrimitiveComponentListItem } from "./PrimitiveComponentListItem";
 import { SketchComponentListItem } from "./SketchComponentListItem";
 
@@ -57,7 +57,7 @@ const useStyles = makeStyles(({ breakpoints }) => ({
 
 const Sidebar: FunctionComponent<{
   dispatchIsSidebarOpen: Dispatch<SetStateAction<boolean>>;
-  dispatchSketch: Dispatch<SetStateAction<SketchV2>>;
+  dispatchSketch: Dispatch<SetStateAction<SketchV3>>;
   isPlaying?: boolean;
   isSidebarOpen: boolean;
 }> = memo(
@@ -78,7 +78,7 @@ const Sidebar: FunctionComponent<{
         <List>
           <Link
             color="inherit"
-            href="https://helpfeel.com/hata6502/?kinds=troopa"
+            href="https://helpfeel.com/hata6502/?q=troopa"
             rel="noreferrer"
             target="_blank"
             underline="none"

@@ -1,7 +1,7 @@
 import { Dispatch, FunctionComponent, SetStateAction, memo } from "react";
 import { Player } from "../Player";
 import { Component, componentType } from "../component";
-import { SketchV2 } from "../sketch";
+import { SketchV3 } from "../sketch";
 import { Input } from "./Input";
 import { KeyboardFrequency } from "./KeyboardFrequency";
 import { KeyboardSwitch } from "./KeyboardSwitch";
@@ -12,7 +12,7 @@ const ComponentActions: FunctionComponent<{
   id: string;
   component: Component;
   dispatchComponentEntries: Dispatch<
-    SetStateAction<SketchV2["componentEntries"]>
+    SetStateAction<SketchV3["componentEntries"]>
   >;
   isPlaying?: boolean;
   player?: Player;

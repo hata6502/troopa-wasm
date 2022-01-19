@@ -15,7 +15,7 @@ import {
   getDestinationsByPosition,
   serializeDestination,
 } from "./destination";
-import { SketchV2, SketchInput } from "./sketch";
+import { SketchV3, SketchInput } from "./sketch";
 
 const useStyles = makeStyles(({ spacing }) => ({
   name: {
@@ -26,28 +26,27 @@ const useStyles = makeStyles(({ spacing }) => ({
 const SketchInputContainer: FunctionComponent<{
   index: number;
   disabled?: boolean;
-  dispatchInputs: Dispatch<SetStateAction<SketchV2["inputs"]>>;
+  dispatchInputs: Dispatch<SetStateAction<SketchV3["inputs"]>>;
   input: SketchInput;
   onRemoveConnectionsRequest?: (event: Destination[]) => void;
 }> = memo(
   ({ index, disabled, dispatchInputs, input, onRemoveConnectionsRequest }) => {
     const classes = useStyles();
 
-    const handleInputNameChange: ChangeEventHandler<HTMLInputElement> =
-      useCallback(
-        (event) =>
-          dispatchInputs((prevInputs) => {
-            const inputs: SketchV2["inputs"] = [...prevInputs];
+    const handleNameChange: ChangeEventHandler<HTMLInputElement> = useCallback(
+      (event) =>
+        dispatchInputs((prevInputs) => {
+          const inputs: SketchV3["inputs"] = [...prevInputs];
 
-            inputs[index] = {
-              ...inputs[index],
-              name: event.target.value,
-            };
+          inputs[index] = {
+            ...inputs[index],
+            name: event.target.value,
+          };
 
-            return inputs;
-          }),
-        [dispatchInputs, index]
-      );
+          return inputs;
+        }),
+      [dispatchInputs, index]
+    );
 
     const handleAnchorStop: DraggableEventHandler = useCallback(
       (event) => {
@@ -70,7 +69,7 @@ const SketchInputContainer: FunctionComponent<{
 
         if (destinations.length !== 0) {
           dispatchInputs((prevInputs) => {
-            const inputs: SketchV2["inputs"] = [...prevInputs];
+            const inputs: SketchV3["inputs"] = [...prevInputs];
 
             inputs[index] = {
               ...inputs[index],
@@ -108,7 +107,7 @@ const SketchInputContainer: FunctionComponent<{
             label="input name"
             size="small"
             value={input.name}
-            onChange={handleInputNameChange}
+            onChange={handleNameChange}
           />
         </Grid>
 

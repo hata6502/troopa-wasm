@@ -2,11 +2,10 @@ import {
   Box,
   Card,
   CardActions,
+  Grid,
   IconButton,
-  Radio,
   TextField,
   Tooltip,
-  Typography,
   makeStyles,
 } from "@material-ui/core";
 import { Delete, Error as ErrorIcon } from "@material-ui/icons";
@@ -18,34 +17,20 @@ import {
   SetStateAction,
   memo,
   useCallback,
-  useMemo,
 } from "react";
-import { ArcherElement } from "react-archer";
 import Draggable, { DraggableEventHandler } from "react-draggable";
-import { sketchHeight, sketchOutputDestination, sketchWidth } from "./App";
-import { ConnectableAnchor } from "./ConnectableAnchor";
+import { sketchHeight, sketchWidth } from "./App";
+import { ComponentInput } from "./ComponentInput";
+import { ComponentOutput } from "./ComponentOutput";
 import {
   Component,
   getComponentInputNames,
-  getComponentOutputName,
+  getComponentOutputNames,
 } from "./component";
-import {
-  Destination,
-  getDestinationsByPosition,
-  serializeDestination,
-} from "./destination";
-import { SketchV2 } from "./sketch";
+import { Destination } from "./destination";
+import { SketchV3 } from "./sketch";
 
-const useStyles = makeStyles(({ palette, spacing }) => ({
-  anchor: {
-    position: "absolute",
-    left: 0,
-    top: "50%",
-    transform: "translate(-50%, -50%)",
-    backgroundColor: palette.background.paper,
-    padding: 0,
-    width: 20,
-  },
+const useStyles = makeStyles(({ spacing }) => ({
   card: {
     overflow: "visible",
   },
@@ -66,27 +51,15 @@ const useStyles = makeStyles(({ palette, spacing }) => ({
     left: spacing(0),
     top: spacing(-4),
   },
-  inputContainer: {
-    position: "relative",
-    paddingLeft: spacing(2),
-    paddingRight: spacing(2),
-  },
-  outputContainer: {
-    position: "absolute",
-    left: "100%",
-    top: "50%",
-    paddingLeft: spacing(2),
-    transform: "translateY(-50%)",
-  },
 }));
 
 interface ComponentContainerProps {
   id: string;
   component: Component;
-  sketch: SketchV2;
+  sketch: SketchV3;
   disabled?: boolean;
   dispatchComponentEntries: Dispatch<
-    SetStateAction<SketchV2["componentEntries"]>
+    SetStateAction<SketchV3["componentEntries"]>
   >;
   isError?: boolean;
   onRemoveComponentRequest?: (event: {
@@ -164,151 +137,8 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
       [component, id, onRemoveComponentRequest]
     );
 
-    const handleOutputStop: DraggableEventHandler = useCallback(
-      (event) => {
-        let x;
-        let y;
-
-        if (event instanceof MouseEvent) {
-          x = event.clientX;
-          y = event.clientY;
-        } else if (event instanceof TouchEvent) {
-          x = event.changedTouches[0].clientX;
-          y = event.changedTouches[0].clientY;
-        } else {
-          throw new Error("Unsupported event type");
-        }
-
-        const newOutputDestinations = getDestinationsByPosition({ x, y });
-
-        const appendedOutputDestinations = [
-          ...component.outputDestinations,
-          ...newOutputDestinations,
-        ];
-
-        const uniqueOutputDestinations = appendedOutputDestinations.some(
-          (appendedOutputDestination) =>
-            serializeDestination({ destination: appendedOutputDestination }) ===
-            serializeDestination({ destination: sketchOutputDestination })
-        )
-          ? [sketchOutputDestination]
-          : [
-              ...new Map(
-                appendedOutputDestinations.map((outputDestination) => [
-                  serializeDestination({ destination: outputDestination }),
-                  outputDestination,
-                ])
-              ).values(),
-            ];
-
-        onRemoveConnectionsRequest?.(newOutputDestinations);
-
-        dispatchComponentEntries((prevComponentEntries) => {
-          const prevComponentMap = new Map(prevComponentEntries);
-          const prevComponent = prevComponentMap.get(id);
-
-          if (!prevComponent) {
-            throw new Error("Component not found");
-          }
-
-          return [
-            ...prevComponentMap
-              .set(id, {
-                ...prevComponent,
-                outputDestinations: uniqueOutputDestinations,
-              })
-              .entries(),
-          ];
-        });
-      },
-      [
-        component.outputDestinations,
-        dispatchComponentEntries,
-        id,
-        onRemoveConnectionsRequest,
-      ]
-    );
-
+    const outputNames = getComponentOutputNames({ component });
     const classes = useStyles();
-
-    const inputElements = useMemo(
-      () =>
-        getComponentInputNames({ component }).flatMap(
-          (inputName, inputIndex) => {
-            if (inputName === undefined) {
-              return [];
-            }
-
-            const componentDestination: Destination = {
-              type: "component",
-              id,
-              inputIndex,
-            };
-
-            const handleInputClick = () =>
-              onRemoveConnectionsRequest?.([componentDestination]);
-
-            const isConnected =
-              sketch.componentEntries.some(([, otherComponent]) =>
-                otherComponent.outputDestinations.some(
-                  (outputDestination) =>
-                    serializeDestination({ destination: outputDestination }) ===
-                    serializeDestination({ destination: componentDestination })
-                )
-              ) ||
-              sketch.inputs.some(
-                (input) =>
-                  input.destination &&
-                  serializeDestination({ destination: input.destination }) ===
-                    serializeDestination({ destination: componentDestination })
-              );
-
-            const radioID = serializeDestination({
-              destination: componentDestination,
-            });
-
-            return [
-              <div key={inputIndex} className={classes.inputContainer}>
-                <Typography variant="body2">{inputName}</Typography>
-
-                <ArcherElement id={radioID}>
-                  <Radio
-                    data-component-id={id}
-                    data-input-index={inputIndex}
-                    id={radioID}
-                    checked={isConnected}
-                    className={clsx(
-                      classes.anchor,
-                      "cancel-component-container-drag"
-                    )}
-                    disabled={disabled}
-                    size="small"
-                    onClick={handleInputClick}
-                  />
-                </ArcherElement>
-              </div>,
-            ];
-          }
-        ),
-      [
-        classes.anchor,
-        classes.inputContainer,
-        component,
-        disabled,
-        id,
-        onRemoveConnectionsRequest,
-        sketch.componentEntries,
-        sketch.inputs,
-      ]
-    );
-
-    const outputRelations = useMemo(
-      () =>
-        component.outputDestinations.map((outputDestination) => ({
-          targetId: serializeDestination({ destination: outputDestination }),
-        })),
-      [component.outputDestinations]
-    );
 
     return (
       <Draggable
@@ -337,7 +167,47 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
                 />
               </Box>
 
-              {inputElements}
+              <Grid container>
+                <Grid item xs>
+                  {getComponentInputNames({ component }).map((name, index) =>
+                    name === undefined ? undefined : (
+                      <ComponentInput
+                        key={index}
+                        index={index}
+                        name={name}
+                        componentID={id}
+                        disabled={disabled}
+                        sketch={sketch}
+                        onRemoveConnectionsRequest={onRemoveConnectionsRequest}
+                      />
+                    )
+                  )}
+                </Grid>
+
+                <Grid item xs>
+                  {component.outputDestinationsList.map(
+                    (outputDestinations, index) => {
+                      const name = outputNames[index];
+
+                      return name ? (
+                        <ComponentOutput
+                          key={index}
+                          destinations={outputDestinations}
+                          index={index}
+                          name={name}
+                          componentID={id}
+                          disabled={disabled}
+                          dispatchComponentEntries={dispatchComponentEntries}
+                          sketch={sketch}
+                          onRemoveConnectionsRequest={
+                            onRemoveConnectionsRequest
+                          }
+                        />
+                      ) : undefined;
+                    }
+                  )}
+                </Grid>
+              </Grid>
             </Box>
 
             <CardActions>{children}</CardActions>
@@ -366,21 +236,6 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
               </IconButton>
             </span>
           </Tooltip>
-
-          <div className={classes.outputContainer}>
-            <div className={classes.anchor}>
-              <ConnectableAnchor
-                id={`component-${id}-output`}
-                anchorlessRelations={outputRelations}
-                disabled={disabled}
-                onStop={handleOutputStop}
-              />
-            </div>
-
-            <Typography variant="body2">
-              {getComponentOutputName({ component })}
-            </Typography>
-          </div>
         </div>
       </Draggable>
     );

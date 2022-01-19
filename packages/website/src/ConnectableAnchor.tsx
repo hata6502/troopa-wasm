@@ -1,4 +1,5 @@
-import { Radio, makeStyles } from "@material-ui/core";
+import { Radio, RadioProps, makeStyles } from "@material-ui/core";
+import clsx from "clsx";
 import {
   CSSProperties,
   FunctionComponent,
@@ -110,91 +111,95 @@ const getRelations = ({
   });
 };
 
-const ConnectableAnchor: FunctionComponent<{
+interface ConnectableAnchorProps
+  extends Pick<RadioProps, "className" | "disabled"> {
   id: string;
-  anchorlessRelations?: AnchorlessRelation[];
-  disabled?: boolean;
+  anchorlessRelations: AnchorlessRelation[];
   onStop?: DraggableEventHandler;
-}> = memo(({ id, anchorlessRelations = [], disabled, onStop }) => {
-  const [connectionCuror, setConnectionCuror] = useState<DraggableData>();
-  const [relations, setRelations] = useState<Relation[]>([]);
+}
 
-  const classes = useStyles();
+const ConnectableAnchor: FunctionComponent<ConnectableAnchorProps> = memo(
+  ({ className, disabled, id, anchorlessRelations, onStop }) => {
+    const [connectionCuror, setConnectionCuror] = useState<DraggableData>();
+    const [relations, setRelations] = useState<Relation[]>([]);
 
-  const cursorID = `${id}-cursor`;
-  const radioID = `${id}-radio`;
+    const classes = useStyles();
 
-  useEffect(() => {
-    const handle = () =>
-      setRelations(
-        getRelations({
-          anchorlessRelations: [
-            ...anchorlessRelations,
-            ...(connectionCuror ? [{ targetId: cursorID }] : []),
-          ],
-          sourceId: radioID,
-        })
-      );
+    const cursorID = `${id}-cursor`;
+    const radioID = `${id}-radio`;
 
-    handle();
+    useEffect(() => {
+      const handle = () =>
+        setRelations(
+          getRelations({
+            anchorlessRelations: [
+              ...anchorlessRelations,
+              ...(connectionCuror ? [{ targetId: cursorID }] : []),
+            ],
+            sourceId: radioID,
+          })
+        );
 
-    const intervalID = setInterval(handle, 200);
+      handle();
 
-    return () => clearInterval(intervalID);
-  }, [anchorlessRelations, connectionCuror, cursorID, radioID]);
+      const intervalID = setInterval(handle, 200);
 
-  const handleDrag: DraggableEventHandler = useCallback(
-    (_event, data) => setConnectionCuror(data),
-    []
-  );
+      return () => clearInterval(intervalID);
+    }, [anchorlessRelations, connectionCuror, cursorID, radioID]);
 
-  const handleStop: DraggableEventHandler = useCallback(
-    (event, data) => {
-      setConnectionCuror(undefined);
-      onStop?.(event, data);
-    },
-    [onStop]
-  );
+    const handleDrag: DraggableEventHandler = useCallback(
+      (_event, data) => setConnectionCuror(data),
+      []
+    );
 
-  const connectionCurorStyle = useMemo(
-    (): CSSProperties | undefined =>
-      connectionCuror && {
-        position: "absolute",
-        left: connectionCuror.x,
-        top: connectionCuror.y,
+    const handleStop: DraggableEventHandler = useCallback(
+      (event, data) => {
+        setConnectionCuror(undefined);
+        onStop?.(event, data);
       },
-    [connectionCuror]
-  );
+      [onStop]
+    );
 
-  return (
-    <>
-      <DraggableCore
-        disabled={disabled}
-        onStart={handleDrag}
-        onDrag={handleDrag}
-        onStop={handleStop}
-      >
-        {/* DraggableCore target. */}
-        <span className="cancel-component-container-drag">
-          <ArcherElement id={radioID} relations={relations}>
-            <Radio
-              id={radioID}
-              checked={false}
-              className={classes.radio}
-              disabled={disabled}
-              size="small"
-            />
+    const connectionCurorStyle = useMemo(
+      (): CSSProperties | undefined =>
+        connectionCuror && {
+          position: "absolute",
+          left: connectionCuror.x,
+          top: connectionCuror.y,
+        },
+      [connectionCuror]
+    );
+
+    return (
+      <>
+        <DraggableCore
+          disabled={disabled}
+          onStart={handleDrag}
+          onDrag={handleDrag}
+          onStop={handleStop}
+        >
+          {/* DraggableCore target. */}
+          <span className="cancel-component-container-drag">
+            <ArcherElement id={radioID} relations={relations}>
+              <Radio
+                id={radioID}
+                checked={false}
+                className={clsx(className, classes.radio)}
+                disabled={disabled}
+                size="small"
+              />
+            </ArcherElement>
+          </span>
+        </DraggableCore>
+
+        {connectionCurorStyle && (
+          <ArcherElement id={cursorID}>
+            <div id={cursorID} style={connectionCurorStyle} />
           </ArcherElement>
-        </span>
-      </DraggableCore>
-
-      {connectionCurorStyle && (
-        <ArcherElement id={cursorID}>
-          <div id={cursorID} style={connectionCurorStyle} />
-        </ArcherElement>
-      )}
-    </>
-  );
-});
+        )}
+      </>
+    );
+  }
+);
 
 export { ConnectableAnchor };

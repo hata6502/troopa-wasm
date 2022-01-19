@@ -1,0 +1,102 @@
+import { Radio, Typography, makeStyles } from "@material-ui/core";
+import clsx from "clsx";
+import { FunctionComponent, memo, useCallback, useMemo } from "react";
+import { ArcherElement } from "react-archer";
+import {
+  ComponentDestination,
+  Destination,
+  serializeDestination,
+} from "./destination";
+import { SketchV3 } from "./sketch";
+
+const useStyles = makeStyles(({ palette, spacing }) => ({
+  anchor: {
+    position: "absolute",
+    left: 0,
+    top: "50%",
+    transform: "translate(-50%, -50%)",
+    backgroundColor: palette.background.paper,
+    padding: 0,
+    width: 20,
+  },
+  container: {
+    position: "relative",
+    paddingLeft: spacing(2),
+    paddingRight: spacing(2),
+  },
+}));
+
+export const ComponentInput: FunctionComponent<{
+  index: number;
+  name: string;
+  componentID: string;
+  disabled?: boolean;
+  sketch: SketchV3;
+  onRemoveConnectionsRequest?: (event: Destination[]) => void;
+}> = memo(
+  ({
+    index,
+    name,
+    componentID,
+    disabled,
+    sketch,
+    onRemoveConnectionsRequest,
+  }) => {
+    const destination = useMemo<ComponentDestination>(
+      () => ({
+        type: "component",
+        id: componentID,
+        inputIndex: index,
+      }),
+      [componentID, index]
+    );
+
+    const handleClick = useCallback(
+      () => onRemoveConnectionsRequest?.([destination]),
+      [destination, onRemoveConnectionsRequest]
+    );
+
+    const isConnected =
+      sketch.componentEntries.some(([, otherComponent]) =>
+        otherComponent.outputDestinationsList.some((outputDestinations) =>
+          outputDestinations.some(
+            (outputDestination) =>
+              serializeDestination({
+                destination: outputDestination,
+              }) ===
+              serializeDestination({
+                destination,
+              })
+          )
+        )
+      ) ||
+      sketch.inputs.some(
+        (input) =>
+          input.destination &&
+          serializeDestination({ destination: input.destination }) ===
+            serializeDestination({ destination })
+      );
+
+    const radioID = serializeDestination({ destination });
+    const classes = useStyles();
+
+    return (
+      <div className={classes.container}>
+        <Typography variant="body2">{name}</Typography>
+
+        <ArcherElement id={radioID}>
+          <Radio
+            data-component-id={componentID}
+            data-input-index={index}
+            id={radioID}
+            checked={isConnected}
+            className={clsx(classes.anchor, "cancel-component-container-drag")}
+            disabled={disabled}
+            size="small"
+            onClick={handleClick}
+          />
+        </ArcherElement>
+      </div>
+    );
+  }
+);
