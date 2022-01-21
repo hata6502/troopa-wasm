@@ -7,6 +7,7 @@ import {
   useCallback,
 } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { JSONCompatible } from "../JSONCompatible";
 import { Component, componentName, componentType } from "../component";
 import { Destination } from "../destination";
 import { filePickerOptions } from "../filePickerOptions";
@@ -188,7 +189,7 @@ const SketchComponentListItem: FunctionComponent<SketchComponentListItemProps> =
               throw new Error();
             }
 
-            const loadedSketch = JSON.parse(result) as Sketch;
+            const loadedSketch = JSON.parse(result) as JSONCompatible<Sketch>;
             const upgradedSketch = upgradeSketch({ sketch: loadedSketch });
 
             const regeneratedSketch = regenerateComponentIDsInSketch({

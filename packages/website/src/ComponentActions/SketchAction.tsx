@@ -27,7 +27,7 @@ const SketchAction: FunctionComponent<{
 
     await writable.write(JSON.stringify(sketch));
     await writable.close();
-  }, [sketch]);
+  }, [componentName, sketch]);
 
   return (
     <Button

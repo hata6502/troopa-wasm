@@ -22,6 +22,7 @@ import {
   useCallback,
 } from "react";
 import { SketchHistory } from "./App";
+import { JSONCompatible } from "./JSONCompatible";
 import { Player } from "./Player";
 import { sidebarWidth } from "./Sidebar";
 import { filePickerOptions } from "./filePickerOptions";
@@ -142,7 +143,7 @@ const TopBar: FunctionComponent<{
           throw new Error();
         }
 
-        const loadedSketch = JSON.parse(result) as Sketch;
+        const loadedSketch = JSON.parse(result) as JSONCompatible<Sketch>;
         const upgradedSketch = upgradeSketch({ sketch: loadedSketch });
 
         dispatchSketchHistory({
