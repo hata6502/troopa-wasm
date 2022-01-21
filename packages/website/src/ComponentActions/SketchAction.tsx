@@ -5,12 +5,16 @@ import { filePickerOptions } from "../filePickerOptions";
 
 const SketchAction: FunctionComponent<{
   sketch: SketchV3;
-}> = memo(({ sketch }) => {
+  componentName: string;
+}> = memo(({ sketch, componentName }) => {
   const handleSaveButtonClick = useCallback(async () => {
     let fileHandle;
 
     try {
-      fileHandle = await showSaveFilePicker(filePickerOptions);
+      fileHandle = await showSaveFilePicker({
+        ...filePickerOptions,
+        suggestedName: componentName,
+      });
     } catch (exception) {
       if (exception instanceof Error && exception.name === "AbortError") {
         return;

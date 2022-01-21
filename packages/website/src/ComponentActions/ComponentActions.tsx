@@ -46,7 +46,12 @@ const ComponentActions: FunctionComponent<{
     }
 
     case componentType.sketch: {
-      return <SketchAction sketch={component.extendedData.sketch} />;
+      return (
+        <SketchAction
+          sketch={component.extendedData.sketch}
+          componentName={component.name}
+        />
+      );
     }
 
     case componentType.amplifier:
