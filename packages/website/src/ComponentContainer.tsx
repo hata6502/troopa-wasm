@@ -36,7 +36,7 @@ const useStyles = makeStyles(({ spacing }) => ({
   },
   container: {
     position: "absolute",
-    width: 160,
+    width: 180,
   },
   deleteButton: {
     position: "absolute",
@@ -169,18 +169,21 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
 
               <Grid container>
                 <Grid item xs>
-                  {getComponentInputNames({ component }).map((name, index) =>
-                    name === undefined ? undefined : (
-                      <ComponentInput
-                        key={index}
-                        index={index}
-                        name={name}
-                        componentID={id}
-                        disabled={disabled}
-                        sketch={sketch}
-                        onRemoveConnectionsRequest={onRemoveConnectionsRequest}
-                      />
-                    )
+                  {getComponentInputNames({ component }).map(
+                    (name, index) =>
+                      name && (
+                        <ComponentInput
+                          key={index}
+                          index={index}
+                          name={name}
+                          componentID={id}
+                          disabled={disabled}
+                          sketch={sketch}
+                          onRemoveConnectionsRequest={
+                            onRemoveConnectionsRequest
+                          }
+                        />
+                      )
                   )}
                 </Grid>
 
