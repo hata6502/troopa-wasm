@@ -7,7 +7,7 @@ export type JSONCompatible<Target> = Target extends {
   ? Target
   : Target extends ((...args: any) => any) | symbol | undefined
   ? never
-  : Target extends unknown
+  : Target extends Record<string, any>
   ? { [Key in keyof Target]: JSONCompatible<Target[Key]> }
   : unknown;
 
