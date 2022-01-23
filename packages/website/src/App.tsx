@@ -181,24 +181,31 @@ export const App: FunctionComponent = memo(() => {
   const classes = useStyles();
   const theme = useTheme();
 
-  const dispatchComponentEntries: Dispatch<
-    SetStateAction<SketchV3["componentEntries"]>
-  > = (action) =>
-    dispatchSketch((prevSketch) => ({
-      ...prevSketch,
-      componentEntries:
-        typeof action === "function"
-          ? action(prevSketch.componentEntries)
-          : action,
-    }));
+  const dispatchComponentEntries = useCallback<
+    Dispatch<SetStateAction<SketchV3["componentEntries"]>>
+  >(
+    (action) =>
+      dispatchSketch((prevSketch) => ({
+        ...prevSketch,
+        componentEntries:
+          typeof action === "function"
+            ? action(prevSketch.componentEntries)
+            : action,
+      })),
+    []
+  );
 
-  const dispatchInputs: Dispatch<SetStateAction<SketchV3["inputs"]>> = (
-    action
-  ) =>
-    dispatchSketch((prevSketch) => ({
-      ...prevSketch,
-      inputs: typeof action === "function" ? action(prevSketch.inputs) : action,
-    }));
+  const dispatchInputs = useCallback<
+    Dispatch<SetStateAction<SketchV3["inputs"]>>
+  >(
+    (action) =>
+      dispatchSketch((prevSketch) => ({
+        ...prevSketch,
+        inputs:
+          typeof action === "function" ? action(prevSketch.inputs) : action,
+      })),
+    []
+  );
 
   const dispatchOutputs = useCallback<
     Dispatch<SetStateAction<SketchV3["outputs"]>>
