@@ -225,12 +225,9 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
           )}
 
           <Tooltip title="Delete">
-            <span>
+            <span className={classes.deleteButton}>
               <IconButton
-                className={clsx(
-                  classes.deleteButton,
-                  "cancel-component-container-drag"
-                )}
+                className="cancel-component-container-drag"
                 disabled={disabled}
                 size="small"
                 onClick={handleDeleteButtonClick}
