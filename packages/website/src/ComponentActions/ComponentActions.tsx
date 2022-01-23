@@ -22,7 +22,7 @@ const ComponentActions: FunctionComponent<{
       return (
         <Input
           id={id}
-          component={component}
+          extendedData={component.extendedData}
           dispatchComponentEntries={dispatchComponentEntries}
           isPlaying={isPlaying}
           player={player}

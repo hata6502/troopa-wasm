@@ -2,12 +2,13 @@ import { Radio, Typography, makeStyles } from "@material-ui/core";
 import clsx from "clsx";
 import { FunctionComponent, memo, useCallback, useMemo } from "react";
 import { ArcherElement } from "react-archer";
+import { Component } from "./component";
 import {
   ComponentDestination,
   Destination,
   serializeDestination,
 } from "./destination";
-import { SketchV3 } from "./sketch";
+import { SketchInput } from "./sketch";
 
 const useStyles = makeStyles(({ palette, spacing }) => ({
   anchor: {
@@ -31,7 +32,8 @@ export const ComponentInput: FunctionComponent<{
   name: string;
   componentID: string;
   disabled?: boolean;
-  sketch: SketchV3;
+  sketchComponentEntries: [string, Component][];
+  sketchInputs: SketchInput[];
   onRemoveConnectionsRequest?: (event: Destination[]) => void;
 }> = memo(
   ({
@@ -39,7 +41,8 @@ export const ComponentInput: FunctionComponent<{
     name,
     componentID,
     disabled,
-    sketch,
+    sketchComponentEntries,
+    sketchInputs,
     onRemoveConnectionsRequest,
   }) => {
     const destination = useMemo<ComponentDestination>(
@@ -57,7 +60,7 @@ export const ComponentInput: FunctionComponent<{
     );
 
     const isConnected =
-      sketch.componentEntries.some(([, otherComponent]) =>
+      sketchComponentEntries.some(([, otherComponent]) =>
         otherComponent.outputDestinationsList.some((outputDestinations) =>
           outputDestinations.some(
             (outputDestination) =>
@@ -70,7 +73,7 @@ export const ComponentInput: FunctionComponent<{
           )
         )
       ) ||
-      sketch.inputs.some(
+      sketchInputs.some(
         (input) =>
           input.destination &&
           serializeDestination({ destination: input.destination }) ===

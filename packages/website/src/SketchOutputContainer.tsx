@@ -9,12 +9,13 @@ import {
   useMemo,
 } from "react";
 import { ArcherElement } from "react-archer";
+import { Component } from "./component";
 import {
   Destination,
   OutputDestination,
   serializeDestination,
 } from "./destination";
-import { SketchOutput, SketchV3 } from "./sketch";
+import { SketchInput, SketchV3 } from "./sketch";
 
 const useStyles = makeStyles(({ palette, spacing }) => ({
   name: {
@@ -28,18 +29,20 @@ const useStyles = makeStyles(({ palette, spacing }) => ({
 
 export const SketchOutputContainer: FunctionComponent<{
   index: number;
-  output: SketchOutput;
+  name: string;
   disabled?: boolean;
   dispatchOutputs: Dispatch<SetStateAction<SketchV3["outputs"]>>;
-  sketch: SketchV3;
+  sketchComponentEntries: [string, Component][];
+  sketchInputs: SketchInput[];
   onRemoveConnectionsRequest?: (event: Destination[]) => void;
 }> = memo(
   ({
     index,
-    output,
+    name,
     disabled,
     dispatchOutputs,
-    sketch,
+    sketchComponentEntries,
+    sketchInputs,
     onRemoveConnectionsRequest,
   }) => {
     const destination = useMemo<OutputDestination>(
@@ -71,7 +74,7 @@ export const SketchOutputContainer: FunctionComponent<{
     );
 
     const isConnected =
-      sketch.componentEntries.some(([, otherComponent]) =>
+      sketchComponentEntries.some(([, otherComponent]) =>
         otherComponent.outputDestinationsList.some((outputDestinations) =>
           outputDestinations.some(
             (outputDestination) =>
@@ -80,7 +83,7 @@ export const SketchOutputContainer: FunctionComponent<{
           )
         )
       ) ||
-      sketch.inputs.some(
+      sketchInputs.some(
         (input) =>
           input.destination &&
           serializeDestination({ destination: input.destination }) ===
@@ -113,7 +116,7 @@ export const SketchOutputContainer: FunctionComponent<{
             disabled={disabled}
             label="output name"
             size="small"
-            value={output.name}
+            value={name}
             onChange={handleNameChange}
           />
         </Grid>

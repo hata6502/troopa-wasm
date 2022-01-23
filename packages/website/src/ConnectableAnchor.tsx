@@ -111,6 +111,21 @@ const getRelations = ({
   });
 };
 
+class Interval extends EventTarget {
+  constructor() {
+    super();
+    setInterval(
+      () =>
+        this.dispatchEvent(
+          new CustomEvent("interval", { bubbles: true, composed: true })
+        ),
+      200
+    );
+  }
+}
+
+const interval = new Interval();
+
 interface ConnectableAnchorProps
   extends Pick<RadioProps, "className" | "disabled"> {
   id: string;
@@ -118,8 +133,8 @@ interface ConnectableAnchorProps
   onStop?: DraggableEventHandler;
 }
 
-const ConnectableAnchor: FunctionComponent<ConnectableAnchorProps> = memo(
-  ({ className, disabled, id, anchorlessRelations, onStop }) => {
+export const ConnectableAnchor: FunctionComponent<ConnectableAnchorProps> =
+  memo(({ className, disabled, id, anchorlessRelations, onStop }) => {
     const [connectionCuror, setConnectionCuror] = useState<DraggableData>();
     const [relations, setRelations] = useState<Relation[]>([]);
 
@@ -141,10 +156,9 @@ const ConnectableAnchor: FunctionComponent<ConnectableAnchorProps> = memo(
         );
 
       handle();
+      interval.addEventListener("interval", handle);
 
-      const intervalID = setInterval(handle, 200);
-
-      return () => clearInterval(intervalID);
+      return () => interval.removeEventListener("interval", handle);
     }, [anchorlessRelations, connectionCuror, cursorID, radioID]);
 
     const handleDrag: DraggableEventHandler = useCallback(
@@ -199,7 +213,4 @@ const ConnectableAnchor: FunctionComponent<ConnectableAnchorProps> = memo(
         )}
       </>
     );
-  }
-);
-
-export { ConnectableAnchor };
+  });

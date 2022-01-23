@@ -15,7 +15,7 @@ import {
   getDestinationsByPosition,
   serializeDestination,
 } from "./destination";
-import { SketchV3 } from "./sketch";
+import { SketchOutput, SketchV3 } from "./sketch";
 
 const useStyles = makeStyles(({ palette, spacing }) => ({
   anchor: {
@@ -43,7 +43,7 @@ export const ComponentOutput: FunctionComponent<{
   dispatchComponentEntries: Dispatch<
     SetStateAction<SketchV3["componentEntries"]>
   >;
-  sketch: SketchV3;
+  sketchOutputs: SketchOutput[];
   onRemoveConnectionsRequest?: (event: Destination[]) => void;
 }> = memo(
   ({
@@ -53,7 +53,7 @@ export const ComponentOutput: FunctionComponent<{
     componentID,
     disabled,
     dispatchComponentEntries,
-    sketch,
+    sketchOutputs,
     onRemoveConnectionsRequest,
   }) => {
     const handleStop: DraggableEventHandler = useCallback(
@@ -74,7 +74,7 @@ export const ComponentOutput: FunctionComponent<{
         const newDestinations = getDestinationsByPosition({ x, y });
         const appendedDestinations = [...destinations, ...newDestinations];
 
-        const outputDestination = sketch.outputs
+        const outputDestination = sketchOutputs
           .map(
             (_output, index): OutputDestination => ({
               type: "output",
@@ -133,7 +133,7 @@ export const ComponentOutput: FunctionComponent<{
         dispatchComponentEntries,
         index,
         onRemoveConnectionsRequest,
-        sketch.outputs,
+        sketchOutputs,
       ]
     );
 

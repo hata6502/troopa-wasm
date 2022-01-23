@@ -20,15 +20,17 @@ import {
 } from "react";
 import Draggable, { DraggableEventHandler } from "react-draggable";
 import { sketchHeight, sketchWidth } from "./App";
+import { ComponentActions } from "./ComponentActions";
 import { ComponentInput } from "./ComponentInput";
 import { ComponentOutput } from "./ComponentOutput";
+import { Player } from "./Player";
 import {
   Component,
   getComponentInputNames,
   getComponentOutputNames,
 } from "./component";
 import { Destination } from "./destination";
-import { SketchV3 } from "./sketch";
+import { SketchInput, SketchOutput, SketchV3 } from "./sketch";
 
 const useStyles = makeStyles(({ spacing }) => ({
   card: {
@@ -56,30 +58,32 @@ const useStyles = makeStyles(({ spacing }) => ({
 interface ComponentContainerProps {
   id: string;
   component: Component;
-  sketch: SketchV3;
-  disabled?: boolean;
   dispatchComponentEntries: Dispatch<
     SetStateAction<SketchV3["componentEntries"]>
   >;
   isError?: boolean;
-  onRemoveComponentRequest?: (event: {
-    id: string;
-    component: Component;
-  }) => void;
+  isPlaying?: boolean;
+  onRemoveComponentRequest?: (event: { id: string }) => void;
   onRemoveConnectionsRequest?: (event: Destination[]) => void;
+  player?: Player;
+  sketchComponentEntries: [string, Component][];
+  sketchInputs: SketchInput[];
+  sketchOutputs: SketchOutput[];
 }
 
 const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
   ({
     id,
-    children,
     component,
-    sketch,
-    disabled,
     dispatchComponentEntries,
     isError = false,
+    isPlaying,
     onRemoveComponentRequest,
     onRemoveConnectionsRequest,
+    player,
+    sketchComponentEntries,
+    sketchInputs,
+    sketchOutputs,
   }) => {
     const handleNameChange: ChangeEventHandler<HTMLInputElement> = useCallback(
       (event) =>
@@ -129,12 +133,8 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
     );
 
     const handleDeleteButtonClick = useCallback(
-      () =>
-        onRemoveComponentRequest?.({
-          id,
-          component,
-        }),
-      [component, id, onRemoveComponentRequest]
+      () => onRemoveComponentRequest?.({ id }),
+      [id, onRemoveComponentRequest]
     );
 
     const outputNames = getComponentOutputNames({ component });
@@ -143,7 +143,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
     return (
       <Draggable
         cancel=".cancel-component-container-drag"
-        disabled={disabled}
+        disabled={isPlaying}
         position={component.position}
         onStart={handleDrag}
         onDrag={handleDrag}
@@ -152,7 +152,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
         <div
           className={clsx(
             classes.container,
-            !disabled && classes.draggableContainer
+            !isPlaying && classes.draggableContainer
           )}
         >
           <Card className={classes.card}>
@@ -160,7 +160,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
               <Box mb={2} pl={2} pr={2}>
                 <TextField
                   className="cancel-component-container-drag"
-                  disabled={disabled}
+                  disabled={isPlaying}
                   size="small"
                   value={component.name}
                   onChange={handleNameChange}
@@ -177,8 +177,9 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
                           index={index}
                           name={name}
                           componentID={id}
-                          disabled={disabled}
-                          sketch={sketch}
+                          disabled={isPlaying}
+                          sketchComponentEntries={sketchComponentEntries}
+                          sketchInputs={sketchInputs}
                           onRemoveConnectionsRequest={
                             onRemoveConnectionsRequest
                           }
@@ -199,9 +200,9 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
                           index={index}
                           name={name}
                           componentID={id}
-                          disabled={disabled}
+                          disabled={isPlaying}
                           dispatchComponentEntries={dispatchComponentEntries}
-                          sketch={sketch}
+                          sketchOutputs={sketchOutputs}
                           onRemoveConnectionsRequest={
                             onRemoveConnectionsRequest
                           }
@@ -213,7 +214,15 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
               </Grid>
             </Box>
 
-            <CardActions>{children}</CardActions>
+            <CardActions>
+              <ComponentActions
+                id={id}
+                component={component}
+                dispatchComponentEntries={dispatchComponentEntries}
+                isPlaying={isPlaying}
+                player={player}
+              />
+            </CardActions>
           </Card>
 
           {isError && (
@@ -228,7 +237,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
             <span className={classes.deleteButton}>
               <IconButton
                 className="cancel-component-container-drag"
-                disabled={disabled}
+                disabled={isPlaying}
                 size="small"
                 onClick={handleDeleteButtonClick}
               >

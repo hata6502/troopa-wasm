@@ -73,10 +73,7 @@ export const componentName: Record<ComponentType, string> = {
 
 const distributorComponentInInput = 1;
 
-interface ComponentBase<
-  Type extends ComponentType,
-  ExtendedData extends Record<string, unknown>
-> {
+interface ComponentBase<Type extends ComponentType, ExtendedData> {
   name: string;
   type: Type;
   outputDestinationsList: Destination[][];
@@ -84,9 +81,13 @@ interface ComponentBase<
   extendedData: ExtendedData;
 }
 
+export interface InputComponentExtendedData {
+  value: string;
+}
+
 export type InputComponent = ComponentBase<
   typeof componentType.input,
-  { value: string }
+  InputComponentExtendedData
 >;
 
 export type SketchComponent = ComponentBase<

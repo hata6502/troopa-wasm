@@ -23,7 +23,6 @@ import {
 } from "react";
 import { ArcherContainer, ArcherContainerProps } from "react-archer";
 import { v4 as uuidv4 } from "uuid";
-import { ComponentActions } from "./ComponentActions";
 import {
   ComponentContainer,
   ComponentContainerProps,
@@ -366,7 +365,8 @@ export const App: FunctionComponent = memo(() => {
         dispatchSketchHistory={dispatchSketchHistory}
         player={player}
         sketch={sketch}
-        sketchHistory={sketchHistory}
+        sketchHistoryIndex={sketchHistory.index}
+        sketchHistorySketches={sketchHistory.sketches}
       />
 
       <Sidebar
@@ -391,31 +391,27 @@ export const App: FunctionComponent = memo(() => {
                 id={id}
                 key={id}
                 component={component}
-                sketch={sketch}
-                disabled={isPlaying}
                 dispatchComponentEntries={dispatchComponentEntries}
                 isError={errorComponentIDs.includes(id)}
+                isPlaying={isPlaying}
                 onRemoveComponentRequest={handleRemoveComponentRequest}
                 onRemoveConnectionsRequest={removeConnections}
-              >
-                <ComponentActions
-                  id={id}
-                  component={component}
-                  dispatchComponentEntries={dispatchComponentEntries}
-                  isPlaying={isPlaying}
-                  player={player}
-                />
-              </ComponentContainer>
+                player={player}
+                sketchComponentEntries={sketch.componentEntries}
+                sketchInputs={sketch.inputs}
+                sketchOutputs={sketch.outputs}
+              />
             ))}
 
             <div className={classes.input}>
               {sketch.inputs.map((input, index) => (
                 <SketchInputContainer
                   key={index}
+                  destination={input.destination}
                   index={index}
+                  name={input.name}
                   disabled={isPlaying}
                   dispatchInputs={dispatchInputs}
-                  input={input}
                   onRemoveConnectionsRequest={removeConnections}
                 />
               ))}
@@ -426,10 +422,11 @@ export const App: FunctionComponent = memo(() => {
                 <SketchOutputContainer
                   key={index}
                   index={index}
-                  output={output}
+                  name={output.name}
                   disabled={isPlaying}
                   dispatchOutputs={dispatchOutputs}
-                  sketch={sketch}
+                  sketchComponentEntries={sketch.componentEntries}
+                  sketchInputs={sketch.inputs}
                   onRemoveConnectionsRequest={removeConnections}
                 />
               ))}

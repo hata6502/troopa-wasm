@@ -57,7 +57,8 @@ const TopBar: FunctionComponent<{
   dispatchSketchHistory: Dispatch<SetStateAction<SketchHistory>>;
   player?: Player;
   sketch: SketchV3;
-  sketchHistory: SketchHistory;
+  sketchHistoryIndex: number;
+  sketchHistorySketches: SketchV3[];
 }> = memo(
   ({
     dispatchErrorComponentIDs,
@@ -68,7 +69,8 @@ const TopBar: FunctionComponent<{
     dispatchSketchHistory,
     player,
     sketch,
-    sketchHistory,
+    sketchHistoryIndex,
+    sketchHistorySketches,
   }) => {
     const classes = useStyles();
 
@@ -93,7 +95,7 @@ const TopBar: FunctionComponent<{
     }, [dispatchPlayer, player]);
 
     const handleUndoButtonClick = useCallback(() => {
-      dispatchSketch(sketchHistory.sketches[sketchHistory.index - 1]);
+      dispatchSketch(sketchHistorySketches[sketchHistoryIndex - 1]);
 
       dispatchSketchHistory((prevSketchHistory) => ({
         ...prevSketchHistory,
@@ -102,12 +104,12 @@ const TopBar: FunctionComponent<{
     }, [
       dispatchSketch,
       dispatchSketchHistory,
-      sketchHistory.index,
-      sketchHistory.sketches,
+      sketchHistoryIndex,
+      sketchHistorySketches,
     ]);
 
     const handleRedoButtonClick = useCallback(() => {
-      dispatchSketch(sketchHistory.sketches[sketchHistory.index + 1]);
+      dispatchSketch(sketchHistorySketches[sketchHistoryIndex + 1]);
 
       dispatchSketchHistory((prevSketchHistory) => ({
         ...prevSketchHistory,
@@ -116,8 +118,8 @@ const TopBar: FunctionComponent<{
     }, [
       dispatchSketch,
       dispatchSketchHistory,
-      sketchHistory.index,
-      sketchHistory.sketches,
+      sketchHistoryIndex,
+      sketchHistorySketches,
     ]);
 
     const handleLoadButtonClick = useCallback(async () => {
@@ -202,7 +204,7 @@ const TopBar: FunctionComponent<{
               <Tooltip title="Undo">
                 <span>
                   <IconButton
-                    disabled={Boolean(player) || sketchHistory.index < 1}
+                    disabled={Boolean(player) || sketchHistoryIndex < 1}
                     onClick={handleUndoButtonClick}
                   >
                     <Undo />
@@ -217,7 +219,7 @@ const TopBar: FunctionComponent<{
                   <IconButton
                     disabled={
                       Boolean(player) ||
-                      sketchHistory.index >= sketchHistory.sketches.length - 1
+                      sketchHistoryIndex >= sketchHistorySketches.length - 1
                     }
                     onClick={handleRedoButtonClick}
                   >

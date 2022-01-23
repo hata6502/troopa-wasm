@@ -15,7 +15,7 @@ import {
   getDestinationsByPosition,
   serializeDestination,
 } from "./destination";
-import { SketchV3, SketchInput } from "./sketch";
+import { SketchV3 } from "./sketch";
 
 const useStyles = makeStyles(({ spacing }) => ({
   name: {
@@ -24,13 +24,21 @@ const useStyles = makeStyles(({ spacing }) => ({
 }));
 
 const SketchInputContainer: FunctionComponent<{
+  destination?: Destination;
   index: number;
+  name: string;
   disabled?: boolean;
   dispatchInputs: Dispatch<SetStateAction<SketchV3["inputs"]>>;
-  input: SketchInput;
   onRemoveConnectionsRequest?: (event: Destination[]) => void;
 }> = memo(
-  ({ index, disabled, dispatchInputs, input, onRemoveConnectionsRequest }) => {
+  ({
+    destination,
+    index,
+    name,
+    disabled,
+    dispatchInputs,
+    onRemoveConnectionsRequest,
+  }) => {
     const classes = useStyles();
 
     const handleNameChange: ChangeEventHandler<HTMLInputElement> = useCallback(
@@ -85,16 +93,14 @@ const SketchInputContainer: FunctionComponent<{
 
     const relations = useMemo(
       () =>
-        input.destination
+        destination
           ? [
               {
-                targetId: serializeDestination({
-                  destination: input.destination,
-                }),
+                targetId: serializeDestination({ destination }),
               },
             ]
           : [],
-      [input.destination]
+      [destination]
     );
 
     return (
@@ -106,7 +112,7 @@ const SketchInputContainer: FunctionComponent<{
             disabled={disabled}
             label="input name"
             size="small"
-            value={input.name}
+            value={name}
             onChange={handleNameChange}
           />
         </Grid>
