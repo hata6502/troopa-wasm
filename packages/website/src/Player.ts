@@ -438,10 +438,9 @@ class Player {
     const componentMap = new Map(this.sketch.componentEntries);
 
     this.outputComponentIds.forEach((outputComponentId, index) => {
-      const outputComponentBuffer = new Float64Array(
-        buffer,
-        Float64Array.BYTES_PER_ELEMENT * bufferSize * index,
-        bufferSize
+      const outputComponentBuffer = buffer.slice(
+        bufferSize * index,
+        bufferSize * (index + 1)
       );
 
       const outputComponent = componentMap.get(outputComponentId);
