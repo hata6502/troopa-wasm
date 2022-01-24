@@ -1,7 +1,7 @@
+import { Component, componentType } from "../component";
+import { Destination } from "../destination";
 import { SketchV1 } from "./SketchV1";
 import { DestinationV2, SketchV2 } from "./SketchV2";
-import { Component, componentType } from "./component";
-import { Destination } from "./destination";
 
 export interface SketchInput {
   name: string;

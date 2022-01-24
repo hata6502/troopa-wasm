@@ -8,14 +8,14 @@ import {
   useMemo,
 } from "react";
 import { DraggableEventHandler } from "react-draggable";
-import { ConnectableAnchor } from "./ConnectableAnchor";
+import { ConnectableAnchor } from "../ConnectableAnchor";
 import {
   Destination,
   OutputDestination,
   getDestinationsByPosition,
   serializeDestination,
-} from "./destination";
-import { SketchOutput, SketchV3 } from "./sketch";
+} from "../destination";
+import { SketchOutput, SketchV3 } from "../sketch";
 
 const useStyles = makeStyles(({ palette, spacing }) => ({
   anchor: {
@@ -34,7 +34,7 @@ const useStyles = makeStyles(({ palette, spacing }) => ({
   },
 }));
 
-export const ComponentOutput: FunctionComponent<{
+export const Output: FunctionComponent<{
   destinations: Destination[];
   index: number;
   name: string;

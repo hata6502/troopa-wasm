@@ -19,18 +19,18 @@ import {
   useCallback,
 } from "react";
 import Draggable, { DraggableEventHandler } from "react-draggable";
-import { sketchHeight, sketchWidth } from "./App";
-import { ComponentActions } from "./ComponentActions";
-import { ComponentInput } from "./ComponentInput";
-import { ComponentOutput } from "./ComponentOutput";
-import { Player } from "./Player";
+import { sketchHeight, sketchWidth } from "../App";
+import { ComponentActions } from "../ComponentActions";
+import { Player } from "../Player";
 import {
   Component,
   getComponentInputNames,
   getComponentOutputNames,
-} from "./component";
-import { Destination } from "./destination";
-import { SketchInput, SketchOutput, SketchV3 } from "./sketch";
+} from "../component";
+import { Destination } from "../destination";
+import { SketchInput, SketchOutput, SketchV3 } from "../sketch";
+import { Input } from "./Input";
+import { Output } from "./Output";
 
 const useStyles = makeStyles(({ spacing }) => ({
   card: {
@@ -172,7 +172,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
                   {getComponentInputNames({ component }).map(
                     (name, index) =>
                       name && (
-                        <ComponentInput
+                        <Input
                           key={index}
                           index={index}
                           name={name}
@@ -194,7 +194,7 @@ const ComponentContainer: FunctionComponent<ComponentContainerProps> = memo(
                       const name = outputNames[index];
 
                       return name ? (
-                        <ComponentOutput
+                        <Output
                           key={index}
                           destinations={outputDestinations}
                           index={index}

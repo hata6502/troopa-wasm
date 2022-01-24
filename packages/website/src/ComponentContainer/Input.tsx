@@ -2,13 +2,13 @@ import { Radio, Typography, makeStyles } from "@material-ui/core";
 import clsx from "clsx";
 import { FunctionComponent, memo, useCallback, useMemo } from "react";
 import { ArcherElement } from "react-archer";
-import { Component } from "./component";
+import { Component } from "../component";
 import {
   ComponentDestination,
   Destination,
   serializeDestination,
-} from "./destination";
-import { SketchInput } from "./sketch";
+} from "../destination";
+import { SketchInput } from "../sketch";
 
 const useStyles = makeStyles(({ palette, spacing }) => ({
   anchor: {
@@ -27,7 +27,7 @@ const useStyles = makeStyles(({ palette, spacing }) => ({
   },
 }));
 
-export const ComponentInput: FunctionComponent<{
+export const Input: FunctionComponent<{
   index: number;
   name: string;
   componentID: string;
