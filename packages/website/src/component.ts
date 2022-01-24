@@ -243,8 +243,8 @@ export const getComponentOutputNames = ({
         [componentType.speaker]: ["thru"],
         [componentType.meter]: ["thru"],
         [componentType.and]: ["and"],
-        [componentType.not]: ["or"],
-        [componentType.or]: ["not"],
+        [componentType.not]: ["not"],
+        [componentType.or]: ["or"],
       }[component.type];
     }
 
