@@ -18,7 +18,6 @@ import {
   memo,
   useCallback,
   useEffect,
-  useRef,
   useState,
 } from "react";
 import { ArcherContainer, ArcherContainerProps } from "react-archer";
@@ -176,8 +175,6 @@ export const App: FunctionComponent = memo(() => {
     return () => clearTimeout(timeoutID);
   }, [fileHandle, sketch, sketchHistory.index, sketchHistory.sketches]);
 
-  const archerContainerElement = useRef<ArcherContainer>(null);
-
   const classes = useStyles();
   const theme = useTheme();
 
@@ -218,15 +215,6 @@ export const App: FunctionComponent = memo(() => {
       })),
     []
   );
-
-  useEffect(() => {
-    const intervalID = setInterval(
-      () => archerContainerElement.current?.refreshScreen(),
-      200
-    );
-
-    return () => clearInterval(intervalID);
-  }, []);
 
   useEffect(() => {
     if (!player) {
@@ -385,7 +373,6 @@ export const App: FunctionComponent = memo(() => {
         <div className={classes.sketch}>
           <ArcherContainer
             className={classes.archerContainer}
-            ref={archerContainerElement}
             strokeColor={theme.palette.divider}
             svgContainerStyle={svgContainerStyle}
           >
