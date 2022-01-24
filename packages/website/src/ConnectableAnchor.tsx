@@ -111,20 +111,23 @@ const getRelations = ({
   });
 };
 
-class Interval extends EventTarget {
+class AnchorInterval extends EventTarget {
+  enabled = false;
+
   constructor() {
     super();
-    setInterval(
-      () =>
+
+    setInterval(() => {
+      if (this.enabled) {
         this.dispatchEvent(
           new CustomEvent("interval", { bubbles: true, composed: true })
-        ),
-      200
-    );
+        );
+      }
+    }, 200);
   }
 }
 
-const interval = new Interval();
+export const anchorInterval = new AnchorInterval();
 
 interface ConnectableAnchorProps
   extends Pick<RadioProps, "className" | "disabled"> {
@@ -156,9 +159,9 @@ export const ConnectableAnchor: FunctionComponent<ConnectableAnchorProps> =
         );
 
       handle();
-      interval.addEventListener("interval", handle);
+      anchorInterval.addEventListener("interval", handle);
 
-      return () => interval.removeEventListener("interval", handle);
+      return () => anchorInterval.removeEventListener("interval", handle);
     }, [anchorlessRelations, connectionCuror, cursorID, radioID]);
 
     const handleDrag: DraggableEventHandler = useCallback(

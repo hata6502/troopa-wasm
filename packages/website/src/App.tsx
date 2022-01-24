@@ -27,6 +27,7 @@ import {
   ComponentContainer,
   ComponentContainerProps,
 } from "./ComponentContainer";
+import { anchorInterval } from "./ConnectableAnchor";
 import { Player } from "./Player";
 import { Sidebar } from "./Sidebar";
 import { SketchInputContainer } from "./SketchInputContainer";
@@ -353,6 +354,8 @@ export const App: FunctionComponent = memo(() => {
   );
 
   const isPlaying = Boolean(player);
+
+  anchorInterval.enabled = !isPlaying;
 
   return (
     <div className={classes.container}>
