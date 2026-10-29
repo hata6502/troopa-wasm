@@ -17,7 +17,7 @@
     "not safari > 0"
   ],
   "devDependencies": {
-    "@babel/core": "^7.14.3",
+    "@babel/core": "^7.29.6",
     "@babel/preset-env": "^7.15.0",
     "@material-ui/core": "^4.11.3",
     "@material-ui/icons": "^4.11.2",
